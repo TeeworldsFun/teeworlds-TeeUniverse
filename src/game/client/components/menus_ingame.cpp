@@ -20,6 +20,7 @@
 
 #include "menus.h"
 #include "motd.h"
+#include "netgui.h"
 #include "voting.h"
 
 void CMenus::RenderGame(CUIRect MainView)
@@ -184,6 +185,12 @@ void CMenus::RenderGame(CUIRect MainView)
 	static int s_DisconnectButton = 0;
 	if(DoButton_Menu(&s_DisconnectButton, Localize("Disconnect"), 0, &Right))
 		Client()->Disconnect();
+		
+	// NetGui
+	// keep empty space at the top for notifications
+	if(!pNotification)
+		MainView.HSplitTop(45.0f, 0, &MainView);
+	RenderNetGui(MainView);
 }
 
 void CMenus::RenderPlayers(CUIRect MainView)
@@ -454,6 +461,141 @@ void CMenus::RenderServerControlKick(CUIRect MainView, bool FilterSpectators)
 
 	Selected = UiDoListboxEnd(&s_ScrollValue, 0);
 	m_CallvoteSelectedPlayer = Selected != -1 ? aPlayerIDs[Selected] : -1;
+}
+
+// NetGui
+#define GUIPREPARE(name) \
+		for(int i = 0; i < m_pClient->m_pNetGui->m_NetGui##name.size(); i++)\
+		{\
+			if(i >= 1024) break;\
+			CUIRect Rect;\
+			CNetMsg_Sv_NetGui_##name *e = &m_pClient->m_pNetGui->m_NetGui##name[i];\
+			float xa = MainView.x + ((float)e->m_Dimension[0]/100.0f) * MainView.w;\
+			float xb = MainView.x + ((float)e->m_Dimension[1]/100.0f) * MainView.w;\
+			float yb = MainView.y + ((float)e->m_Dimension[2]/100.0f) * MainView.h;\
+			float ya = MainView.y + ((float)e->m_Dimension[3]/100.0f) * MainView.h;\
+			Rect.x = xa;\
+			Rect.y = ya;\
+			Rect.w = xb - xa;\
+			Rect.h = yb - ya;
+
+void CMenus::RenderNetGui(CUIRect MainView)
+{
+	// UIRect
+	GUIPREPARE(UIRect)
+		vec4 Color = vec4(
+				e->m_Color[0]/100.0f,
+				e->m_Color[1]/100.0f,
+				e->m_Color[2]/100.0f,
+				e->m_Color[3]/100.0f);
+		RenderTools()->DrawUIRect(&Rect, Color, e->m_Corner, e->m_RoundingX10/10.0f);
+	}
+
+
+	// Label
+	GUIPREPARE(Label)
+		switch(e->m_FontAlign)
+		{
+		case 1: // center
+			Rect.x += (Rect.w - TextRender()->TextWidth(0, e->m_FontSize, e->m_Text, -1))/2;
+			break;
+		case 2: // right
+			Rect.x += Rect.w - TextRender()->TextWidth(0, e->m_FontSize, e->m_Text, -1);
+			break;
+		default: // anything but 1 and 2 will result in left-aligned
+			break;
+		}
+		TextRender()->TextColor(
+				e->m_Color[0]/100.0f,
+				e->m_Color[1]/100.0f,
+				e->m_Color[2]/100.0f,
+				e->m_Color[3]/100.0f);
+
+		TextRender()->Text(0, Rect.x, Rect.y, e->m_FontSize, e->m_Text, e->m_MaxTextWidth*(int)MainView.w);
+	}
+	TextRender()->TextColor(1,1,1,1);
+
+
+	// ButtonMenu
+	GUIPREPARE(ButtonMenu)
+		static int s_ID[1024] = {0}; // nobody will create so much buttons :p
+		if(DoButton_Menu(&s_ID[i], e->m_Text, e->m_Selected, &Rect))
+			m_pClient->m_pNetGui->SendEvent(NETMSGTYPE_SV_NETGUI_BUTTONMENU, e->m_ID);
+	}
+
+
+	// EditBox
+	GUIPREPARE(EditBox)
+		static char aText[1024][1024];
+		static float s_Offset[1024] = {0};
+		static int s_ID[1024] ={0};
+		DoEditBoxOption((void *)&s_ID[i], aText[i], e->m_MaxTextWidth, &Rect, e->m_Title, ((float)e->m_SplitValue/100.0f)*Rect.w, &s_Offset[i], e->m_Password == 1 ? true : false);
+		str_copy(m_pClient->m_pNetGui->m_aNetGuiEditBoxContent[i], aText[i], sizeof(m_pClient->m_pNetGui->m_aNetGuiEditBoxContent[i]));
+	}
+
+
+	// CheckBox
+	GUIPREPARE(CheckBox)
+		static int s_ID[1024] = {0};
+		if(DoButton_CheckBox(&s_ID[i], e->m_Text, e->m_Checked, &Rect))
+			e->m_Checked ^= 1;
+	}
+
+
+	// CheckBoxNumber
+	GUIPREPARE(CheckBoxNumber)
+		static int s_ID[1024] = {0};
+		int MouseButton = DoButton_CheckBox_Number(&s_ID[i], e->m_Text, e->m_Value, &Rect);
+		if(MouseButton == 1) // primary click
+		{
+			char aBuf[128];
+			str_format(aBuf, sizeof(aBuf), "step=%d", e->m_StepValue);
+			if(e->m_Value == e->m_MaxValue)
+				e->m_Value = e->m_MinValue;
+			else if(e->m_Value + e->m_StepValue > e->m_MaxValue)
+				e->m_Value = e->m_MaxValue;
+			else
+				e->m_Value += e->m_StepValue;
+		}
+		else if(MouseButton == 2) // secondary click
+		{
+
+			if(e->m_Value == e->m_MinValue)
+				e->m_Value = e->m_MaxValue;
+			else if(e->m_Value - e->m_StepValue < e->m_MinValue)
+				e->m_Value = e->m_MinValue;
+			else
+				e->m_Value -= e->m_StepValue;
+		}
+	}
+
+
+	// Scrollbar
+	GUIPREPARE(Scrollbar)
+		static int s_ID[1024] = {0};
+		static float s_Value[1024] = {0.0f};
+		if(e->m_Vertical)
+			s_Value[i] = DoScrollbarV(&s_ID[i], &Rect, s_Value[i]);
+		else
+			s_Value[i] = DoScrollbarH(&s_ID[i], &Rect, s_Value[i]);
+
+		e->m_ValueX100 = (int)(s_Value[i] * 100.0f);
+	}
+
+
+	// ScrollbarOption
+	GUIPREPARE(ScrollbarOption)
+		static int s_ID[1024] = {0};
+		static int s_Value[1024] = {0};
+		DoScrollbarOption(&s_ID[i], &s_Value[i], &Rect, e->m_Text, (((float)e->m_VSplitValX10/10.0f)/100.0f)*Rect.w, e->m_MinValue, e->m_MaxValue, e->m_Infinite == 1 ? true : false);
+		e->m_Value = s_Value[i];
+	}
+
+
+	// InfoBox
+	GUIPREPARE(InfoBox)
+		DoInfoBox(&Rect, e->m_Label, e->m_Value);
+	}
 }
 
 void CMenus::HandleCallvote(int Page, bool Force)
