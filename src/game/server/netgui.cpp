@@ -4,6 +4,8 @@
 #include <game/server/gamecontroller.h>
 #include <engine/server.h>
 
+#include <modapi/compatibility.h>
+
 #include "netgui.h"
 
 #define PREBUILD(msgtype) \
@@ -31,14 +33,8 @@ void CNetGui::OnClientEnter(int ClientID)
 {
 }
 
-void CNetGui::OnClientCompatible(int ClientID)
-{
-
-}
-
 void CNetGui::OnClientDrop(int ClientID)
 {
-	m_NetGuiClients[ClientID] = false;
 	// auto-generated clear's
 	#define GUIDEFINE(name, netmsgname, args...) m_##name[ClientID].clear();
 	#include <game/netguidefines.h>
@@ -55,24 +51,6 @@ void CNetGui::OnMessage(int MsgID, void *pRawMsg, int ClientID)
 
 		switch(pMsg->m_Type)
 		{
-		case NETGUIMAGICNUMBER1: // verify compatibility
-		{
-			if(pMsg->m_ID == NETGUIMAGICNUMBER2)
-			{
-				dbg_msg("netgui", "client ID:%d has proven netgui compatibility (%d)", ClientID, pMsg->m_ID);
-				m_NetGuiClients[ClientID] = true;
-
-				// this seems to be the earliest moment possible for sending the first GUI...
-				OnClientCompatible(ClientID);
-			}
-			else
-			{
-				GameServer()->SendChatTarget(ClientID, "[NetGUI] Your client has only partially proven NetGUI ability, you won't receive GUIs.");
-				GameServer()->SendChatTarget(ClientID, "[NetGUI] You may ask the server owner for further instructions. Maybe it's time for an update?");
-				dbg_msg("netgui", "client ID:%d has only partially proven netgui ability, what went wrong? (%d != %d)", ClientID, pMsg->m_ID, NETGUIMAGICNUMBER2);
-			}
-		}
-		break;
 		case NETMSGTYPE_SV_NETGUI_BUTTONMENU:
 			bool exists = false;
 			for(int i = 0; i < m_ButtonMenu[ClientID].size(); i++)
@@ -112,8 +90,8 @@ void CNetGui::OnMessage(int MsgID, void *pRawMsg, int ClientID)
 
 void CNetGui::RemoveElement(int ClientID, int Type, int NetGuiElemID)
 {
-	if(!m_NetGuiClients[ClientID])
-			return;
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+		return;
 
 	CNetMsg_Sv_NetGui_RemoveElement Msg;
 	Msg.m_Type = Type;
@@ -143,7 +121,7 @@ void CNetGui::RemoveElement(int ClientID, int Type, int NetGuiElemID)
 
 void CNetGui::DoUIRect(int ClientID, int NetGuiElemID, vec4 Dimensions, vec4 Color, int Corner, float Rounding)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(UIRect);
@@ -161,7 +139,7 @@ void CNetGui::DoUIRect(int ClientID, int NetGuiElemID, vec4 Dimensions, vec4 Col
 
 void CNetGui::DoLabel(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, vec4 Color, int FontSize, int FontAlign, int MaxTextWidth)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(Label);
@@ -181,7 +159,7 @@ void CNetGui::DoLabel(int ClientID, int NetGuiElemID, vec4 Dimensions, const cha
 
 void CNetGui::DoButtonMenu(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, bool Selected)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(ButtonMenu);
@@ -195,7 +173,7 @@ void CNetGui::DoButtonMenu(int ClientID, int NetGuiElemID, vec4 Dimensions, cons
 
 void CNetGui::DoEditBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pTitle, int SplitValue, int MaxTextWidth, bool Password)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(EditBox);
@@ -211,7 +189,7 @@ void CNetGui::DoEditBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const c
 
 void CNetGui::DoCheckBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, bool Checked)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(CheckBox);
@@ -225,7 +203,7 @@ void CNetGui::DoCheckBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const 
 
 void CNetGui::DoCheckBoxNumber(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, int MinValue, int MaxValue, int StepValue)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(CheckBoxNumber);
@@ -242,7 +220,7 @@ void CNetGui::DoCheckBoxNumber(int ClientID, int NetGuiElemID, vec4 Dimensions, 
 
 void CNetGui::DoScrollbar(int ClientID, int NetGuiElemID, vec4 Dimensions, bool Vertical)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(Scrollbar);
@@ -255,8 +233,8 @@ void CNetGui::DoScrollbar(int ClientID, int NetGuiElemID, vec4 Dimensions, bool 
 
 void CNetGui::DoScrollbarOption(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, float VSplitVal, int Min, int Max, bool Infinite)
 {
-	if(!m_NetGuiClients[ClientID])
-			return;
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+		return;
 
 	PREBUILD(ScrollbarOption);
 	Msg.m_Text = pText;
@@ -272,7 +250,7 @@ void CNetGui::DoScrollbarOption(int ClientID, int NetGuiElemID, vec4 Dimensions,
 
 void CNetGui::DoInfoBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pLabel, const char* pValue)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	PREBUILD(InfoBox);
@@ -286,7 +264,7 @@ void CNetGui::DoInfoBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const c
 
 void CNetGui::RequestData(int ClientID, int Type, int NetGuiElemID)
 {
-	if(!m_NetGuiClients[ClientID])
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
 		return;
 
 	CNetMsg_Sv_NetGui_RequestData Msg;
@@ -299,6 +277,9 @@ void CNetGui::RequestData(int ClientID, int Type, int NetGuiElemID)
 template<class T>
 void CNetGui::SendNetGui(int ClientID, T Msg)
 {
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+		return;
+
 	if(ClientID < 0)
 	{
 		for(int i = 0; i < MAX_CLIENTS; ++i)
