@@ -90,7 +90,7 @@ void CNetGui::OnMessage(int MsgID, void *pRawMsg, int ClientID)
 
 void CNetGui::RemoveElement(int ClientID, int Type, int NetGuiElemID)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	CNetMsg_Sv_NetGui_RemoveElement Msg;
@@ -121,7 +121,7 @@ void CNetGui::RemoveElement(int ClientID, int Type, int NetGuiElemID)
 
 void CNetGui::DoUIRect(int ClientID, int NetGuiElemID, vec4 Dimensions, vec4 Color, int Corner, float Rounding)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(UIRect);
@@ -139,7 +139,7 @@ void CNetGui::DoUIRect(int ClientID, int NetGuiElemID, vec4 Dimensions, vec4 Col
 
 void CNetGui::DoLabel(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, vec4 Color, int FontSize, int FontAlign, int MaxTextWidth)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(Label);
@@ -159,7 +159,7 @@ void CNetGui::DoLabel(int ClientID, int NetGuiElemID, vec4 Dimensions, const cha
 
 void CNetGui::DoButtonMenu(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, bool Selected)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(ButtonMenu);
@@ -173,7 +173,7 @@ void CNetGui::DoButtonMenu(int ClientID, int NetGuiElemID, vec4 Dimensions, cons
 
 void CNetGui::DoEditBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pTitle, int SplitValue, int MaxTextWidth, bool Password)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(EditBox);
@@ -189,7 +189,7 @@ void CNetGui::DoEditBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const c
 
 void CNetGui::DoCheckBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, bool Checked)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(CheckBox);
@@ -203,7 +203,7 @@ void CNetGui::DoCheckBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const 
 
 void CNetGui::DoCheckBoxNumber(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, int MinValue, int MaxValue, int StepValue)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(CheckBoxNumber);
@@ -220,7 +220,7 @@ void CNetGui::DoCheckBoxNumber(int ClientID, int NetGuiElemID, vec4 Dimensions, 
 
 void CNetGui::DoScrollbar(int ClientID, int NetGuiElemID, vec4 Dimensions, bool Vertical)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(Scrollbar);
@@ -233,7 +233,7 @@ void CNetGui::DoScrollbar(int ClientID, int NetGuiElemID, vec4 Dimensions, bool 
 
 void CNetGui::DoScrollbarOption(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, float VSplitVal, int Min, int Max, bool Infinite)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(ScrollbarOption);
@@ -250,7 +250,7 @@ void CNetGui::DoScrollbarOption(int ClientID, int NetGuiElemID, vec4 Dimensions,
 
 void CNetGui::DoInfoBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pLabel, const char* pValue)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	PREBUILD(InfoBox);
@@ -264,7 +264,7 @@ void CNetGui::DoInfoBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const c
 
 void CNetGui::RequestData(int ClientID, int Type, int NetGuiElemID)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	CNetMsg_Sv_NetGui_RequestData Msg;
@@ -277,7 +277,7 @@ void CNetGui::RequestData(int ClientID, int Type, int NetGuiElemID)
 template<class T>
 void CNetGui::SendNetGui(int ClientID, T Msg)
 {
-	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_CLIENTPROTOCOL_TW07MODAPI))
+	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
 	if(ClientID < 0)
