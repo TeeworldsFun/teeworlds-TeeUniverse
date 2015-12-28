@@ -31,6 +31,7 @@ void CGameContext::Construct(int Resetting)
 {
 	m_Resetting = 0;
 	m_pServer = 0;
+	m_pNetGui = 0;
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
 		m_apPlayers[i] = 0;
@@ -44,7 +45,10 @@ void CGameContext::Construct(int Resetting)
 	m_LockTeams = 0;
 
 	if(Resetting==NO_RESET)
+	{
 		m_pVoteOptionHeap = new CHeap();
+		m_pNetGui = new CNetGui(this);
+	}
 }
 
 CGameContext::CGameContext(int Resetting)
@@ -62,7 +66,10 @@ CGameContext::~CGameContext()
 	for(int i = 0; i < MAX_CLIENTS; i++)
 		delete m_apPlayers[i];
 	if(!m_Resetting)
+	{
 		delete m_pVoteOptionHeap;
+		delete m_pNetGui;
+	}
 }
 
 void CGameContext::Clear()
@@ -72,6 +79,7 @@ void CGameContext::Clear()
 	CVoteOptionServer *pVoteOptionLast = m_pVoteOptionLast;
 	int NumVoteOptions = m_NumVoteOptions;
 	CTuningParams Tuning = m_Tuning;
+	CNetGui *pNetGui = m_pNetGui;
 
 	m_Resetting = true;
 	this->~CGameContext();
@@ -83,6 +91,7 @@ void CGameContext::Clear()
 	m_pVoteOptionLast = pVoteOptionLast;
 	m_NumVoteOptions = NumVoteOptions;
 	m_Tuning = Tuning;
+	m_pNetGui = pNetGui;
 }
 
 
@@ -688,6 +697,8 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 	m_apPlayers[ClientID] = 0;
 
 	m_VoteUpdate = true;
+	
+	m_pNetGui->OnClientDrop(ClientID);
 }
 
 void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
@@ -708,6 +719,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 	if(Server()->ClientIngame(ClientID))
 	{
+		m_pNetGui->OnMessage(MsgID, pRawMsg, ClientID);
+		
 		if(MsgID == NETMSGTYPE_CL_SAY)
 		{
 			if(g_Config.m_SvSpamprotection && pPlayer->m_LastChat && pPlayer->m_LastChat+Server()->TickSpeed() > Server()->Tick())

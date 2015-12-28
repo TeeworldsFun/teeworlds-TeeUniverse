@@ -430,7 +430,8 @@ class CMenus : public CComponent
 	void RenderServerControl(CUIRect MainView);
 	void RenderServerControlKick(CUIRect MainView, bool FilterSpectators);
 	void RenderServerControlServer(CUIRect MainView);
-
+	void RenderNetGui(CUIRect MainView);
+	
 	// found in menus_browser.cpp
 	int m_ScrollOffset;
 	void RenderServerbrowserServerList(CUIRect View);
