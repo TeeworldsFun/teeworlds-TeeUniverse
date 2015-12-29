@@ -16,9 +16,9 @@
 		public: \
 			void Do##name(int ClientID, int NetGuiElemID, vec4 Dimensions, args); \
 		private: \
-			array<CNetMsg_Sv_NetGui_##name> m_##name[MAX_CLIENTS]; public:
+			array<CNetMsg_Sv_ModAPI_Gui##name> m_##name[MAX_CLIENTS]; public:
 
-class CNetGui
+class CModAPIGui
 {
 	CGameContext *m_pGameServer;
 
@@ -26,15 +26,15 @@ class CNetGui
 	GUISET(EmptyGui)
 
 public:
-	CNetGui(CGameContext *pGameServer) : m_pGameServer(pGameServer){}
+	CModAPIGui(CGameContext *pGameServer) : m_pGameServer(pGameServer){}
 	void RemoveElement(int ClientID, int Type, int NetGuiElemID);
 
 	void OnClientEnter(int ClientID);
 	void OnClientDrop(int ClientID);
 	void OnMessage(int MsgID, void *pRawMsg, int ClientID);
 
-	// // auto-generated declarations of functions
-	#include <game/netguidefines.h>
+	// auto-generated declarations of functions
+	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 
 protected:

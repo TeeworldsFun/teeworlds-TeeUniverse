@@ -4,20 +4,20 @@
 
 #define GUI_BUILDRESPONSE(name, type) \
 		int index = -1;\
-		for(int i = 0; i < m_NetGui##name.size(); i++)\
+		for(int i = 0; i < m_ModAPI_Gui##name.size(); i++)\
 		{\
-			if(m_NetGui##name[i].m_ID == pMsg->m_ID)\
+			if(m_ModAPI_Gui##name[i].m_ID == pMsg->m_ID)\
 				index = i;\
 		}\
 		if(index < 0)\
 			break;\
-		CNetMsg_Cl_NetGui_Response##type Reply;\
+		CNetMsg_Cl_ModAPI_GuiResponse##type Reply;\
 		Reply.m_ID = pMsg->m_ID;\
 		Reply.m_Type = pMsg->m_Type
 
 #define GUIRECEIVE_INIT(name) \
-		CNetMsg_Sv_NetGui_##name *pMsg = (CNetMsg_Sv_NetGui_##name *)pRawMsg;\
-		CNetMsg_Sv_NetGui_##name e;\
+		CNetMsg_Sv_ModAPI_Gui##name *pMsg = (CNetMsg_Sv_ModAPI_Gui##name *)pRawMsg;\
+		CNetMsg_Sv_ModAPI_Gui##name e;\
 		e.m_ID = pMsg->m_ID;\
 		e.m_Dimension[0] = pMsg->m_Dimension[0];\
 		e.m_Dimension[1] = pMsg->m_Dimension[1];\
@@ -25,93 +25,93 @@
 		e.m_Dimension[3] = pMsg->m_Dimension[3]
 
 #define GUIRECEIVE_FINALIZE(name) \
-		if(m_NetGui##name.size() > 1)\
+		if(m_ModAPI_Gui##name.size() > 1)\
 		{\
-			for(int i = 0; i < m_NetGui##name.size(); i++)\
+			for(int i = 0; i < m_ModAPI_Gui##name.size(); i++)\
 			{\
-				if(m_NetGui##name[i].m_ID == e.m_ID)\
-					m_NetGui##name.remove_index(i);\
+				if(m_ModAPI_Gui##name[i].m_ID == e.m_ID)\
+					m_ModAPI_Gui##name.remove_index(i);\
 			}\
 		}\
-		m_NetGui##name.add(e);\
-		SortNetGuiList<CNetMsg_Sv_NetGui_##name>(m_NetGui##name)
+		m_ModAPI_Gui##name.add(e);\
+		SortGuiList<CNetMsg_Sv_ModAPI_Gui##name>(m_ModAPI_Gui##name)
 
 
-void CNetGui::OnReset()
+void CModAPIGui::OnReset()
 {
 	// auto-generated clear's
-	#define GUIDEFINE(name, netmsgname, args...) m_NetGui##name.clear();
-	#include <game/netguidefines.h>
+	#define GUIDEFINE(name, netmsgname, args...) m_ModAPI_Gui##name.clear();
+	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 }
 
-void CNetGui::OnMessage(int MsgId, void *pRawMsg)
+void CModAPIGui::OnMessage(int MsgId, void *pRawMsg)
 {
-	if(MsgId == NETMSGTYPE_SV_NETGUI_REMOVEELEMENT)
+	if(MsgId == NETMSGTYPE_SV_MODAPI_GUIREMOVEELEMENT)
 	{
-		CNetMsg_Sv_NetGui_RemoveElement *pMsg = (CNetMsg_Sv_NetGui_RemoveElement *)pRawMsg;
+		CNetMsg_Sv_ModAPI_GuiRemoveElement *pMsg = (CNetMsg_Sv_ModAPI_GuiRemoveElement *)pRawMsg;
 
 		// remove handler; the "args..." thingy is just for compatiblity and will be dropped
 		#define GUIDEFINE(name, netmsgname, args...) \
-			case NETMSGTYPE_SV_NETGUI_##netmsgname: \
-				for(int i = 0; i < m_NetGui##name.size(); i++) \
+			case NETMSGTYPE_SV_MODAPI_GUI##netmsgname: \
+				for(int i = 0; i < m_ModAPI_Gui##name.size(); i++) \
 				{ \
-					if(m_NetGui##name[i].m_ID == pMsg->m_ID) \
-						m_NetGui##name.remove_index(i); \
+					if(m_ModAPI_Gui##name[i].m_ID == pMsg->m_ID) \
+						m_ModAPI_Gui##name.remove_index(i); \
 				} \
 				break;
 
 		switch(pMsg->m_Type)
 		{
 			// auto-generated remove handlers
-			#include <game/netguidefines.h>
+			#include <modapi/guidefines.h>
 			#undef GUIDEFINE
 		}
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_REQUESTDATA)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUIREQUESTDATA)
 	{
-		CNetMsg_Sv_NetGui_RequestData *pMsg = (CNetMsg_Sv_NetGui_RequestData *)pRawMsg;
+		CNetMsg_Sv_ModAPI_GuiRequestData *pMsg = (CNetMsg_Sv_ModAPI_GuiRequestData *)pRawMsg;
 		switch(pMsg->m_Type)
 		{
-		case NETMSGTYPE_SV_NETGUI_EDITBOX:
+		case NETMSGTYPE_SV_MODAPI_GUIEDITBOX:
 		{
 			GUI_BUILDRESPONSE(EditBox, String);
-			Reply.m_Text = m_aNetGuiEditBoxContent[index];
+			Reply.m_Text = m_aModAPI_GuiEditBoxContent[index];
 			Client()->SendPackMsg(&Reply, MSGFLAG_VITAL);
 		}
 		break;
-		case NETMSGTYPE_SV_NETGUI_CHECKBOX:
+		case NETMSGTYPE_SV_MODAPI_GUICHECKBOX:
 		{
 			GUI_BUILDRESPONSE(CheckBox, Int);
-			Reply.m_Value = m_NetGuiCheckBox[index].m_Checked;
+			Reply.m_Value = m_ModAPI_GuiCheckBox[index].m_Checked;
 			Client()->SendPackMsg(&Reply, MSGFLAG_VITAL);
 		}
 		break;
-		case NETMSGTYPE_SV_NETGUI_CHECKBOXNUMBER:
+		case NETMSGTYPE_SV_MODAPI_GUICHECKBOXNUMBER:
 		{
 			GUI_BUILDRESPONSE(CheckBoxNumber, Int);
-			Reply.m_Value = m_NetGuiCheckBoxNumber[index].m_Value;
+			Reply.m_Value = m_ModAPI_GuiCheckBoxNumber[index].m_Value;
 			Client()->SendPackMsg(&Reply, MSGFLAG_VITAL);
 		}
 		break;
-		case NETMSGTYPE_SV_NETGUI_SCROLLBAR:
+		case NETMSGTYPE_SV_MODAPI_GUISCROLLBAR:
 		{
 			GUI_BUILDRESPONSE(Scrollbar, Int);
-			Reply.m_Value = m_NetGuiScrollbar[index].m_ValueX100;
+			Reply.m_Value = m_ModAPI_GuiScrollbar[index].m_ValueX100;
 			Client()->SendPackMsg(&Reply, MSGFLAG_VITAL);
 		}
 		break;
-		case NETMSGTYPE_SV_NETGUI_SCROLLBAROPTION:
+		case NETMSGTYPE_SV_MODAPI_GUISCROLLBAROPTION:
 		{
 			GUI_BUILDRESPONSE(ScrollbarOption, Int);
-			Reply.m_Value = m_NetGuiScrollbarOption[index].m_Value;
+			Reply.m_Value = m_ModAPI_GuiScrollbarOption[index].m_Value;
 			Client()->SendPackMsg(&Reply, MSGFLAG_VITAL);
 		}
 		break;
 
 		}
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_UIRECT)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUIUIRECT)
 	{
 		GUIRECEIVE_INIT(UIRect);
 
@@ -124,7 +124,7 @@ void CNetGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(UIRect);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_LABEL)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUILABEL)
 	{
 		GUIRECEIVE_INIT(Label);
 
@@ -140,7 +140,7 @@ void CNetGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(Label);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_BUTTONMENU)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUIBUTTONMENU)
 	{
 		GUIRECEIVE_INIT(ButtonMenu);
 
@@ -151,7 +151,7 @@ void CNetGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(ButtonMenu);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_EDITBOX)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUIEDITBOX)
 	{
 		GUIRECEIVE_INIT(EditBox);
 
@@ -164,7 +164,7 @@ void CNetGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(EditBox);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_CHECKBOX)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUICHECKBOX)
 	{
 		GUIRECEIVE_INIT(CheckBox);
 
@@ -175,7 +175,7 @@ void CNetGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(CheckBox);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_CHECKBOXNUMBER)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUICHECKBOXNUMBER)
 	{
 		GUIRECEIVE_INIT(CheckBoxNumber);
 
@@ -189,12 +189,12 @@ void CNetGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(CheckBoxNumber);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_SCROLLBAR)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUISCROLLBAR)
 	{
 		GUIRECEIVE_INIT(Scrollbar);
 		GUIRECEIVE_FINALIZE(Scrollbar);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_SCROLLBAROPTION)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUISCROLLBAROPTION)
 	{
 		GUIRECEIVE_INIT(ScrollbarOption);
 
@@ -208,7 +208,7 @@ void CNetGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(ScrollbarOption);
 	}
-	else if(MsgId == NETMSGTYPE_SV_NETGUI_INFOBOX)
+	else if(MsgId == NETMSGTYPE_SV_MODAPI_GUIINFOBOX)
 	{
 		GUIRECEIVE_INIT(InfoBox);
 

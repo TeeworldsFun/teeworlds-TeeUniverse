@@ -9,8 +9,8 @@
 #include "netgui.h"
 
 #define PREBUILD(msgtype) \
-		CNetMsg_Sv_NetGui_##msgtype Msg;	\
-		Msg.m_ID = NetGuiElemID;			\
+		CNetMsg_Sv_ModAPI_Gui##msgtype Msg;	\
+		Msg.m_ID = ModAPIGuiElemID;			\
 		Msg.m_Dimension[0] = Dimensions.x;	\
 		Msg.m_Dimension[1] = Dimensions.y;	\
 		Msg.m_Dimension[2] = Dimensions.a;	\
@@ -18,40 +18,40 @@
 
 
 // ----------------------------- [start of GUI managing methods] -----------------------------
-void CNetGui::CreateGui_EmptyGui(int ClientID)
+void CModAPIGui::CreateGui_EmptyGui(int ClientID)
 {
 
 }
-void CNetGui::RemoveGui_EmptyGui(int ClientID)
+void CModAPIGui::RemoveGui_EmptyGui(int ClientID)
 {
 
 }
 
 // ------------------------------ [end of GUI managing methods] -----------------------------
 
-void CNetGui::OnClientEnter(int ClientID)
+void CModAPIGui::OnClientEnter(int ClientID)
 {
 }
 
-void CNetGui::OnClientDrop(int ClientID)
+void CModAPIGui::OnClientDrop(int ClientID)
 {
 	// auto-generated clear's
 	#define GUIDEFINE(name, netmsgname, args...) m_##name[ClientID].clear();
-	#include <game/netguidefines.h>
+	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 }
 
-void CNetGui::OnMessage(int MsgID, void *pRawMsg, int ClientID)
+void CModAPIGui::OnMessage(int MsgID, void *pRawMsg, int ClientID)
 {
 	CPlayer *pPlayer = GameServer()->m_apPlayers[ClientID];
 
-	if (MsgID == NETMSGTYPE_CL_NETGUI_TRIGGEREVENT)
+	if (MsgID == NETMSGTYPE_CL_MODAPI_GUITRIGGEREVENT)
 	{
-		CNetMsg_Cl_NetGui_TriggerEvent *pMsg = (CNetMsg_Cl_NetGui_TriggerEvent *)pRawMsg;
+		CNetMsg_Cl_ModAPI_GuiTriggerEvent *pMsg = (CNetMsg_Cl_ModAPI_GuiTriggerEvent *)pRawMsg;
 
 		switch(pMsg->m_Type)
 		{
-		case NETMSGTYPE_SV_NETGUI_BUTTONMENU:
+		case NETMSGTYPE_SV_MODAPI_GUIBUTTONMENU:
 			bool exists = false;
 			for(int i = 0; i < m_ButtonMenu[ClientID].size(); i++)
 			{
@@ -68,18 +68,18 @@ void CNetGui::OnMessage(int MsgID, void *pRawMsg, int ClientID)
 			break;
 		}
 	}
-	else if(MsgID == NETMSGTYPE_CL_NETGUI_RESPONSESTRING)
+	else if(MsgID == NETMSGTYPE_CL_MODAPI_GUIRESPONSESTRING)
 	{
-		CNetMsg_Cl_NetGui_ResponseString *pMsg = (CNetMsg_Cl_NetGui_ResponseString *)pRawMsg;
+		CNetMsg_Cl_ModAPI_GuiResponseString *pMsg = (CNetMsg_Cl_ModAPI_GuiResponseString *)pRawMsg;
 
 		switch(pMsg->m_Type)
 		{
 			// TODO: handle string responses
 		}
 	}
-	else if(MsgID == NETMSGTYPE_CL_NETGUI_RESPONSEINT)
+	else if(MsgID == NETMSGTYPE_CL_MODAPI_GUIRESPONSEINT)
 	{
-		CNetMsg_Cl_NetGui_ResponseInt *pMsg = (CNetMsg_Cl_NetGui_ResponseInt *)pRawMsg;
+		CNetMsg_Cl_ModAPI_GuiResponseInt *pMsg = (CNetMsg_Cl_ModAPI_GuiResponseInt *)pRawMsg;
 
 		switch(pMsg->m_Type)
 		{
@@ -88,21 +88,21 @@ void CNetGui::OnMessage(int MsgID, void *pRawMsg, int ClientID)
 	}
 }
 
-void CNetGui::RemoveElement(int ClientID, int Type, int NetGuiElemID)
+void CModAPIGui::RemoveElement(int ClientID, int Type, int ModAPIGuiElemID)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
-	CNetMsg_Sv_NetGui_RemoveElement Msg;
+	CNetMsg_Sv_ModAPI_GuiRemoveElement Msg;
 	Msg.m_Type = Type;
-	Msg.m_ID = NetGuiElemID;
+	Msg.m_ID = ModAPIGuiElemID;
 
 	// remove handler; the "args..." thingy is just for compatiblity and will be dropped
 	#define GUIDEFINE(name, netmsgname, args...) \
-		case NETMSGTYPE_SV_NETGUI_##netmsgname: \
+		case NETMSGTYPE_SV_MODAPI_GUI##netmsgname: \
 			for(int i = 0; i < m_##name[ClientID].size(); i++) \
 			{ \
-				if(m_##name[ClientID][i].m_ID == NetGuiElemID) \
+				if(m_##name[ClientID][i].m_ID == ModAPIGuiElemID) \
 					m_##name[ClientID].remove_index(i); \
 			} \
 			break;
@@ -111,7 +111,7 @@ void CNetGui::RemoveElement(int ClientID, int Type, int NetGuiElemID)
 	switch(Type)
 	{
 		// auto-generated remove handlers
-		#include <game/netguidefines.h>
+		#include <modapi/guidefines.h>
 		#undef GUIDEFINE
 	}
 
@@ -119,7 +119,7 @@ void CNetGui::RemoveElement(int ClientID, int Type, int NetGuiElemID)
 }
 
 
-void CNetGui::DoUIRect(int ClientID, int NetGuiElemID, vec4 Dimensions, vec4 Color, int Corner, float Rounding)
+void CModAPIGui::DoUIRect(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, vec4 Color, int Corner, float Rounding)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -137,7 +137,7 @@ void CNetGui::DoUIRect(int ClientID, int NetGuiElemID, vec4 Dimensions, vec4 Col
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoLabel(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, vec4 Color, int FontSize, int FontAlign, int MaxTextWidth)
+void CModAPIGui::DoLabel(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, const char *pText, vec4 Color, int FontSize, int FontAlign, int MaxTextWidth)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -157,7 +157,7 @@ void CNetGui::DoLabel(int ClientID, int NetGuiElemID, vec4 Dimensions, const cha
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoButtonMenu(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, bool Selected)
+void CModAPIGui::DoButtonMenu(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, const char *pText, bool Selected)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -171,7 +171,7 @@ void CNetGui::DoButtonMenu(int ClientID, int NetGuiElemID, vec4 Dimensions, cons
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoEditBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pTitle, int SplitValue, int MaxTextWidth, bool Password)
+void CModAPIGui::DoEditBox(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, const char *pTitle, int SplitValue, int MaxTextWidth, bool Password)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -187,7 +187,7 @@ void CNetGui::DoEditBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const c
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoCheckBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, bool Checked)
+void CModAPIGui::DoCheckBox(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, const char *pText, bool Checked)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -201,7 +201,7 @@ void CNetGui::DoCheckBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const 
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoCheckBoxNumber(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, int MinValue, int MaxValue, int StepValue)
+void CModAPIGui::DoCheckBoxNumber(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, const char *pText, int MinValue, int MaxValue, int StepValue)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -218,7 +218,7 @@ void CNetGui::DoCheckBoxNumber(int ClientID, int NetGuiElemID, vec4 Dimensions, 
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoScrollbar(int ClientID, int NetGuiElemID, vec4 Dimensions, bool Vertical)
+void CModAPIGui::DoScrollbar(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, bool Vertical)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -231,7 +231,7 @@ void CNetGui::DoScrollbar(int ClientID, int NetGuiElemID, vec4 Dimensions, bool 
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoScrollbarOption(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pText, float VSplitVal, int Min, int Max, bool Infinite)
+void CModAPIGui::DoScrollbarOption(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, const char *pText, float VSplitVal, int Min, int Max, bool Infinite)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -248,7 +248,7 @@ void CNetGui::DoScrollbarOption(int ClientID, int NetGuiElemID, vec4 Dimensions,
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::DoInfoBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const char *pLabel, const char* pValue)
+void CModAPIGui::DoInfoBox(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, const char *pLabel, const char* pValue)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
@@ -262,20 +262,20 @@ void CNetGui::DoInfoBox(int ClientID, int NetGuiElemID, vec4 Dimensions, const c
 	SendNetGui(ClientID, Msg);
 }
 
-void CNetGui::RequestData(int ClientID, int Type, int NetGuiElemID)
+void CModAPIGui::RequestData(int ClientID, int Type, int ModAPIGuiElemID)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
 
-	CNetMsg_Sv_NetGui_RequestData Msg;
-	Msg.m_ID = NetGuiElemID;
+	CNetMsg_Sv_ModAPI_GuiRequestData Msg;
+	Msg.m_ID = ModAPIGuiElemID;
 	Msg.m_Type = Type;
 	GameServer()->Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 }
 
 
 template<class T>
-void CNetGui::SendNetGui(int ClientID, T Msg)
+void CModAPIGui::SendNetGui(int ClientID, T Msg)
 {
 	if(!GameServer()->Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_GUI))
 		return;
