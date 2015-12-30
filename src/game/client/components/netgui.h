@@ -13,7 +13,7 @@ class CModAPIGui : public CComponent
 
 public:
 	// automatically make a storage array for everything
-	#define GUIDEFINE(name, netmsgname, args...) array<CNetMsg_Sv_ModAPI_Gui##name> m_ModAPI_Gui##name;
+	#define GUIDEFINE(name, netmsgname, args...) array<CNetMsg_ModAPI_Sv_Gui##name> m_ModAPI_Gui##name;
 	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 
@@ -48,7 +48,7 @@ public:
 
 	void SendEvent(int Type, int NetGuiElementID)
 	{
-		CNetMsg_Cl_ModAPI_GuiTriggerEvent Msg;
+		CNetMsg_ModAPI_Cl_GuiTriggerEvent Msg;
 		Msg.m_Type = Type;
 		Msg.m_ID = NetGuiElementID;
 		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);

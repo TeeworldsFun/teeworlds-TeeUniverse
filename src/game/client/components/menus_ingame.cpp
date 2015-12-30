@@ -469,7 +469,7 @@ void CMenus::RenderServerControlKick(CUIRect MainView, bool FilterSpectators)
 		{\
 			if(i >= 1024) break;\
 			CUIRect Rect;\
-			CNetMsg_Sv_ModAPI_Gui##name *e = &m_pClient->m_pModAPIGui->m_ModAPI_Gui##name[i];\
+			CNetMsg_ModAPI_Sv_Gui##name *e = &m_pClient->m_pModAPIGui->m_ModAPI_Gui##name[i];\
 			float xa = MainView.x + ((float)e->m_Dimension[0]/100.0f) * MainView.w;\
 			float xb = MainView.x + ((float)e->m_Dimension[1]/100.0f) * MainView.w;\
 			float yb = MainView.y + ((float)e->m_Dimension[2]/100.0f) * MainView.h;\
@@ -520,7 +520,7 @@ void CMenus::RenderNetGui(CUIRect MainView)
 	GUIPREPARE(ButtonMenu)
 		static int s_ID[1024] = {0}; // nobody will create so much buttons :p
 		if(DoButton_Menu(&s_ID[i], e->m_Text, e->m_Selected, &Rect))
-			m_pClient->m_pModAPIGui->SendEvent(NETMSGTYPE_SV_MODAPI_GUIBUTTONMENU, e->m_ID);
+			m_pClient->m_pModAPIGui->SendEvent(NETMSGTYPE_MODAPI_SV_GUIBUTTONMENU, e->m_ID);
 	}
 
 

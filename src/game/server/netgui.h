@@ -16,7 +16,7 @@
 		public: \
 			void Do##name(int ClientID, int NetGuiElemID, vec4 Dimensions, args); \
 		private: \
-			array<CNetMsg_Sv_ModAPI_Gui##name> m_##name[MAX_CLIENTS]; public:
+			array<CNetMsg_ModAPI_Sv_Gui##name> m_##name[MAX_CLIENTS]; public:
 
 class CModAPIGui
 {
