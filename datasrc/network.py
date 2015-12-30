@@ -404,17 +404,17 @@ Messages = [
 	
 	### NetGUI
 	## Server
-	NetMessage("Sv_NetGui_RemoveElement", [
+	NetMessage("ModAPI_Sv_GuiRemoveElement", [
 		NetIntAny("m_Type"),
 		NetIntAny("m_ID"),
 	]),
 
-	NetMessage("Sv_NetGui_RequestData", [
+	NetMessage("ModAPI_Sv_GuiRequestData", [
 		NetIntAny("m_ID"),
 		NetIntAny("m_Type"),
 	]),
 
-	NetMessage("Sv_NetGui_UIRect", [
+	NetMessage("ModAPI_Sv_GuiUIRect", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetArray(NetIntRange("m_Color", 0, 100), 4),
@@ -422,7 +422,7 @@ Messages = [
 		NetIntRange("m_RoundingX10", 0, 500),
 	]),
 
-	NetMessage("Sv_NetGui_Label", [
+	NetMessage("ModAPI_Sv_GuiLabel", [
 		NetIntAny("m_ID"),
 		NetString("m_Text"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
@@ -432,14 +432,14 @@ Messages = [
 		NetIntRange("m_MaxTextWidth", 0, 100),		
 	]),
 
-	NetMessage("Sv_NetGui_ButtonMenu", [
+	NetMessage("ModAPI_Sv_GuiButtonMenu", [
 		NetIntAny("m_ID"),
 		NetString("m_Text"),
 		NetIntRange("m_Selected", 0, 1),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 	]),	
 
-	NetMessage("Sv_NetGui_EditBox", [
+	NetMessage("ModAPI_Sv_GuiEditBox", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetString("m_Title"),
@@ -448,14 +448,14 @@ Messages = [
 		NetIntRange("m_Password", 0, 1),
 	]),
 
-	NetMessage("Sv_NetGui_CheckBox", [
+	NetMessage("ModAPI_Sv_GuiCheckBox", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetString("m_Text"),
 		NetIntRange("m_Checked", 0, 1),
 	]),
 
-	NetMessage("Sv_NetGui_CheckBoxNumber", [
+	NetMessage("ModAPI_Sv_GuiCheckBoxNumber", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetString("m_Text"),
@@ -465,14 +465,14 @@ Messages = [
 		NetIntAny("m_StepValue"),
 	]),
 
-	NetMessage("Sv_NetGui_Scrollbar", [
+	NetMessage("ModAPI_Sv_GuiScrollbar", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetIntAny("m_ValueX100"),
 		NetIntRange("m_Vertical", 0, 1),
 	]),
 
-	NetMessage("Sv_NetGui_ScrollbarOption", [
+	NetMessage("ModAPI_Sv_GuiScrollbarOption", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetString("m_Text"),
@@ -483,7 +483,7 @@ Messages = [
 		NetIntRange("m_Infinite", 0, 1),
 	]),
 	
-	NetMessage("Sv_NetGui_InfoBox", [
+	NetMessage("ModAPI_Sv_GuiInfoBox", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetString("m_Label"),
@@ -491,18 +491,18 @@ Messages = [
 	]),
 	
 	## NetGui - Client
-	NetMessage("Cl_NetGui_TriggerEvent", [ 
+	NetMessage("ModAPI_Cl_GuiTriggerEvent", [ 
 		NetIntAny("m_Type"),
 		NetIntAny("m_ID"),
 	]),
 
-	NetMessage("Cl_NetGui_ResponseInt", [
+	NetMessage("ModAPI_Cl_GuiResponseInt", [
 		NetIntAny("m_ID"),
 		NetIntAny("m_Type"),
 		NetIntAny("m_Value"),
 	]),
 
-	NetMessage("Cl_NetGui_ResponseString", [
+	NetMessage("ModAPI_Cl_GuiResponseString", [
 		NetIntAny("m_ID"),
 		NetIntAny("m_Type"),
 		NetString("m_Text"),

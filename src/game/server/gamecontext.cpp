@@ -31,7 +31,7 @@ void CGameContext::Construct(int Resetting)
 {
 	m_Resetting = 0;
 	m_pServer = 0;
-	m_pNetGui = 0;
+	m_pModAPIGui = 0;
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
 		m_apPlayers[i] = 0;
@@ -47,7 +47,7 @@ void CGameContext::Construct(int Resetting)
 	if(Resetting==NO_RESET)
 	{
 		m_pVoteOptionHeap = new CHeap();
-		m_pNetGui = new CNetGui(this);
+		m_pModAPIGui = new CModAPIGui(this);
 	}
 }
 
@@ -68,7 +68,7 @@ CGameContext::~CGameContext()
 	if(!m_Resetting)
 	{
 		delete m_pVoteOptionHeap;
-		delete m_pNetGui;
+		delete m_pModAPIGui;
 	}
 }
 
@@ -79,7 +79,7 @@ void CGameContext::Clear()
 	CVoteOptionServer *pVoteOptionLast = m_pVoteOptionLast;
 	int NumVoteOptions = m_NumVoteOptions;
 	CTuningParams Tuning = m_Tuning;
-	CNetGui *pNetGui = m_pNetGui;
+	CModAPIGui *pModAPIGui = m_pModAPIGui;
 
 	m_Resetting = true;
 	this->~CGameContext();
@@ -91,7 +91,7 @@ void CGameContext::Clear()
 	m_pVoteOptionLast = pVoteOptionLast;
 	m_NumVoteOptions = NumVoteOptions;
 	m_Tuning = Tuning;
-	m_pNetGui = pNetGui;
+	m_pModAPIGui = pModAPIGui;
 }
 
 
@@ -698,7 +698,7 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 
 	m_VoteUpdate = true;
 	
-	m_pNetGui->OnClientDrop(ClientID);
+	m_pModAPIGui->OnClientDrop(ClientID);
 }
 
 void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
@@ -719,7 +719,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 	if(Server()->ClientIngame(ClientID))
 	{
-		m_pNetGui->OnMessage(MsgID, pRawMsg, ClientID);
+		m_pModAPIGui->OnMessage(MsgID, pRawMsg, ClientID);
 		
 		if(MsgID == NETMSGTYPE_CL_SAY)
 		{

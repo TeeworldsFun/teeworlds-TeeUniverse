@@ -61,7 +61,7 @@ static CGameConsole gs_GameConsole;
 static CBinds gs_Binds;
 static CParticles gs_Particles;
 static CMenus gs_Menus;
-static CNetGui gs_NetGui;
+static CModAPIGui gs_ModAPIGui;
 static CSkins gs_Skins;
 static CCountryFlags gs_CountryFlags;
 static CFlow gs_Flow;
@@ -161,7 +161,7 @@ void CGameClient::OnConsoleInit()
 	m_pGameConsole = &::gs_GameConsole;
 	m_pParticles = &::gs_Particles;
 	m_pMenus = &::gs_Menus;
-	m_pNetGui = &::gs_NetGui;
+	m_pModAPIGui = &::gs_ModAPIGui;
 	m_pSkins = &::gs_Skins;
 	m_pCountryFlags = &::gs_CountryFlags;
 	m_pChat = &::gs_Chat;
@@ -209,7 +209,7 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(&gs_DebugHud);
 	m_All.Add(&gs_Scoreboard);
 	m_All.Add(m_pMotd);
-	m_All.Add(m_pNetGui);
+	m_All.Add(m_pModAPIGui);
 	m_All.Add(m_pMenus);
 	m_All.Add(m_pGameConsole);
 

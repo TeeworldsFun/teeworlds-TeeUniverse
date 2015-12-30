@@ -465,11 +465,11 @@ void CMenus::RenderServerControlKick(CUIRect MainView, bool FilterSpectators)
 
 // NetGui
 #define GUIPREPARE(name) \
-		for(int i = 0; i < m_pClient->m_pNetGui->m_NetGui##name.size(); i++)\
+		for(int i = 0; i < m_pClient->m_pModAPIGui->m_ModAPI_Gui##name.size(); i++)\
 		{\
 			if(i >= 1024) break;\
 			CUIRect Rect;\
-			CNetMsg_Sv_NetGui_##name *e = &m_pClient->m_pNetGui->m_NetGui##name[i];\
+			CNetMsg_ModAPI_Sv_Gui##name *e = &m_pClient->m_pModAPIGui->m_ModAPI_Gui##name[i];\
 			float xa = MainView.x + ((float)e->m_Dimension[0]/100.0f) * MainView.w;\
 			float xb = MainView.x + ((float)e->m_Dimension[1]/100.0f) * MainView.w;\
 			float yb = MainView.y + ((float)e->m_Dimension[2]/100.0f) * MainView.h;\
@@ -520,7 +520,7 @@ void CMenus::RenderNetGui(CUIRect MainView)
 	GUIPREPARE(ButtonMenu)
 		static int s_ID[1024] = {0}; // nobody will create so much buttons :p
 		if(DoButton_Menu(&s_ID[i], e->m_Text, e->m_Selected, &Rect))
-			m_pClient->m_pNetGui->SendEvent(NETMSGTYPE_SV_NETGUI_BUTTONMENU, e->m_ID);
+			m_pClient->m_pModAPIGui->SendEvent(NETMSGTYPE_MODAPI_SV_GUIBUTTONMENU, e->m_ID);
 	}
 
 
@@ -530,7 +530,7 @@ void CMenus::RenderNetGui(CUIRect MainView)
 		static float s_Offset[1024] = {0};
 		static int s_ID[1024] ={0};
 		DoEditBoxOption((void *)&s_ID[i], aText[i], e->m_MaxTextWidth, &Rect, e->m_Title, ((float)e->m_SplitValue/100.0f)*Rect.w, &s_Offset[i], e->m_Password == 1 ? true : false);
-		str_copy(m_pClient->m_pNetGui->m_aNetGuiEditBoxContent[i], aText[i], sizeof(m_pClient->m_pNetGui->m_aNetGuiEditBoxContent[i]));
+		str_copy(m_pClient->m_pModAPIGui->m_aModAPI_GuiEditBoxContent[i], aText[i], sizeof(m_pClient->m_pModAPIGui->m_aModAPI_GuiEditBoxContent[i]));
 	}
 
 

@@ -11,17 +11,14 @@
 
 #include "player.h"
 
-#define NETGUIMAGICNUMBER1 1883
-#define NETGUIMAGICNUMBER2 5397
-
 #define GUISET(name) void CreateGui_##name(int ClientID); void RemoveGui_##name(int ClientID);
 #define GUIDEFINE(name, netmsgname, args...) \
 		public: \
 			void Do##name(int ClientID, int NetGuiElemID, vec4 Dimensions, args); \
 		private: \
-			array<CNetMsg_Sv_NetGui_##name> m_##name[MAX_CLIENTS]; public:
+			array<CNetMsg_ModAPI_Sv_Gui##name> m_##name[MAX_CLIENTS]; public:
 
-class CNetGui
+class CModAPIGui
 {
 	CGameContext *m_pGameServer;
 
@@ -29,25 +26,21 @@ class CNetGui
 	GUISET(EmptyGui)
 
 public:
-	CNetGui(CGameContext *pGameServer) : m_pGameServer(pGameServer){}
+	CModAPIGui(CGameContext *pGameServer) : m_pGameServer(pGameServer){}
 	void RemoveElement(int ClientID, int Type, int NetGuiElemID);
 
 	void OnClientEnter(int ClientID);
 	void OnClientDrop(int ClientID);
-	void OnClientCompatible(int ClientID);
 	void OnMessage(int MsgID, void *pRawMsg, int ClientID);
 
-	bool IsNetGuiClient(int ClientID) { return m_NetGuiClients[ClientID]; }
-
-	// // auto-generated declarations of functions
-	#include <game/netguidefines.h>
+	// auto-generated declarations of functions
+	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 
 protected:
 	CGameContext *GameServer() const { return m_pGameServer; }
 
 private:
-	bool m_NetGuiClients[MAX_CLIENTS]; // could have been put into CPlayer as well, but I want to keep stuff together
 
 	template<class T>
 	void SendNetGui(int ClientID, T Msg);

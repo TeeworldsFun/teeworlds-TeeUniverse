@@ -6,23 +6,23 @@
 #include <base/tl/array.h>
 #include <game/client/component.h>
 
-class CNetGui : public CComponent
+class CModAPIGui : public CComponent
 {
 	virtual void OnReset();
 	virtual void OnMessage(int MsgId, void *pRawMsg);
 
 public:
 	// automatically make a storage array for everything
-	#define GUIDEFINE(name, netmsgname, args...) array<CNetMsg_Sv_NetGui_##name> m_NetGui##name;
-	#include <game/netguidefines.h>
+	#define GUIDEFINE(name, netmsgname, args...) array<CNetMsg_ModAPI_Sv_Gui##name> m_ModAPI_Gui##name;
+	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 
-	char m_aNetGuiEditBoxContent[1024][1024]; // necessary because it cannot be stored into the NetMsg (CONST char...)
+	char m_aModAPI_GuiEditBoxContent[1024][1024]; // necessary because it cannot be stored into the NetMsg (CONST char...)
 
 
 	// maxsort to get stuff into correct render order.
 	template<class T>
-	void SortNetGuiList(array<T> &elem)
+	void SortGuiList(array<T> &elem)
 	{
 		int num = elem.size();
 		if(num < 2)
@@ -48,7 +48,7 @@ public:
 
 	void SendEvent(int Type, int NetGuiElementID)
 	{
-		CNetMsg_Cl_NetGui_TriggerEvent Msg;
+		CNetMsg_ModAPI_Cl_GuiTriggerEvent Msg;
 		Msg.m_Type = Type;
 		Msg.m_ID = NetGuiElementID;
 		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
