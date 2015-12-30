@@ -8,7 +8,6 @@
 #include <engine/console.h>
 #include <engine/engine.h>
 #include <engine/map.h>
-#include <engine/mod.h>
 #include <engine/masterserver.h>
 #include <engine/server.h>
 #include <engine/storage.h>
@@ -28,8 +27,10 @@
 
 #include <mastersrv/mastersrv.h>
 
-#include <modapi/compatibility.h> //ModAPi
-#include <modapi/mod.h> //ModAPi
+//ModAPI
+#include <modapi/shared/mod.h>
+#include <modapi/compatibility.h> 
+#include <modapi/server/modcreator.h>
 
 #include "register.h"
 #include "server.h"
@@ -284,6 +285,10 @@ CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta)
 
 	m_pCurrentMapData = 0;
 	m_CurrentMapSize = 0;
+	
+	// ModAPI
+	m_pCurrentModData = 0;
+	m_CurrentModSize = 0;
 
 	m_MapReload = 0;
 
@@ -904,13 +909,14 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				}
 			}
 		}
+		//ModAPI
 		else if(Msg == NETMSG_MODAPI_REQUEST_MOD_DATA)
 		{
 			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) == 0 || m_aClients[ClientID].m_State == CClient::STATE_CONNECTING)
 			{
 				int ChunkSize = MOD_CHUNK_SIZE;
 
-				// send map chunks
+				// send mod chunks
 				for(int i = 0; i < m_ModChunksPerRequest && m_aClients[ClientID].m_ModChunk >= 0; ++i)
 				{
 					int Chunk = m_aClients[ClientID].m_ModChunk;
@@ -1507,6 +1513,9 @@ int CServer::Run()
 
 	if(m_pCurrentMapData)
 		mem_free(m_pCurrentMapData);
+	//ModAPI
+	if(m_pCurrentModData)
+		mem_free(m_pCurrentModData);
 	return 0;
 }
 

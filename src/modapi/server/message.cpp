@@ -1,5 +1,5 @@
 #include <modapi/compatibility.h>
-#include <modapi/message.h>
+#include <modapi/server/message.h>
 
 #include <engine/server.h>
 
@@ -33,7 +33,7 @@ void CModAPI_Msg_Broadcast::Send(int ClientID, const char* pMessage)
 	{
 		if(Server()->GetClientProtocolCompatibility(ClientID, MODAPI_COMPATIBILITY_BROADCAST))
 		{
-			CNetMsg_ModAPI_Broadcast Msg;
+			CNetMsg_ModAPI_Sv_Broadcast Msg;
 			Msg.m_pMessage = pMessage;
 			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 		}

@@ -1,10 +1,7 @@
 #ifndef MODAPI_GRAPHICS_H
 #define MODAPI_GRAPHICS_H
 
-#include <base/tl/array.h>
-#include <engine/graphics.h>
-
-class IMod;
+#include <base/vmath.h>
 
 enum
 {
@@ -12,36 +9,34 @@ enum
 	MODAPI_NB_INTERNALIMG,
 };
 
-class CModAPI_Image : public CImageInfo
+enum
 {
-public:
-	IGraphics::CTextureHandle m_Texture;
+	MODAPI_LINESTYLE_ANIMATION_NONE = 0,
+	MODAPI_LINESTYLE_ANIMATION_SCALEDOWN,
 };
 
-struct CModAPI_Sprite
+enum
 {
-	int m_X;
-	int m_Y;
-	int m_W;
-	int m_H;
-	int m_External;
-	int m_ImageId;
-	int m_GridX;
-	int m_GridY;
+	MODAPI_LINESTYLE_SPRITETYPE_REPEATED = 0,
 };
 
-class CModAPI_Client_Graphics
+inline int ModAPI_ColorToInt(const vec4& Color)
 {
-private:
-	array<CModAPI_Image> m_Images;
-	array<CModAPI_Sprite> m_Sprites;
-	
-public:
-	CModAPI_Client_Graphics();
-	const CModAPI_Sprite* GetSprite(int Id) const;
-	const CModAPI_Image* GetImage(int Id) const;
-	
-	int OnModLoaded(IMod* pMod, IGraphics* pGraphics);
-};
+	int Value = static_cast<int>(Color.r * 255.0f);
+	Value += (static_cast<int>(Color.g * 255.0f)<<8);
+	Value += (static_cast<int>(Color.b * 255.0f)<<16);
+	Value += (static_cast<int>(Color.a * 255.0f)<<24);
+	return Value;
+}
+
+inline vec4 ModAPI_IntToColor(int Value)
+{
+	return vec4(
+		static_cast<float>(Value & 255)/255.0f,
+		static_cast<float>((Value>>8) & 255)/255.0f,
+		static_cast<float>((Value>>16) & 255)/255.0f,
+		static_cast<float>((Value>>24) & 255)/255.0f
+	);
+}
 
 #endif

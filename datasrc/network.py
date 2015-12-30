@@ -235,6 +235,15 @@ Objects = [
 		NetIntAny("m_Size"),
 		NetIntRange("m_Angle", 0, 360),
 	]),
+
+	NetObject("ModAPI_Line", [
+		NetIntAny("m_LineStyleId"),
+		NetIntAny("m_StartX"),
+		NetIntAny("m_StartY"),
+		NetIntAny("m_EndX"),
+		NetIntAny("m_EndY"),
+		NetIntAny("m_StartTick"),
+	]),
 ]
 
 Messages = [
@@ -397,7 +406,7 @@ Messages = [
 	
 	### ModAPI
 	
-	NetMessage("ModAPI_Broadcast", [
+	NetMessage("ModAPI_Sv_Broadcast", [
 		NetStringStrict("m_pMessage"),
 	]),
 	

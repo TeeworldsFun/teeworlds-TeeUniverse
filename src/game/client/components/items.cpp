@@ -286,10 +286,14 @@ void CItems::OnRender()
 		{
 			RenderLaser((const CNetObj_Laser *)pData);
 		}
-		//
+		//ModAPI
 		else if(Item.m_Type == NETOBJTYPE_MODAPI_SPRITE)
 		{
 			RenderModAPISprite((const CNetObj_ModAPI_Sprite *)pData);
+		}
+		else if(Item.m_Type == NETOBJTYPE_MODAPI_LINE)
+		{
+			RenderModAPILine((const CNetObj_ModAPI_Line *)pData);
 		}
 	}
 
@@ -355,7 +359,235 @@ void CItems::RenderModAPISprite(const CNetObj_ModAPI_Sprite *pCurrent)
 
 	vec2 Pos = vec2(pCurrent->m_X, pCurrent->m_Y);
 	
-	RenderTools()->DrawSprite(Pos.x-Size/2.0f, Pos.y-Size/2.0f, Size);
+	RenderTools()->DrawSprite(Pos.x, Pos.y, Size);
 	Graphics()->QuadsEnd();
+}
+
+
+void CItems::RenderModAPILine(const struct CNetObj_ModAPI_Line *pCurrent)
+{
+	//Get line style
+	const CModAPI_LineStyle* pLineStyle = ModAPIGraphics()->GetLineStyle(pCurrent->m_LineStyleId);
+	if(pLineStyle == 0) return;
+	
+	//Geometry
+	vec2 StartPos = vec2(pCurrent->m_StartX, pCurrent->m_StartY);
+	vec2 EndPos = vec2(pCurrent->m_EndX, pCurrent->m_EndY);
+	vec2 Dir = normalize(EndPos-StartPos);
+	vec2 DirOrtho = vec2(-Dir.y, Dir.x);
+	float Length = distance(StartPos, EndPos);
+
+	float ScaleFactor = 1.0f;
+	
+	float Ticks = Client()->GameTick() + Client()->IntraGameTick() - pCurrent->m_StartTick;
+	float Ms = (Ticks/static_cast<float>(SERVER_TICK_SPEED)) * 1000.0f;
+	if(pLineStyle->m_AnimationType == MODAPI_LINESTYLE_ANIMATION_SCALEDOWN)
+	{
+		float Speed = Ms / pLineStyle->m_AnimationSpeed;
+		ScaleFactor = 1.0f - clamp(Speed, 0.0f, 1.0f);
+	}
+
+	Graphics()->BlendNormal();
+	Graphics()->TextureClear();
+	Graphics()->QuadsBegin();
+
+	//Outer line
+	if(pLineStyle->m_OuterWidth > 0)
+	{
+		float Width = pLineStyle->m_OuterWidth;
+		const vec4& Color = pLineStyle->m_OuterColor;
+		
+		Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+		vec2 Out = DirOrtho * Width * ScaleFactor;
+		
+		IGraphics::CFreeformItem Freeform(
+				StartPos.x-Out.x, StartPos.y-Out.y,
+				StartPos.x+Out.x, StartPos.y+Out.y,
+				EndPos.x-Out.x, EndPos.y-Out.y,
+				EndPos.x+Out.x, EndPos.y+Out.y);
+		Graphics()->QuadsDrawFreeform(&Freeform, 1);
+	}
+
+	//Inner line
+	if(pLineStyle->m_InnerWidth > 0)
+	{
+		float Width = pLineStyle->m_InnerWidth;
+		const vec4& Color = pLineStyle->m_InnerColor;
+		
+		Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+		vec2 Out = DirOrtho * Width * ScaleFactor;
+		
+		IGraphics::CFreeformItem Freeform(
+				StartPos.x-Out.x, StartPos.y-Out.y,
+				StartPos.x+Out.x, StartPos.y+Out.y,
+				EndPos.x-Out.x, EndPos.y-Out.y,
+				EndPos.x+Out.x, EndPos.y+Out.y);
+		Graphics()->QuadsDrawFreeform(&Freeform, 1);
+	}
+
+	Graphics()->QuadsEnd();
+	
+	//Sprite for line
+	if(pLineStyle->m_LineSprite1 >= 0)
+	{
+		int SpriteId = pLineStyle->m_LineSprite1;
+		
+		const CModAPI_Sprite* pSprite = ModAPIGraphics()->GetSprite(SpriteId);
+		if(pSprite == 0) return;
+		
+		Graphics()->BlendNormal();
+			
+		//Define sprite texture
+		if(pSprite->m_External)
+		{
+			const CModAPI_Image* pImage = ModAPIGraphics()->GetImage(pSprite->m_ImageId);
+			if(pImage == 0) return;
+			
+			Graphics()->TextureSet(pImage->m_Texture);
+		}
+		else
+		{
+			int Texture = 0;
+			switch(pSprite->m_ImageId)
+			{
+				case MODAPI_INTERNALIMG_GAME:
+					Texture = IMAGE_GAME;
+					break;
+				default:
+					return;
+			}
+			
+			Graphics()->TextureSet(g_pData->m_aImages[Texture].m_Id);
+		}
+		
+		Graphics()->QuadsBegin();		
+		Graphics()->QuadsSetRotation(angle(Dir));
+		RenderTools()->SelectModAPISprite(pSprite);
+		
+		IGraphics::CQuadItem Array[1024];
+		int i = 0;
+		float step = pLineStyle->m_LineSpriteSizeX - pLineStyle->m_LineSpriteOverlapping;
+		for(float f = pLineStyle->m_LineSpriteSizeX/2.0f; f < Length && i < 1024; f += step, i++)
+		{
+			vec2 p = StartPos + Dir*f;
+			Array[i] = IGraphics::CQuadItem(p.x, p.y, pLineStyle->m_LineSpriteSizeX, pLineStyle->m_LineSpriteSizeY * ScaleFactor);
+		}
+
+		Graphics()->QuadsDraw(Array, i);
+		Graphics()->QuadsSetRotation(0.0f);
+		Graphics()->QuadsEnd();
+	}
+	
+	//Sprite for start point
+	if(pLineStyle->m_StartPointSprite1 >= 0)
+	{
+		int SpriteId = pLineStyle->m_StartPointSprite1;
+		
+		if(pLineStyle->m_StartPointSprite2 > SpriteId) //Animation
+		{
+			int NbFrame = 1 + pLineStyle->m_StartPointSprite2 - pLineStyle->m_StartPointSprite1;
+			SpriteId = pLineStyle->m_StartPointSprite1 + (static_cast<int>(Ms)/pLineStyle->m_StartPointSpriteAnimationSpeed)%NbFrame;
+		}
+		
+		const CModAPI_Sprite* pSprite = ModAPIGraphics()->GetSprite(SpriteId);
+		if(pSprite == 0) return;
+		
+		Graphics()->BlendNormal();
+		
+		//Define sprite texture
+		if(pSprite->m_External)
+		{
+			const CModAPI_Image* pImage = ModAPIGraphics()->GetImage(pSprite->m_ImageId);
+			if(pImage == 0) return;
+			
+			Graphics()->TextureSet(pImage->m_Texture);
+		}
+		else
+		{
+			int Texture = 0;
+			switch(pSprite->m_ImageId)
+			{
+				case MODAPI_INTERNALIMG_GAME:
+					Texture = IMAGE_GAME;
+					break;
+				default:
+					return;
+			}
+			
+			Graphics()->TextureSet(g_pData->m_aImages[Texture].m_Id);
+		}
+		
+		Graphics()->QuadsBegin();		
+		Graphics()->QuadsSetRotation(angle(Dir));
+		RenderTools()->SelectModAPISprite(pSprite);
+		
+		vec2 NewPos = StartPos + (Dir * pLineStyle->m_StartPointSpriteX) + (DirOrtho * pLineStyle->m_StartPointSpriteY);
+		
+		IGraphics::CQuadItem QuadItem(
+			NewPos.x,
+			NewPos.y,
+			pLineStyle->m_StartPointSpriteSizeX,
+			pLineStyle->m_StartPointSpriteSizeY);
+		
+		Graphics()->QuadsDraw(&QuadItem, 1);
+		Graphics()->QuadsSetRotation(0.0f);
+		Graphics()->QuadsEnd();
+	}
+	
+	//Sprite for end point
+	if(pLineStyle->m_EndPointSprite1 >= 0)
+	{
+		int SpriteId = pLineStyle->m_EndPointSprite1;
+		
+		if(pLineStyle->m_EndPointSprite2 > SpriteId) //Animation
+		{
+			int NbFrame = 1 + pLineStyle->m_EndPointSprite2 - pLineStyle->m_EndPointSprite1;
+			SpriteId = pLineStyle->m_EndPointSprite1 + (static_cast<int>(Ms)/pLineStyle->m_EndPointSpriteAnimationSpeed)%NbFrame;
+		}
+		
+		const CModAPI_Sprite* pSprite = ModAPIGraphics()->GetSprite(SpriteId);
+		if(pSprite == 0) return;
+		
+		Graphics()->BlendNormal();
+		
+		//Define sprite texture
+		if(pSprite->m_External)
+		{
+			const CModAPI_Image* pImage = ModAPIGraphics()->GetImage(pSprite->m_ImageId);
+			if(pImage == 0) return;
+			
+			Graphics()->TextureSet(pImage->m_Texture);
+		}
+		else
+		{
+			int Texture = 0;
+			switch(pSprite->m_ImageId)
+			{
+				case MODAPI_INTERNALIMG_GAME:
+					Texture = IMAGE_GAME;
+					break;
+				default:
+					return;
+			}
+			
+			Graphics()->TextureSet(g_pData->m_aImages[Texture].m_Id);
+		}
+		
+		Graphics()->QuadsBegin();		
+		Graphics()->QuadsSetRotation(angle(Dir));
+		RenderTools()->SelectModAPISprite(pSprite);
+		
+		vec2 NewPos = EndPos + (Dir * pLineStyle->m_EndPointSpriteX) + (DirOrtho * pLineStyle->m_EndPointSpriteY);
+		
+		IGraphics::CQuadItem QuadItem(
+			NewPos.x,
+			NewPos.y,
+			pLineStyle->m_EndPointSpriteSizeX,
+			pLineStyle->m_EndPointSpriteSizeY);
+		
+		Graphics()->QuadsDraw(&QuadItem, 1);
+		Graphics()->QuadsSetRotation(0.0f);
+		Graphics()->QuadsEnd();
+	}
 }
 
