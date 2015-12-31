@@ -243,6 +243,103 @@ CModAPI_ModCreator::CModAPI_LineStyleCreator& CModAPI_ModCreator::AddLineStyle()
 	return LineStyle;
 }
 
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::AddSkinModifier()
+{
+	int Id = m_SkinModifiers.size();
+	m_SkinModifiers.set_size(m_SkinModifiers.size()+1);
+	CModAPI_ModCreator::CModAPI_SkinModifierCreator& SkinModifier = m_SkinModifiers[Id];
+
+	// general
+	SkinModifier.m_Id = Id;
+
+	SkinModifier.m_SkinFlag = SKIN_INVALIDMOD;
+	SkinModifier.m_ExternalSet = 0;
+
+	// body
+	SkinModifier.m_BodyFlags = PART_KEEP;
+	SkinModifier.m_BodyColor = 0;
+	SkinModifier.m_BodyFile = 0;
+
+	// marking
+	SkinModifier.m_MarkingFlags = PART_KEEP;
+	SkinModifier.m_MarkingColor = 0;
+	SkinModifier.m_MarkingFile = 0;
+
+	// decoration
+	SkinModifier.m_DecoFlags = PART_KEEP;
+	SkinModifier.m_DecoColor = 0;
+	SkinModifier.m_DecoFile = 0;
+
+	// hands
+	SkinModifier.m_HandsFlags = PART_KEEP;
+	SkinModifier.m_HandsColor = 0;
+	SkinModifier.m_HandsFile = 0;
+
+	// feet
+	SkinModifier.m_FeetFlags = PART_KEEP;
+	SkinModifier.m_FeetColor = 0;
+	SkinModifier.m_FeetFile = 0;
+
+	// eyes
+	SkinModifier.m_EyesFlags = PART_KEEP;
+	SkinModifier.m_EyesColor = 0;
+	SkinModifier.m_EyesFile = 0;
+
+	SkinModifier.m_HookStyle; // a line style ID
+
+	return SkinModifier;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetModifier(int Type, bool UseExternal)
+{
+	m_SkinFlag = Type;
+	m_ExternalSet = UseExternal;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetBody(int Flags, const vec4& Color, const char *File)
+{
+	m_BodyFlags = Flags;
+	m_BodyColor = ModAPI_ColorToInt(Color);
+	m_BodyFile = File;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetMarking(int Flags, const vec4& Color, const char *File)
+{
+	m_MarkingFlags = Flags;
+	m_MarkingColor = ModAPI_ColorToInt(Color);
+	m_MarkingFile = File;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetDecoration(int Flags, const vec4& Color, const char *File)
+{
+	m_DecoFlags = Flags;
+	m_DecoColor = ModAPI_ColorToInt(Color);
+	m_DecoFile = File;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetHands(int Flags, const vec4& Color, const char *File)
+{
+	m_HandsFlags = Flags;
+	m_HandsColor = ModAPI_ColorToInt(Color);
+	m_HandsFile = File;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetFeet(int Flags, const vec4& Color, const char *File)
+{
+	m_FeetFlags = Flags;
+	m_FeetColor = ModAPI_ColorToInt(Color);
+	m_FeetFile = File;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetEyes(int Flags, const vec4& Color, const char *File)
+{
+	m_EyesFlags = Flags;
+	m_EyesColor = ModAPI_ColorToInt(Color);
+	m_EyesFile = File;
+}
+
+
+
 int CModAPI_ModCreator::Save(class IStorage *pStorage, const char *pFileName)
 {
 	CDataFileWriter df;
@@ -273,6 +370,12 @@ int CModAPI_ModCreator::Save(class IStorage *pStorage, const char *pFileName)
 		df.AddItem(MODAPI_MODITEMTYPE_LINESTYLE, i, sizeof(CModAPI_ModItem_LineStyle), &m_LineStyles[i]);
 	}
 	
+	//Save skin changers
+	for(int i=0; i<m_SkinModifiers.size(); i++)
+	{
+		df.AddItem(MODAPI_MODITEMTYPE_SKINMODIFIER, i, sizeof(CModAPI_ModItem_SkinModifier), &m_SkinModifiers[i]);
+	}
+
 	df.Finish();
 	
 	return 1;

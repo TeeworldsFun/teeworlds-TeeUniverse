@@ -8,6 +8,7 @@ enum
 	MODAPI_MODITEMTYPE_IMAGE = 0,
 	MODAPI_MODITEMTYPE_SPRITE,
 	MODAPI_MODITEMTYPE_LINESTYLE,
+	MODAPI_MODITEMTYPE_SKINMODIFIER,
 };
 
 struct CModAPI_ModItem_Image
@@ -70,6 +71,58 @@ struct CModAPI_ModItem_LineStyle
 	//General information
 	int m_AnimationType; //MODAPI_LINESTYLE_ANIMATION_XXXXX
 	int m_AnimationSpeed;
+};
+
+enum ESkinModifier
+{
+	SKIN_INVALIDMOD = 0,
+	SKIN_CUSTOMSET, // use a full predefined json file which already exists
+	SKIN_CUSTOMPARTS, // customize all parts of the skin
+
+	PART_KEEP = 0x0, // do not change this part
+	PART_CHANGEFILE = 0x1, // use another file
+	PART_CUSTOMCOLOR = 0x2, // change color. If not given, keep the one set by the player
+	PART_EXTERNALFILE = 0x4, // the file to use is supplied with the mod
+};
+
+struct CModAPI_ModItem_SkinModifier
+{
+	// general
+	int m_Id;
+	int m_SkinFlag;
+	int m_ExternalSet;
+
+	// body
+	int m_BodyFlags;
+	int m_BodyColor;
+	const char *m_BodyFile;
+
+	// marking
+	int m_MarkingFlags;
+	int m_MarkingColor;
+	const char *m_MarkingFile;
+
+	// decoration
+	int m_DecoFlags;
+	int m_DecoColor;
+	const char *m_DecoFile;
+
+	// hands
+	int m_HandsFlags;
+	int m_HandsColor;
+	const char *m_HandsFile;
+
+	// feet
+	int m_FeetFlags;
+	int m_FeetColor;
+	const char *m_FeetFile;
+
+	// eyes
+	int m_EyesFlags;
+	int m_EyesColor;
+	const char *m_EyesFile;
+
+	int m_HookStyle; // a line style ID
 };
 
 #endif

@@ -23,11 +23,24 @@ public:
 		CModAPI_LineStyleCreator& SetLineAnimation(int Type, int Speed);
 	};
 
+	class CModAPI_SkinModifierCreator : public CModAPI_ModItem_SkinModifier
+	{
+	public:
+		CModAPI_SkinModifierCreator& SetModifier(int Type, bool UseExternal);
+		CModAPI_SkinModifierCreator& SetBody(int Flags, const vec4& Color, const char *File);
+		CModAPI_SkinModifierCreator& SetMarking(int Flags, const vec4& Color, const char *File);
+		CModAPI_SkinModifierCreator& SetDecoration(int Flags, const vec4& Color, const char *File);
+		CModAPI_SkinModifierCreator& SetHands(int Flags, const vec4& Color, const char *File);
+		CModAPI_SkinModifierCreator& SetFeet(int Flags, const vec4& Color, const char *File);
+		CModAPI_SkinModifierCreator& SetEyes(int Flags, const vec4& Color, const char *File);
+	};
+
 private:
 	array<void*> m_ImagesData;
 	array<CModAPI_ModItem_Image> m_Images;
 	array<CModAPI_ModItem_Sprite> m_Sprites;
 	array<CModAPI_LineStyleCreator> m_LineStyles;
+	array<CModAPI_SkinModifierCreator> m_SkinModifiers;
 	
 	int AddSprite(int ImageId, int x, int External, int y, int w, int h, int gx, int gy);
 	
@@ -38,6 +51,7 @@ public:
 	int AddSpriteInternal(int ImageId, int x, int y, int w, int h, int gx, int gy);
 	int AddSpriteExternal(int ImageId, int x, int y, int w, int h, int gx, int gy);
 	CModAPI_LineStyleCreator& AddLineStyle();
+	CModAPI_SkinModifierCreator& AddSkinModifier();
 	
 	int Save(class IStorage *pStorage, const char *pFileName);
 };
