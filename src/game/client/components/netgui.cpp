@@ -68,6 +68,26 @@ void CModAPIGui::OnMessage(int MsgId, void *pRawMsg)
 			#undef GUIDEFINE
 		}
 	}
+	else if(MsgId == NETMSGTYPE_MODAPI_SV_GUIREMOVEALLELEMENTS)
+	{
+		CNetMsg_ModAPI_Sv_GuiRemoveAllElements *pMsg = (CNetMsg_ModAPI_Sv_GuiRemoveAllElements *)pRawMsg;
+
+		// remove handler; the "args..." thingy is just for compatiblity and will be dropped
+		#define GUIDEFINE(name, netmsgname, args...) \
+			case NETMSGTYPE_MODAPI_SV_GUI##netmsgname: \
+					m_ModAPI_Gui##name.clear(); break;
+
+		switch(pMsg->m_Type)
+		{
+			// auto-generated remove handlers
+			#include <modapi/guidefines.h>
+			#undef GUIDEFINE
+		}
+	}
+	else if(MsgId == NETMSGTYPE_MODAPI_SV_GUICLEARALL)
+	{
+		OnReset();
+	}
 	else if(MsgId == NETMSGTYPE_MODAPI_SV_GUIREQUESTDATA)
 	{
 		CNetMsg_ModAPI_Sv_GuiRequestData *pMsg = (CNetMsg_ModAPI_Sv_GuiRequestData *)pRawMsg;

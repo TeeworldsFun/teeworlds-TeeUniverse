@@ -118,6 +118,18 @@ void CModAPIGui::RemoveElement(int ClientID, int Type, int ModAPIGuiElemID)
 	SendNetGui(ClientID, Msg);
 }
 
+void CModAPIGui::RemoveAllElements(int ClientID, int Type)
+{
+	CNetMsg_ModAPI_Sv_GuiRemoveAllElements Msg;
+	Msg.m_Type = Type;
+	SendNetGui(ClientID, Msg);
+}
+
+void CModAPIGui::RemoveEverything(int ClientID)
+{
+	CNetMsg_ModAPI_Sv_GuiClearAll Msg;
+	SendNetGui(ClientID, Msg);
+}
 
 void CModAPIGui::DoUIRect(int ClientID, int ModAPIGuiElemID, vec4 Dimensions, vec4 Color, int Corner, float Rounding)
 {

@@ -403,14 +403,14 @@ Messages = [
 		NetStringStrict("m_Reason"),
 		NetBool("m_Force"),
 	]),
-	
+
 	### ModAPI
-	
+
 	NetMessage("ModAPI_Sv_Broadcast", [
 		NetStringStrict("m_pMessage"),
 	]),
-	
-	
+
+
 	### NetGUI
 	## Server
 	NetMessage("ModAPI_Sv_GuiRemoveElement", [
@@ -491,14 +491,21 @@ Messages = [
 		NetIntAny("m_MaxValue"),
 		NetIntRange("m_Infinite", 0, 1),
 	]),
-	
+
 	NetMessage("ModAPI_Sv_GuiInfoBox", [
 		NetIntAny("m_ID"),
 		NetArray(NetIntRange("m_Dimension", 0, 100), 4),
 		NetString("m_Label"),
 		NetString("m_Value"),
 	]),
-	
+
+	NetMessage("ModAPI_Sv_GuiRemoveAllElements", [
+		NetIntAny("m_Type"),
+	]),
+
+	NetMessage("ModAPI_Sv_GuiClearAll", [
+	]),
+
 	## NetGui - Client
 	NetMessage("ModAPI_Cl_GuiTriggerEvent", [ 
 		NetIntAny("m_Type"),
@@ -516,5 +523,5 @@ Messages = [
 		NetIntAny("m_Type"),
 		NetString("m_Text"),
 	]),
-	
+
 ]
