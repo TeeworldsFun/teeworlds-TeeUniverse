@@ -8,10 +8,18 @@
 
 class CModAPIGui : public CComponent
 {
+private:
+	static void ConMemPrint(IConsole::IResult *pResult, void *pUserData);
+	static void ConMemOptimize(IConsole::IResult *pResult, void *pUserData);
+
+public:
+	virtual void OnConsoleInit();
 	virtual void OnReset();
 	virtual void OnMessage(int MsgId, void *pRawMsg);
 
-public:
+	int GetMemoryUsage();
+	void OptimizeMemory();
+
 	// automatically make a storage array for everything
 	#define GUIDEFINE(name, netmsgname, args...) array<CNetMsg_ModAPI_Sv_Gui##name> m_ModAPI_Gui##name;
 	#include <modapi/guidefines.h>

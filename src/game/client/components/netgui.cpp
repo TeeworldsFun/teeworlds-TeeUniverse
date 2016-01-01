@@ -37,9 +37,15 @@
 		SortGuiList<CNetMsg_ModAPI_Sv_Gui##name>(m_ModAPI_Gui##name)
 
 
+void CModAPIGui::OnConsoleInit()
+{
+	Console()->Register("cl_netgui_memusage", "", 2, ConMemPrint, this, "Print netgui components memory usage");
+	Console()->Register("cl_netgui_memoptimize", "", 2, ConMemOptimize, this, "Optimize netgui components memory usage");
+}
+
 void CModAPIGui::OnReset()
 {
-	// auto-generated clear's
+	// auto-generated clears
 	#define GUIDEFINE(name, netmsgname, args...) m_ModAPI_Gui##name.clear();
 	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
@@ -241,4 +247,52 @@ void CModAPIGui::OnMessage(int MsgId, void *pRawMsg)
 
 		GUIRECEIVE_FINALIZE(InfoBox);
 	}
+}
+
+
+int CModAPIGui::GetMemoryUsage()
+{
+	int usage = 0;
+
+	#define GUIDEFINE(name, netmsgname, args...) usage += m_ModAPI_Gui##name.memusage();
+	#include <modapi/guidefines.h>
+	#undef GUIDEFINE
+
+	return usage;
+}
+
+void CModAPIGui::OptimizeMemory()
+{
+	#define GUIDEFINE(name, netmsgname, args...) m_ModAPI_Gui##name.optimize();
+	#include <modapi/guidefines.h>
+	#undef GUIDEFINE
+}
+
+void CModAPIGui::ConMemPrint(IConsole::IResult *pResult, void *pUserData)
+{
+	CModAPIGui *pSelf = ((CModAPIGui*)pUserData);
+
+	char aBuf[256];
+	str_format(aBuf, sizeof(aBuf), "All component's memory usage: %d", pSelf->GetMemoryUsage());
+	pSelf->Console()->Print(0, "netgui", aBuf, false);
+}
+
+void CModAPIGui::ConMemOptimize(IConsole::IResult *pResult, void *pUserData)
+{
+	CModAPIGui *pSelf = ((CModAPIGui*)pUserData);
+
+	char aBuf[256];
+
+	int before = pSelf->GetMemoryUsage();
+	str_format(aBuf, sizeof(aBuf), "Memory usage before optimize: %d bytes", before);
+	pSelf->Console()->Print(0, "netgui", aBuf, false);
+
+	pSelf->OptimizeMemory();
+
+	int after = pSelf->GetMemoryUsage();
+	str_format(aBuf, sizeof(aBuf), "Memory usage after optimize: %d bytes", after);
+	pSelf->Console()->Print(0, "netgui", aBuf, false);
+
+	str_format(aBuf, sizeof(aBuf), "Memory freed: %d bytes", before - after);
+	pSelf->Console()->Print(0, "netgui", aBuf, false);
 }
