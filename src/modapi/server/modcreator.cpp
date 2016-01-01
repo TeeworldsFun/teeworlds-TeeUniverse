@@ -247,95 +247,254 @@ CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::AddSkinModi
 {
 	int Id = m_SkinModifiers.size();
 	m_SkinModifiers.set_size(m_SkinModifiers.size()+1);
-	CModAPI_ModCreator::CModAPI_SkinModifierCreator& SkinModifier = m_SkinModifiers[Id];
+	CModAPI_ModCreator::CModAPI_SkinModifierCreator &SkinModifier = m_SkinModifiers[Id];
 
-	// general
 	SkinModifier.m_Id = Id;
 
-	SkinModifier.m_SkinFlag = SKIN_INVALIDMOD;
-	SkinModifier.m_ExternalSet = 0;
+	return SkinModifier.SetVanillaSkin(0); // initialize everything to change nothing
+}
 
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetVanillaSkin(const char *pName)
+{
 	// body
-	SkinModifier.m_BodyFlags = PART_KEEP;
-	SkinModifier.m_BodyColor = 0;
-	SkinModifier.m_BodyFile = 0;
+	m_BodyFlags = MODAPI_SKINMODIFIER_PART_KEEP;
+	m_BodyColor = -1;
+	m_BodyImage = -1;
 
 	// marking
-	SkinModifier.m_MarkingFlags = PART_KEEP;
-	SkinModifier.m_MarkingColor = 0;
-	SkinModifier.m_MarkingFile = 0;
+	m_MarkingFlags = MODAPI_SKINMODIFIER_PART_KEEP;
+	m_MarkingColor = -1;
+	m_MarkingImage = -1;
 
 	// decoration
-	SkinModifier.m_DecoFlags = PART_KEEP;
-	SkinModifier.m_DecoColor = 0;
-	SkinModifier.m_DecoFile = 0;
+	m_DecoFlags = MODAPI_SKINMODIFIER_PART_KEEP;
+	m_DecoColor = -1;
+	m_DecoImage = -1;
 
 	// hands
-	SkinModifier.m_HandsFlags = PART_KEEP;
-	SkinModifier.m_HandsColor = 0;
-	SkinModifier.m_HandsFile = 0;
+	m_HandsFlags = MODAPI_SKINMODIFIER_PART_KEEP;
+	m_HandsColor = -1;
+	m_HandsImage = -1;
 
 	// feet
-	SkinModifier.m_FeetFlags = PART_KEEP;
-	SkinModifier.m_FeetColor = 0;
-	SkinModifier.m_FeetFile = 0;
+	m_FeetFlags = MODAPI_SKINMODIFIER_PART_KEEP;
+	m_FeetColor = -1;
+	m_FeetImage = -1;
 
 	// eyes
-	SkinModifier.m_EyesFlags = PART_KEEP;
-	SkinModifier.m_EyesColor = 0;
-	SkinModifier.m_EyesFile = 0;
+	m_EyesFlags = MODAPI_SKINMODIFIER_PART_KEEP;
+	m_EyesColor = -1;
+	m_EyesImage = -1;
 
-	SkinModifier.m_HookStyle; // a line style ID
+	m_HookStyle = -1; // a line style ID
 
-	return SkinModifier;
+
+	// TODO: parse the json file (pName) here!!
+	return *this;
 }
 
-CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetModifier(int Type, bool UseExternal)
+// skin modifier - body
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetBodyColor(const vec4& Color)
 {
-	m_SkinFlag = Type;
-	m_ExternalSet = UseExternal;
-}
-
-CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetBody(int Flags, const vec4& Color, const char *File)
-{
-	m_BodyFlags = Flags;
 	m_BodyColor = ModAPI_ColorToInt(Color);
-	m_BodyFile = File;
+	m_BodyFlags |= MODAPI_SKINMODIFIER_PART_CUSTOMCOLOR;
+	return *this;
 }
 
-CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetMarking(int Flags, const vec4& Color, const char *File)
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetBodyInternalSkin(int ImageId)
 {
-	m_MarkingFlags = Flags;
+	if(ImageId >= MODAPI_NB_INTERNALIMG || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set internal skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_BodyImage = ImageId;
+	m_BodyFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_BodyFlags &= ~MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetBodyExternalSkin(int ImageId)
+{
+	if(ImageId >= m_Images.size() || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set the external skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_BodyImage = ImageId;
+	m_BodyFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_BodyFlags |= MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+// skin modifier - marking
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetMarkingColor(const vec4& Color)
+{
 	m_MarkingColor = ModAPI_ColorToInt(Color);
-	m_MarkingFile = File;
+	m_MarkingFlags |= MODAPI_SKINMODIFIER_PART_CUSTOMCOLOR;
+	return *this;
 }
 
-CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetDecoration(int Flags, const vec4& Color, const char *File)
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetMarkingInternalSkin(int ImageId)
 {
-	m_DecoFlags = Flags;
+	if(ImageId >= MODAPI_NB_INTERNALIMG || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set internal skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_MarkingImage = ImageId;
+	m_MarkingFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_MarkingFlags &= ~MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetMarkingExternalSkin(int ImageId)
+{
+	if(ImageId >= m_Images.size() || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set the external skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_MarkingImage = ImageId;
+	m_MarkingFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_MarkingFlags |= MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+// skin modifier - decoration
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetDecorationColor(const vec4& Color)
+{
 	m_DecoColor = ModAPI_ColorToInt(Color);
-	m_DecoFile = File;
+	m_DecoFlags |= MODAPI_SKINMODIFIER_PART_CUSTOMCOLOR;
+	return *this;
 }
 
-CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetHands(int Flags, const vec4& Color, const char *File)
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetDecorationInternalSkin(int ImageId)
 {
-	m_HandsFlags = Flags;
+	if(ImageId >= MODAPI_NB_INTERNALIMG || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set internal skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_DecoImage = ImageId;
+	m_DecoFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_DecoFlags &= ~MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetDecorationExternalSkin(int ImageId)
+{
+	if(ImageId >= m_Images.size() || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set the external skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_DecoImage = ImageId;
+	m_DecoFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_DecoFlags |= MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+// skin modifier - hands
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetHandsColor(const vec4& Color)
+{
 	m_HandsColor = ModAPI_ColorToInt(Color);
-	m_HandsFile = File;
+	m_HandsFlags |= MODAPI_SKINMODIFIER_PART_CUSTOMCOLOR;
+	return *this;
 }
 
-CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetFeet(int Flags, const vec4& Color, const char *File)
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetHandsInternalSkin(int ImageId)
 {
-	m_FeetFlags = Flags;
+	if(ImageId >= MODAPI_NB_INTERNALIMG || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set internal skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_HandsImage = ImageId;
+	m_HandsFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_HandsFlags &= ~MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetHandsExternalSkin(int ImageId)
+{
+	if(ImageId >= m_Images.size() || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set the external skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_HandsImage = ImageId;
+	m_HandsFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_HandsFlags |= MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+// skin modifier - feet
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetFeetColor(const vec4& Color)
+{
 	m_FeetColor = ModAPI_ColorToInt(Color);
-	m_FeetFile = File;
+	m_FeetFlags |= MODAPI_SKINMODIFIER_PART_CUSTOMCOLOR;
+	return *this;
 }
 
-CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetEyes(int Flags, const vec4& Color, const char *File)
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetFeetInternalSkin(int ImageId)
 {
-	m_EyesFlags = Flags;
+	if(ImageId >= MODAPI_NB_INTERNALIMG || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set internal skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_FeetImage = ImageId;
+	m_FeetFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_FeetFlags &= ~MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetFeetExternalSkin(int ImageId)
+{
+	if(ImageId >= m_Images.size() || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set the external skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_FeetImage = ImageId;
+	m_FeetFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_FeetFlags |= MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+// skin modifier - eyes
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetEyesColor(const vec4& Color)
+{
 	m_EyesColor = ModAPI_ColorToInt(Color);
-	m_EyesFile = File;
+	m_EyesFlags |= MODAPI_SKINMODIFIER_PART_CUSTOMCOLOR;
+	return *this;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetEyesInternalSkin(int ImageId)
+{
+	if(ImageId >= MODAPI_NB_INTERNALIMG || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set internal skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_EyesImage = ImageId;
+	m_EyesFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_EyesFlags &= ~MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
+}
+
+CModAPI_ModCreator::CModAPI_SkinModifierCreator& CModAPI_ModCreator::CModAPI_SkinModifierCreator::SetEyesExternalSkin(int ImageId)
+{
+	if(ImageId >= m_Images.size() || ImageId < 0)
+	{
+		dbg_msg("mod", "can't set the external skin : wrong image id (%i)", ImageId);
+		return *this;
+	}
+	m_EyesImage = ImageId;
+	m_EyesFlags |= MODAPI_SKINMODIFIER_PART_CHANGEFILE;
+	m_EyesFlags |= MODAPI_SKINMODIFIER_PART_EXTERNALFILE;
+	return *this;
 }
 
 
@@ -374,6 +533,7 @@ int CModAPI_ModCreator::Save(class IStorage *pStorage, const char *pFileName)
 	for(int i=0; i<m_SkinModifiers.size(); i++)
 	{
 		df.AddItem(MODAPI_MODITEMTYPE_SKINMODIFIER, i, sizeof(CModAPI_ModItem_SkinModifier), &m_SkinModifiers[i]);
+		//df.
 	}
 
 	df.Finish();
