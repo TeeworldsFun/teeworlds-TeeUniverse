@@ -26,7 +26,7 @@ public:
 	class CModAPI_SkinModifierCreator : public CModAPI_ModItem_SkinModifier
 	{
 	public:
-		CModAPI_SkinModifierCreator& SetVanillaSkin(const char *pFilename);
+		CModAPI_SkinModifierCreator& SetDefault();
 
 		CModAPI_SkinModifierCreator& SetBodyColor(const vec4& Color);
 		CModAPI_SkinModifierCreator& SetBodyInternalSkin(int ImageId);

@@ -75,10 +75,10 @@ struct CModAPI_ModItem_LineStyle
 
 enum
 {
-	MODAPI_SKINMODIFIER_PART_KEEP = 0x0, // do not change this part
-	MODAPI_SKINMODIFIER_PART_CHANGEFILE = 0x1, // use another file
-	MODAPI_SKINMODIFIER_PART_CUSTOMCOLOR = 0x2, // change color. If not given, keep the one set by the player
-	MODAPI_SKINMODIFIER_PART_EXTERNALFILE = 0x4, // the file to use is supplied with the mod
+	MODAPI_SKINMODFLAG_KEEP = 0x0, // do not change this part
+	MODAPI_SKINMODFLAG_CHANGEFILE = 0x1, // use another file
+	MODAPI_SKINMODFLAG_CHANGECOLOR = 0x2, // change color. If not given, keep the one set by the player
+	MODAPI_SKINMODFLAG_EXTERNALFILE = 0x4, // the file to use is supplied with the mod
 };
 
 struct CModAPI_ModItem_SkinModifier
