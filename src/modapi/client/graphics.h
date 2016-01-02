@@ -66,12 +66,52 @@ struct CModAPI_LineStyle
 	int m_AnimationSpeed;
 };
 
+struct CModAPI_SkinModifier
+{
+	// general
+	int m_Id;
+
+	// body
+	int m_BodyFlags;
+	vec4 m_BodyColor;
+	int m_BodyImage;
+
+	// marking
+	int m_MarkingFlags;
+	vec4 m_MarkingColor;
+	int m_MarkingImage;
+
+	// decoration
+	int m_DecoFlags;
+	vec4 m_DecoColor;
+	int m_DecoImage;
+
+	// hands
+	int m_HandsFlags;
+	vec4 m_HandsColor;
+	int m_HandsImage;
+
+	// feet
+	int m_FeetFlags;
+	vec4 m_FeetColor;
+	int m_FeetImage;
+
+	// eyes
+	int m_EyesFlags;
+	vec4 m_EyesColor;
+	int m_EyesImage;
+
+	int m_HookStyle; // a line style ID
+};
+
+
 class CModAPI_Client_Graphics
 {
 private:
 	array<CModAPI_Image> m_Images;
 	array<CModAPI_Sprite> m_Sprites;
 	array<CModAPI_LineStyle> m_LineStyles;
+	array<CModAPI_SkinModifier> m_SkinModifiers;
 	
 public:
 	CModAPI_Client_Graphics();

@@ -136,6 +136,55 @@ int CModAPI_Client_Graphics::OnModLoaded(IMod* pMod, IGraphics* pGraphics)
 		}
 	}
 	
+	//Load skin modifiers
+	{
+		int Start, Num;
+		pMod->GetType(MODAPI_MODITEMTYPE_SKINMODIFIER, &Start, &Num);
+
+		m_SkinModifiers.set_size(Num);
+
+		for(int i = 0; i < Num; i++)
+		{
+			CModAPI_ModItem_SkinModifier *pItem = (CModAPI_ModItem_SkinModifier*) pMod->GetItem(Start+i, 0, 0);
+
+			if(pItem->m_Id > Num) return 0;
+
+			CModAPI_SkinModifier* pSkinModifier = &m_SkinModifiers[pItem->m_Id];
+
+			// body
+			pSkinModifier->m_BodyFlags = pItem->m_BodyFlags;
+			pSkinModifier->m_BodyColor = ModAPI_IntToColor(pItem->m_BodyColor);
+			pSkinModifier->m_BodyImage = pItem->m_BodyImage;
+
+			// marking
+			pSkinModifier->m_MarkingFlags = pItem->m_MarkingFlags;
+			pSkinModifier->m_MarkingColor = ModAPI_IntToColor(pItem->m_MarkingColor);
+			pSkinModifier->m_MarkingImage = pItem->m_MarkingImage;
+
+			// decoration
+			pSkinModifier->m_DecoFlags = pItem->m_DecoFlags;
+			pSkinModifier->m_DecoColor = ModAPI_IntToColor(pItem->m_DecoColor);
+			pSkinModifier->m_DecoImage = pItem->m_DecoImage;
+
+			// hands
+			pSkinModifier->m_HandsFlags = pItem->m_HandsFlags;
+			pSkinModifier->m_HandsColor = ModAPI_IntToColor(pItem->m_HandsColor);
+			pSkinModifier->m_HandsImage = pItem->m_HandsImage;
+
+			// feet
+			pSkinModifier->m_FeetFlags = pItem->m_FeetFlags;
+			pSkinModifier->m_FeetColor = ModAPI_IntToColor(pItem->m_FeetColor);
+			pSkinModifier->m_FeetImage = pItem->m_FeetImage;
+
+			// eyes
+			pSkinModifier->m_EyesFlags = pItem->m_EyesFlags;
+			pSkinModifier->m_EyesColor = ModAPI_IntToColor(pItem->m_EyesColor);
+			pSkinModifier->m_EyesImage = pItem->m_EyesImage;
+
+			pSkinModifier->m_HookStyle = pItem->m_HookStyle; // a line style ID
+		}
+	}
+
 	return 1;
 }
 
@@ -151,14 +200,17 @@ int CModAPI_Client_Graphics::OnModUnloaded(IGraphics* pGraphics)
 			m_Images[i].m_pData = 0;
 		}
 	}
-	
+
 	m_Images.clear();
-	
+
 	//Unload sprites
 	m_Sprites.clear();
-	
+
 	//Unload line styles
 	m_LineStyles.clear();
 	
+	//Unload skin modifiers
+	m_SkinModifiers.clear();
+
 	return 1;
 }
