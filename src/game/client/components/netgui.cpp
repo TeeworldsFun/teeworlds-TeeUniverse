@@ -46,7 +46,7 @@ void CModAPIGui::OnConsoleInit()
 void CModAPIGui::OnReset()
 {
 	// auto-generated clears
-	#define GUIDEFINE(name, netmsgname, args...) m_ModAPI_Gui##name.clear();
+	#define GUIDEFINE(name, netmsgname, ...) m_ModAPI_Gui##name.clear();
 	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 }
@@ -57,8 +57,8 @@ void CModAPIGui::OnMessage(int MsgId, void *pRawMsg)
 	{
 		CNetMsg_ModAPI_Sv_GuiRemoveElement *pMsg = (CNetMsg_ModAPI_Sv_GuiRemoveElement *)pRawMsg;
 
-		// remove handler; the "args..." thingy is just for compatiblity and will be dropped
-		#define GUIDEFINE(name, netmsgname, args...) \
+		// remove handler; the va args are just for compatiblity and will be dropped
+		#define GUIDEFINE(name, netmsgname, ...) \
 			case NETMSGTYPE_MODAPI_SV_GUI##netmsgname: \
 				for(int i = 0; i < m_ModAPI_Gui##name.size(); i++) \
 				{ \
@@ -78,8 +78,8 @@ void CModAPIGui::OnMessage(int MsgId, void *pRawMsg)
 	{
 		CNetMsg_ModAPI_Sv_GuiRemoveAllElements *pMsg = (CNetMsg_ModAPI_Sv_GuiRemoveAllElements *)pRawMsg;
 
-		// remove handler; the "args..." thingy is just for compatiblity and will be dropped
-		#define GUIDEFINE(name, netmsgname, args...) \
+		// remove handler; the va args are just for compatiblity and will be dropped
+		#define GUIDEFINE(name, netmsgname, ...) \
 			case NETMSGTYPE_MODAPI_SV_GUI##netmsgname: \
 					m_ModAPI_Gui##name.clear(); break;
 
@@ -254,7 +254,7 @@ int CModAPIGui::GetMemoryUsage()
 {
 	int usage = 0;
 
-	#define GUIDEFINE(name, netmsgname, args...) usage += m_ModAPI_Gui##name.memusage();
+	#define GUIDEFINE(name, netmsgname, ...) usage += m_ModAPI_Gui##name.memusage();
 	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 
@@ -263,7 +263,7 @@ int CModAPIGui::GetMemoryUsage()
 
 void CModAPIGui::OptimizeMemory()
 {
-	#define GUIDEFINE(name, netmsgname, args...) m_ModAPI_Gui##name.optimize();
+	#define GUIDEFINE(name, netmsgname, ...) m_ModAPI_Gui##name.optimize();
 	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 }

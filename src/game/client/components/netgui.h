@@ -21,7 +21,7 @@ public:
 	void OptimizeMemory();
 
 	// automatically make a storage array for everything
-	#define GUIDEFINE(name, netmsgname, args...) array<CNetMsg_ModAPI_Sv_Gui##name> m_ModAPI_Gui##name;
+	#define GUIDEFINE(name, netmsgname, ...) array<CNetMsg_ModAPI_Sv_Gui##name> m_ModAPI_Gui##name;
 	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 

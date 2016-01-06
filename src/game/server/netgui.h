@@ -12,9 +12,9 @@
 #include "player.h"
 
 #define GUISET(name) void CreateGui_##name(int ClientID); void RemoveGui_##name(int ClientID);
-#define GUIDEFINE(name, netmsgname, args...) \
+#define GUIDEFINE(name, netmsgname, ...) \
 		public: \
-			void Do##name(int ClientID, int NetGuiElemID, vec4 Dimensions, args); \
+			void Do##name(int ClientID, int NetGuiElemID, vec4 Dimensions, __VA_ARGS__); \
 		private: \
 			array<CNetMsg_ModAPI_Sv_Gui##name> m_##name[MAX_CLIENTS]; public:
 

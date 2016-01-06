@@ -36,7 +36,7 @@ void CModAPIGui::OnClientEnter(int ClientID)
 void CModAPIGui::OnClientDrop(int ClientID)
 {
 	// auto-generated clear's
-	#define GUIDEFINE(name, netmsgname, args...) m_##name[ClientID].clear();
+	#define GUIDEFINE(name, netmsgname, ...) m_##name[ClientID].clear();
 	#include <modapi/guidefines.h>
 	#undef GUIDEFINE
 }
@@ -97,8 +97,8 @@ void CModAPIGui::RemoveElement(int ClientID, int Type, int ModAPIGuiElemID)
 	Msg.m_Type = Type;
 	Msg.m_ID = ModAPIGuiElemID;
 
-	// remove handler; the "args..." thingy is just for compatiblity and will be dropped
-	#define GUIDEFINE(name, netmsgname, args...) \
+	// remove handler; the va args are just for compatiblity and will be dropped
+	#define GUIDEFINE(name, netmsgname, ...) \
 		case NETMSGTYPE_MODAPI_SV_GUI##netmsgname: \
 			for(int i = 0; i < m_##name[ClientID].size(); i++) \
 			{ \
