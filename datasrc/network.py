@@ -236,6 +236,15 @@ Objects = [
 		NetIntRange("m_Angle", 0, 360),
 	]),
 	
+	NetObject("ModAPI_AnimatedSprite", [
+		NetIntAny("m_AnimatedSpriteId"),
+		NetIntAny("m_X"),
+		NetIntAny("m_Y"),
+		NetIntAny("m_Size"),
+		NetIntRange("m_Angle", 0, 360),
+		NetIntAny("m_StartTick"),
+	]),
+	
 	NetObject("ModAPI_SpriteCharacter", [
 		NetIntAny("m_SpriteId"),
 		NetIntAny("m_ClientId"),

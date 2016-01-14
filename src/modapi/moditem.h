@@ -6,7 +6,9 @@ class IStorage;
 enum
 {
 	MODAPI_MODITEMTYPE_IMAGE = 0,
+	MODAPI_MODITEMTYPE_ANIMATION,
 	MODAPI_MODITEMTYPE_SPRITE,
+	MODAPI_MODITEMTYPE_ANIMATEDSPRITE,
 	MODAPI_MODITEMTYPE_LINESTYLE,
 };
 
@@ -17,6 +19,13 @@ struct CModAPI_ModItem_Image
 	int m_Height;
 	int m_Format;
 	int m_ImageData;
+};
+
+struct CModAPI_ModItem_Animation
+{
+	int m_Id;
+	int m_NumKeyFrame;
+	int m_KeyFrameData;
 };
 
 struct CModAPI_ModItem_Sprite
@@ -30,6 +39,16 @@ struct CModAPI_ModItem_Sprite
 	int m_ImageId;
 	int m_GridX;
 	int m_GridY;
+};
+
+struct CModAPI_ModItem_AnimatedSprite
+{
+	int m_Id;
+	int m_AnimationId;
+	int m_SpriteId;
+	int m_OffsetX; // x100
+	int m_OffsetY; // x100
+	int m_CycleDuration; //miliseconds
 };
 
 struct CModAPI_ModItem_LineStyle

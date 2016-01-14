@@ -96,6 +96,23 @@ CModAPI_ModCreator::CModAPI_LineStyleCreator& CModAPI_ModCreator::CModAPI_LineSt
 	return *this;
 }
 
+CModAPI_ModCreator::CModAPI_AnimationCreator& CModAPI_ModCreator::CModAPI_AnimationCreator::AddKeyFrame(float Time, vec2 Pos, float Angle)
+{
+	m_lKeyFrames.set_size(m_lKeyFrames.size()+1);
+	CModAPI_AnimationFrame& Frame = m_lKeyFrames[m_lKeyFrames.size()-1];
+	
+	Frame.m_Time = Time;
+	Frame.m_Pos = Pos;
+	Frame.m_Angle = Angle;
+	
+	m_NumKeyFrame++;
+}
+
+CModAPI_AnimationFrame* CModAPI_ModCreator::CModAPI_AnimationCreator::GetData()
+{
+	return &m_lKeyFrames[0];
+}
+
 CModAPI_ModCreator::CModAPI_ModCreator()
 {
 	
@@ -197,6 +214,21 @@ int CModAPI_ModCreator::AddSpriteExternal(int ImageId, int x, int y, int w, int 
 	return AddSprite(ImageId, 1, x, y, w, h, gx, gy);
 }
 
+int CModAPI_ModCreator::AddAnimatedSprite(int SpriteId, int AnimationId, float OffsetX, float OffsetY, int CycleDuration)
+{	
+	CModAPI_ModItem_AnimatedSprite AnimatedSprite;
+	AnimatedSprite.m_Id = m_AnimatedSprites.size();
+	AnimatedSprite.m_SpriteId = SpriteId;
+	AnimatedSprite.m_AnimationId = AnimationId;
+	AnimatedSprite.m_OffsetX = 100 * OffsetX;
+	AnimatedSprite.m_OffsetY = 100 * OffsetY;
+	AnimatedSprite.m_CycleDuration = CycleDuration;
+	
+	m_AnimatedSprites.add(AnimatedSprite);
+	
+	return AnimatedSprite.m_Id;
+}
+
 CModAPI_ModCreator::CModAPI_LineStyleCreator& CModAPI_ModCreator::AddLineStyle()
 {
 	int Id = m_LineStyles.size();
@@ -243,6 +275,19 @@ CModAPI_ModCreator::CModAPI_LineStyleCreator& CModAPI_ModCreator::AddLineStyle()
 	return LineStyle;
 }
 
+CModAPI_ModCreator::CModAPI_AnimationCreator& CModAPI_ModCreator::AddAnimation()
+{
+	int Id = m_Animations.size();
+	
+	m_Animations.set_size(m_Animations.size()+1);
+	
+	CModAPI_ModCreator::CModAPI_AnimationCreator& Animation = m_Animations[Id];
+	Animation.m_Id = Id;
+	Animation.m_NumKeyFrame = 0;
+	
+	return Animation;
+}
+
 int CModAPI_ModCreator::Save(class IStorage *pStorage, const char *pFileName)
 {
 	CDataFileWriter df;
@@ -261,10 +306,23 @@ int CModAPI_ModCreator::Save(class IStorage *pStorage, const char *pFileName)
 		df.AddItem(MODAPI_MODITEMTYPE_IMAGE, i, sizeof(CModAPI_ModItem_Image), pImage);
 	}
 	
+	//Save animation
+	for(int i=0; i<m_Animations.size(); i++)
+	{
+		m_Animations[i].m_KeyFrameData = df.AddData(m_Animations[i].m_NumKeyFrame * sizeof(CModAPI_AnimationFrame), m_Animations[i].GetData());
+		df.AddItem(MODAPI_MODITEMTYPE_ANIMATION, i, sizeof(CModAPI_ModItem_Animation), &m_Animations[i]);
+	}
+	
 	//Save sprites
 	for(int i=0; i<m_Sprites.size(); i++)
 	{
 		df.AddItem(MODAPI_MODITEMTYPE_SPRITE, i, sizeof(CModAPI_ModItem_Sprite), &m_Sprites[i]);
+	}
+	
+	//Save animated sprites
+	for(int i=0; i<m_AnimatedSprites.size(); i++)
+	{
+		df.AddItem(MODAPI_MODITEMTYPE_ANIMATEDSPRITE, i, sizeof(CModAPI_ModItem_AnimatedSprite), &m_AnimatedSprites[i]);
 	}
 	
 	//Save line styles

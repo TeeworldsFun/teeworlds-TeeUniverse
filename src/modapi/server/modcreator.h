@@ -4,6 +4,7 @@
 #include <base/tl/array.h>
 #include <base/vmath.h>
 #include <modapi/moditem.h>
+#include <modapi/shared/animation.h>
 
 class IStorage;
 
@@ -22,11 +23,23 @@ public:
 		CModAPI_LineStyleCreator& SetEndPointAnimatedSprite(int SpriteId1, int SpriteId2, int X, int Y, int W, int H, int Speed);
 		CModAPI_LineStyleCreator& SetLineAnimation(int Type, int Speed);
 	};
+	
+	class CModAPI_AnimationCreator : public CModAPI_ModItem_Animation
+	{
+	private:
+		array<CModAPI_AnimationFrame> m_lKeyFrames;
+	
+	public:
+		CModAPI_AnimationCreator& AddKeyFrame(float Time, vec2 Pos, float Angle);
+		CModAPI_AnimationFrame* GetData();
+	};
 
 private:
 	array<void*> m_ImagesData;
 	array<CModAPI_ModItem_Image> m_Images;
+	array<CModAPI_AnimationCreator> m_Animations;
 	array<CModAPI_ModItem_Sprite> m_Sprites;
+	array<CModAPI_ModItem_AnimatedSprite> m_AnimatedSprites;
 	array<CModAPI_LineStyleCreator> m_LineStyles;
 	
 	int AddSprite(int ImageId, int x, int External, int y, int w, int h, int gx, int gy);
@@ -37,7 +50,9 @@ public:
 	int AddImage(IStorage* pStorage, const char* Filename);
 	int AddSpriteInternal(int ImageId, int x, int y, int w, int h, int gx, int gy);
 	int AddSpriteExternal(int ImageId, int x, int y, int w, int h, int gx, int gy);
+	int AddAnimatedSprite(int SpriteId, int AnimationId, float OffsetX, float OffsetY, int CycleDuration);
 	CModAPI_LineStyleCreator& AddLineStyle();
+	CModAPI_AnimationCreator& AddAnimation();
 	
 	int Save(class IStorage *pStorage, const char *pFileName);
 };

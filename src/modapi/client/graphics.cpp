@@ -16,11 +16,25 @@ const CModAPI_Image* CModAPI_Client_Graphics::GetImage(int Id) const
 	return &m_Images[Id];
 }
 
+const CModAPI_Animation* CModAPI_Client_Graphics::GetAnimation(int Id) const
+{
+	if(Id < 0 || Id >= m_Animations.size()) return 0;
+	
+	return &m_Animations[Id];
+}
+
 const CModAPI_Sprite* CModAPI_Client_Graphics::GetSprite(int Id) const
 {
 	if(Id < 0 || Id >= m_Sprites.size()) return 0;
 	
 	return &m_Sprites[Id];
+}
+
+const CModAPI_AnimatedSprite* CModAPI_Client_Graphics::GetAnimatedSprite(int Id) const
+{
+	if(Id < 0 || Id >= m_AnimatedSprites.size()) return 0;
+	
+	return &m_AnimatedSprites[Id];
 }
 
 const CModAPI_LineStyle* CModAPI_Client_Graphics::GetLineStyle(int Id) const
@@ -43,7 +57,7 @@ int CModAPI_Client_Graphics::OnModLoaded(IMod* pMod)
 		{
 			CModAPI_ModItem_Image *pItem = (CModAPI_ModItem_Image*) pMod->GetItem(Start+i, 0, 0);
 			
-			if(pItem->m_Id > Num) return 0;
+			if(pItem->m_Id >= Num) return 0;
 			
 			CModAPI_Image* pImage = &m_Images[pItem->m_Id];
 			
@@ -64,6 +78,29 @@ int CModAPI_Client_Graphics::OnModLoaded(IMod* pMod)
 		}
 	}
 	
+	//Load animations
+	{
+		int Start, Num;
+		pMod->GetType(MODAPI_MODITEMTYPE_ANIMATION, &Start, &Num);
+		
+		m_Animations.set_size(Num);
+		
+		for(int i = 0; i < Num; i++)
+		{
+			CModAPI_ModItem_Animation *pItem = (CModAPI_ModItem_Animation *) pMod->GetItem(Start+i, 0, 0);
+			
+			if(pItem->m_Id >= Num) return 0;
+			
+			const CModAPI_AnimationFrame* pFrames = static_cast<CModAPI_AnimationFrame*>(pMod->GetData(pItem->m_KeyFrameData));
+			
+			CModAPI_Animation* Animation = &m_Animations[pItem->m_Id];
+			for(int f=0; f<pItem->m_NumKeyFrame; f++)
+			{
+				Animation->AddKeyFrame(pFrames[f].m_Time, pFrames[f].m_Pos, pFrames[f].m_Angle);
+			}
+		}
+	}
+	
 	//Load sprites
 	{
 		int Start, Num;
@@ -75,7 +112,7 @@ int CModAPI_Client_Graphics::OnModLoaded(IMod* pMod)
 		{
 			CModAPI_ModItem_Sprite *pItem = (CModAPI_ModItem_Sprite *) pMod->GetItem(Start+i, 0, 0);
 			
-			if(pItem->m_Id > Num) return 0;
+			if(pItem->m_Id >= Num) return 0;
 			
 			CModAPI_Sprite* sprite = &m_Sprites[pItem->m_Id];
 			sprite->m_X = pItem->m_X;
@@ -86,6 +123,28 @@ int CModAPI_Client_Graphics::OnModLoaded(IMod* pMod)
 			sprite->m_ImageId = pItem->m_ImageId;
 			sprite->m_GridX = pItem->m_GridX;
 			sprite->m_GridY = pItem->m_GridY;
+		}
+	}
+	
+	//Load animated sprites
+	{
+		int Start, Num;
+		pMod->GetType(MODAPI_MODITEMTYPE_ANIMATEDSPRITE, &Start, &Num);
+		
+		m_AnimatedSprites.set_size(Num);
+		
+		for(int i = 0; i < Num; i++)
+		{
+			CModAPI_ModItem_AnimatedSprite *pItem = (CModAPI_ModItem_AnimatedSprite *) pMod->GetItem(Start+i, 0, 0);
+			
+			if(pItem->m_Id >= Num) return 0;
+			
+			CModAPI_AnimatedSprite* AnimatedSprite = &m_AnimatedSprites[pItem->m_Id];
+			AnimatedSprite->m_SpriteId = pItem->m_SpriteId;
+			AnimatedSprite->m_AnimationId = pItem->m_AnimationId;
+			AnimatedSprite->m_OffsetX = static_cast<float>(pItem->m_OffsetX)/100.0f;
+			AnimatedSprite->m_OffsetY = static_cast<float>(pItem->m_OffsetY)/100.0f;
+			AnimatedSprite->m_CycleDuration = pItem->m_CycleDuration;
 		}
 	}
 	
@@ -204,6 +263,26 @@ void CModAPI_Client_Graphics::DrawSprite(CRenderTools* pRenderTools,int SpriteID
 	
 	pRenderTools->DrawSprite(Pos.x, Pos.y, Size);
 	m_pGraphics->QuadsEnd();
+}
+
+void CModAPI_Client_Graphics::DrawAnimatedSprite(CRenderTools* pRenderTools, int AnimatedSpriteId, vec2 Pos, float Size, float Angle, float Time)
+{
+	const CModAPI_AnimatedSprite* pAnimatedSprite = GetAnimatedSprite(AnimatedSpriteId);
+	if(pAnimatedSprite == 0) return;
+	
+	const CModAPI_Animation* pAnimation = GetAnimation(pAnimatedSprite->m_AnimationId);
+	if(pAnimation == 0) return;
+	
+	CModAPI_AnimationFrame Frame;
+	pAnimation->GetFrame(Time/pAnimatedSprite->m_CycleDuration, &Frame);
+	
+	float animX = Frame.m_Pos.x + pAnimatedSprite->m_OffsetX - pAnimatedSprite->m_OffsetX * cos(Frame.m_Angle) + pAnimatedSprite->m_OffsetY * sin(Frame.m_Angle);
+	float animY = Frame.m_Pos.y + pAnimatedSprite->m_OffsetY - pAnimatedSprite->m_OffsetX * sin(Frame.m_Angle) + pAnimatedSprite->m_OffsetY * cos(Frame.m_Angle);
+	
+	float X = Pos.x + Size*(animX * cos(Angle) + animY * sin(Angle));
+	float Y = Pos.y + Size*(animX * sin(Angle) + animY * cos(Angle));
+	
+	DrawSprite(pRenderTools, pAnimatedSprite->m_SpriteId, vec2(X, Y), Size, Angle + Frame.m_Angle);
 }
 
 void CModAPI_Client_Graphics::DrawLine(CRenderTools* pRenderTools,int LineStyleID, vec2 StartPoint, vec2 EndPoint, float Ms)

@@ -293,6 +293,12 @@ void CItems::OnRender()
 			if(pPrev)
 				RenderModAPISprite((const CNetObj_ModAPI_Sprite *)pPrev, (const CNetObj_ModAPI_Sprite *)pData);
 		}
+		else if(Item.m_Type == NETOBJTYPE_MODAPI_ANIMATEDSPRITE)
+		{
+			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
+			if(pPrev)
+				RenderModAPIAnimatedSprite((const CNetObj_ModAPI_AnimatedSprite *)pPrev, (const CNetObj_ModAPI_AnimatedSprite *)pData);
+		}
 		else if(Item.m_Type == NETOBJTYPE_MODAPI_SPRITECHARACTER)
 		{
 			const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
@@ -328,20 +334,33 @@ void CItems::RenderModAPISprite(const CNetObj_ModAPI_Sprite *pPrev, const CNetOb
 {
 	if(!ModAPIGraphics()) return;
 
-	float Angle = 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f;
-	float Size = pCurrent->m_Size;
+	float Angle = mix(2.0*pi*static_cast<float>(pPrev->m_Angle)/360.0f, 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f, Client()->IntraGameTick());
+	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 	
-	ModAPIGraphics()->DrawSprite(RenderTools(),pCurrent->m_SpriteId, Pos, Size, Angle);
+	ModAPIGraphics()->DrawSprite(RenderTools(), pCurrent->m_SpriteId, Pos, Size, Angle);
+}
+
+void CItems::RenderModAPIAnimatedSprite(const CNetObj_ModAPI_AnimatedSprite *pPrev, const CNetObj_ModAPI_AnimatedSprite *pCurrent)
+{
+	if(!ModAPIGraphics()) return;
+
+	float Angle = mix(2.0*pi*static_cast<float>(pPrev->m_Angle)/360.0f, 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f, Client()->IntraGameTick());
+	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
+	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
+	
+	float Time = Client()->GameTick() + Client()->IntraGameTick() - pCurrent->m_StartTick;
+	Time = (Time/static_cast<float>(SERVER_TICK_SPEED)) * 1000.0f;
+	
+	ModAPIGraphics()->DrawAnimatedSprite(RenderTools(), pCurrent->m_AnimatedSpriteId, Pos, Size, Angle, Time);
 }
 
 void CItems::RenderModAPISpriteCharacter(const CNetObj_ModAPI_SpriteCharacter *pPrev, const CNetObj_ModAPI_SpriteCharacter *pCurrent)
 {
 	if(!ModAPIGraphics()||!m_pClient->m_Snap.m_aCharacters[pCurrent->m_ClientId].m_Active) return;
 	
-	float Angle = 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f;
-	float Size = pCurrent->m_Size;
-
+	float Angle = mix(2.0*pi*static_cast<float>(pPrev->m_Angle)/360.0f, 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f, Client()->IntraGameTick());
+	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 	
 	if(m_pClient->m_LocalClientID != -1 && m_pClient->m_LocalClientID == pCurrent->m_ClientId)

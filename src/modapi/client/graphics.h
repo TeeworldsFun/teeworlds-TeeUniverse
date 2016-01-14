@@ -5,6 +5,7 @@
 #include <engine/graphics.h>
 
 #include <modapi/graphics.h>
+#include <modapi/shared/animation.h>
 
 class IMod;
 class CRenderTools;
@@ -25,6 +26,15 @@ struct CModAPI_Sprite
 	int m_ImageId;
 	int m_GridX;
 	int m_GridY;
+};
+
+struct CModAPI_AnimatedSprite
+{
+	int m_SpriteId;
+	int m_AnimationId;
+	float m_OffsetX;
+	float m_OffsetY;
+	int m_CycleDuration; // miliseconds
 };
 
 struct CModAPI_LineStyle
@@ -71,20 +81,25 @@ class CModAPI_Client_Graphics
 {
 private:
 	array<CModAPI_Image> m_Images;
+	array<CModAPI_Animation> m_Animations;
 	array<CModAPI_Sprite> m_Sprites;
+	array<CModAPI_AnimatedSprite> m_AnimatedSprites;
 	array<CModAPI_LineStyle> m_LineStyles;
 	IGraphics* m_pGraphics;
 	
 public:
 	CModAPI_Client_Graphics(IGraphics* pGraphics);
 	const CModAPI_Image* GetImage(int Id) const;
+	const CModAPI_Animation* GetAnimation(int Id) const;
 	const CModAPI_Sprite* GetSprite(int Id) const;
+	const CModAPI_AnimatedSprite* GetAnimatedSprite(int Id) const;
 	const CModAPI_LineStyle* GetLineStyle(int Id) const;
 	
 	int OnModLoaded(IMod* pMod);
 	int OnModUnloaded();
 	
 	void DrawSprite(CRenderTools* pRenderTools, int SpriteID, vec2 Pos, float Size, float Angle);
+	void DrawAnimatedSprite(CRenderTools* pRenderTools, int AnimatedSpriteID, vec2 Pos, float Size, float Angle, float Time);
 	void DrawLine(CRenderTools* pRenderTools, int LineStyleID, vec2 StartPoint, vec2 EndPoint, float Ms);
 };
 

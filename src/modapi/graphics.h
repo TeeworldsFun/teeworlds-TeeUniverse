@@ -20,6 +20,12 @@ enum
 	MODAPI_LINESTYLE_SPRITETYPE_REPEATED = 0,
 };
 
+enum
+{
+	MODAPI_ANIMCYCLETYPE_CLAMP = 0,
+	MODAPI_ANIMCYCLETYPE_LOOP,
+};
+
 inline int ModAPI_ColorToInt(const vec4& Color)
 {
 	int Value = static_cast<int>(Color.r * 255.0f);
