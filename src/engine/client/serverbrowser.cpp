@@ -16,6 +16,8 @@
 
 #include <mastersrv/mastersrv.h>
 
+#include <modapi/client/metanetclient.h>
+
 #include "serverbrowser.h"
 
 
@@ -68,7 +70,7 @@ CServerBrowser::CServerBrowser()
 	m_BroadcastTime = 0;
 }
 
-void CServerBrowser::Init(class CNetClient *pNetClient, const char *pNetVersion)
+void CServerBrowser::Init(class CModAPI_MetaNetClient *pNetClient, const char *pNetVersion)
 {
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 	m_pMasterServer = Kernel()->RequestInterface<IMasterServer>();
@@ -169,7 +171,7 @@ void CServerBrowser::Update(bool ForceResort)
 				continue;
 
 			Packet.m_Address = m_pMasterServer->GetAddr(i);
-			m_pNetClient->Send(&Packet);
+			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
 		}
 
 		if(g_Config.m_Debug)
@@ -263,7 +265,7 @@ void CServerBrowser::Refresh(int RefreshFlags)
 		/* do the broadcast version */
 		CNetChunk Packet;
 		mem_zero(&Packet, sizeof(Packet));
-		Packet.m_Address.type = m_pNetClient->NetType()|NETTYPE_LINK_BROADCAST;
+		Packet.m_Address.type = m_pNetClient->NetType(CModAPI_MetaNetClient::DST_MASTER)|NETTYPE_LINK_BROADCAST;
 		Packet.m_ClientID = -1;
 		Packet.m_Flags = NETSENDFLAG_CONNLESS|NETSENDFLAG_STATELESS;
 		Packet.m_DataSize = Packer.Size();
@@ -273,7 +275,7 @@ void CServerBrowser::Refresh(int RefreshFlags)
 		for(int i = 8303; i <= 8310; i++)
 		{
 			Packet.m_Address.port = i;
-			m_pNetClient->Send(&Packet);
+			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
 		}
 
 		if(g_Config.m_Debug)
@@ -468,7 +470,7 @@ void CServerBrowser::RequestImpl(const NETADDR &Addr, CServerEntry *pEntry) cons
 	Packet.m_DataSize = Packer.Size();
 	Packet.m_pData = Packer.Data();
 
-	m_pNetClient->Send(&Packet);
+	m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
 
 	if(pEntry)
 	{

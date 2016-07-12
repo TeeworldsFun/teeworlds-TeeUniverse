@@ -308,6 +308,7 @@ private:
 			FILTER_ALL,
 			FILTER_STANDARD,
 			FILTER_FAVORITES,
+			FILTER_TW06,
 		};
 		// buttons var
 		int m_SwitchButton;

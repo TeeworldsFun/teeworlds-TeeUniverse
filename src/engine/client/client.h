@@ -3,6 +3,8 @@
 #ifndef ENGINE_CLIENT_CLIENT_H
 #define ENGINE_CLIENT_CLIENT_H
 
+#include <modapi/client/metanetclient.h>
+
 class CGraph
 {
 public:
@@ -72,8 +74,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 		PREDICTION_MARGIN=1000/50/2, // magic network prediction value
 	};
 
-	class CNetClient m_NetClient;
-	class CNetClient m_ContactClient;
+	class CModAPI_MetaNetClient m_NetClient;
 	class CDemoPlayer m_DemoPlayer;
 	class CDemoRecorder m_DemoRecorder;
 	class CServerBrowser m_ServerBrowser;
@@ -193,7 +194,7 @@ public:
 	CClient();
 
 	// ----- send functions -----
-	virtual int SendMsg(CMsgPacker *pMsg, int Flags);
+	virtual int SendMsg(int Dst, CMsgPacker *pMsg, int Flags);
 
 	void SendInfo();
 	void SendEnterGame();
@@ -257,8 +258,10 @@ public:
 	static int PlayerScoreComp(const void *a, const void *b);
 
 	int UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken);
-	void ProcessConnlessPacket(CNetChunk *pPacket);
-	void ProcessServerPacket(CNetChunk *pPacket);
+	void ProcessConnlessPacket_TW07(CNetChunk *pPacket);
+	void ProcessServerPacket_TW07(CNetChunk *pPacket);
+	static void ProcessConnlessPacketCallback_TW07(CNetChunk *pPacket, void *pUser);
+	static void ProcessServerPacketCallback_TW07(CNetChunk *pPacket, void *pUser);
 
 	virtual const char *MapDownloadName() const { return m_aMapdownloadName; }
 	virtual int MapDownloadAmount() const { return m_MapdownloadAmount; }

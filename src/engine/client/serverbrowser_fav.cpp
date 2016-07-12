@@ -16,6 +16,8 @@
 
 #include <mastersrv/mastersrv.h>
 
+#include <modapi/client/metanetclient.h>
+
 #include "serverbrowser_fav.h"
 
 
@@ -26,7 +28,7 @@ CServerBrowserFavorites::CServerBrowserFavorites()
 	m_FavLookup.m_Active = false;
 }
 
-void CServerBrowserFavorites::Init(CNetClient *pNetClient, IConsole *pConsole, IEngine *pEngine, IConfig *pConfig)
+void CServerBrowserFavorites::Init(class CModAPI_MetaNetClient *pNetClient, IConsole *pConsole, IEngine *pEngine, IConfig *pConfig)
 {
 	m_pNetClient = pNetClient;
 	m_pConsole = pConsole;
@@ -220,7 +222,7 @@ const NETADDR *CServerBrowserFavorites::UpdateFavorites()
 		{
 			if(m_aFavoriteServers[i].m_State <= FAVSTATE_LOOKUPCHECK)
 			{
-				m_pEngine->HostLookup(&m_FavLookup.m_HostLookup, m_aFavoriteServers[i].m_aHostname, m_pNetClient->NetType());
+				m_pEngine->HostLookup(&m_FavLookup.m_HostLookup, m_aFavoriteServers[i].m_aHostname, m_pNetClient->NetType(CModAPI_MetaNetClient::DST_MASTER));
 				m_FavLookup.m_FavoriteIndex = i;
 				--m_FavLookup.m_LookupCount;
 				m_FavLookup.m_Active = true;

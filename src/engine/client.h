@@ -9,6 +9,7 @@
 
 #include <modapi/client/graphics.h>
 #include <modapi/client/assetsmanager.h>
+#include <modapi/client/metanetclient.h>
 
 class IClient : public IInterface
 {
@@ -141,7 +142,7 @@ public:
 
 	virtual void SnapSetStaticsize(int ItemType, int Size) = 0;
 
-	virtual int SendMsg(CMsgPacker *pMsg, int Flags) = 0;
+	virtual int SendMsg(int Dst, CMsgPacker *pMsg, int Flags) = 0;
 
 	template<class T>
 	int SendPackMsg(T *pMsg, int Flags)
@@ -149,7 +150,7 @@ public:
 		CMsgPacker Packer(pMsg->MsgID(), false);
 		if(pMsg->Pack(&Packer))
 			return -1;
-		return SendMsg(&Packer, Flags);
+		return SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Packer, Flags);
 	}
 
 	//

@@ -46,6 +46,8 @@
 #include <modapi/client/assetseditor/assetseditor.h>
 #include <modapi/client/clientmode.h>
 #include <modapi/client/assetsmanager.h>
+#include <modapi/client/metanetclient.h>
+#include <modapi/client/netclient_tw07.h>
 
 #include "friends.h"
 #include "serverbrowser.h"
@@ -330,7 +332,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 }
 
 // ----- send functions -----
-int CClient::SendMsg(CMsgPacker *pMsg, int Flags)
+int CClient::SendMsg(int Dst, CMsgPacker *pMsg, int Flags)
 {
 	CNetChunk Packet;
 
@@ -354,7 +356,7 @@ int CClient::SendMsg(CMsgPacker *pMsg, int Flags)
 	}
 
 	if(!(Flags&MSGFLAG_NOSEND))
-		m_NetClient.Send(&Packet);
+		m_NetClient.Send(Dst, &Packet);
 	return 0;
 }
 
@@ -364,20 +366,20 @@ void CClient::SendInfo()
 	Msg.AddString(MODAPI_NETVERSION_TW07, 128);
 	Msg.AddString(g_Config.m_Password, 128);
 	Msg.AddString(GameClient()->NetVersion(), 128);
-	SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 
 void CClient::SendEnterGame()
 {
 	CMsgPacker Msg(NETMSG_ENTERGAME, true);
-	SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 void CClient::SendReady()
 {					
 	CMsgPacker Msg(NETMSG_READY, true);
-	SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 void CClient::RconAuth(const char *pName, const char *pPassword)
@@ -387,19 +389,19 @@ void CClient::RconAuth(const char *pName, const char *pPassword)
 
 	CMsgPacker Msg(NETMSG_RCON_AUTH, true);
 	Msg.AddString(pPassword, 32);
-	SendMsg(&Msg, MSGFLAG_VITAL);
+	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL);
 }
 
 void CClient::Rcon(const char *pCmd)
 {
 	CMsgPacker Msg(NETMSG_RCON_CMD, true);
 	Msg.AddString(pCmd, 256);
-	SendMsg(&Msg, MSGFLAG_VITAL);
+	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL);
 }
 
 bool CClient::ConnectionProblems() const
 {
-	return m_NetClient.GotProblems() != 0;
+	return m_NetClient.GotProblems(CModAPI_MetaNetClient::DST_SERVER) != 0;
 }
 
 void CClient::DirectInput(int *pInput, int Size)
@@ -412,7 +414,7 @@ void CClient::DirectInput(int *pInput, int Size)
 	for(int i = 0; i < Size/4; i++)
 		Msg.AddInt(pInput[i]);
 
-	SendMsg(&Msg, 0);
+	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
 }
 
 
@@ -446,7 +448,7 @@ void CClient::SendInput()
 	m_CurrentInput++;
 	m_CurrentInput%=200;
 
-	SendMsg(&Msg, MSGFLAG_FLUSH);
+	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_FLUSH);
 }
 
 const char *CClient::LatestVersion() const
@@ -534,18 +536,18 @@ void CClient::Connect(const char *pAddress)
 
 	mem_zero(&m_CurrentServerInfo, sizeof(m_CurrentServerInfo));
 
-	if(net_addr_from_str(&m_ServerAddress, m_aServerAddressStr) != 0 && net_host_lookup(m_aServerAddressStr, &m_ServerAddress, m_NetClient.NetType()) != 0)
+	if(net_addr_from_str(&m_ServerAddress, m_aServerAddressStr) != 0 && net_host_lookup(m_aServerAddressStr, &m_ServerAddress, m_NetClient.NetType(CModAPI_MetaNetClient::DST_SERVER)) != 0)
 	{
 		char aBufMsg[256];
 		str_format(aBufMsg, sizeof(aBufMsg), "could not find the address of %s, connecting to localhost", aBuf);
 		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBufMsg);
-		net_host_lookup("localhost", &m_ServerAddress, m_NetClient.NetType());
+		net_host_lookup("localhost", &m_ServerAddress, m_NetClient.NetType(CModAPI_MetaNetClient::DST_SERVER));
 	}
 
 	m_RconAuthed = 0;
 	if(m_ServerAddress.port == 0)
 		m_ServerAddress.port = Port;
-	m_NetClient.Connect(&m_ServerAddress);
+	m_NetClient.Connect(CModAPI_MetaNetClient::DST_SERVER, &m_ServerAddress);
 	SetState(IClient::STATE_CONNECTING);
 
 	if(m_DemoRecorder.IsRecording())
@@ -569,7 +571,7 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_RconAuthed = 0;
 	m_UseTempRconCommands = 0;
 	m_pConsole->DeregisterTempAll();
-	m_NetClient.Disconnect(pReason);
+	m_NetClient.Disconnect(CModAPI_MetaNetClient::DST_SERVER, pReason);
 	SetState(IClient::STATE_OFFLINE);
 	
 	m_ModDownloadFinished = false;
@@ -804,7 +806,7 @@ void CClient::Quit()
 
 const char *CClient::ErrorString() const
 {
-	return m_NetClient.ErrorString();
+	return m_NetClient.ErrorString(CModAPI_MetaNetClient::DST_SERVER);
 }
 
 void CClient::Render()
@@ -938,7 +940,13 @@ int CClient::UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pTo
 	return 0;
 }
 
-void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
+void CClient::ProcessConnlessPacketCallback_TW07(CNetChunk *pPacket, void *pUser)
+{
+	CClient *pThis = (CClient *)pUser;
+	pThis->ProcessConnlessPacket_TW07(pPacket);
+}
+
+void CClient::ProcessConnlessPacket_TW07(CNetChunk *pPacket)
 {
 	// version server
 	if(m_VersionInfo.m_State == CVersionInfo::STATE_READY && net_addr_comp(&pPacket->m_Address, &m_VersionInfo.m_VersionServeraddr.m_Addr) == 0)
@@ -974,7 +982,7 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 			Packet.m_pData = VERSIONSRV_GETMAPLIST;
 			Packet.m_DataSize = sizeof(VERSIONSRV_GETMAPLIST);
 			Packet.m_Flags = NETSENDFLAG_CONNLESS;
-			m_ContactClient.Send(&Packet);
+			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
 		}
 
 		// map version list
@@ -1054,7 +1062,13 @@ void CClient::ProcessConnlessPacket(CNetChunk *pPacket)
 	}
 }
 
-void CClient::ProcessServerPacket(CNetChunk *pPacket)
+void CClient::ProcessServerPacketCallback_TW07(CNetChunk *pPacket, void *pUser)
+{
+	CClient *pThis = (CClient *)pUser;
+	pThis->ProcessServerPacket_TW07(pPacket);
+}
+
+void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 {
 	CUnpacker Unpacker;
 	Unpacker.Reset(pPacket->m_pData, pPacket->m_DataSize);
@@ -1132,7 +1146,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 
 					// request first chunk package of mod data
 					CMsgPacker Msg(NETMSG_MODAPI_REQUEST_MOD_DATA, true);
-					SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+					SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 					
 					m_ModDownloadFinished = false;
 
@@ -1205,7 +1219,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 					// request first chunk package of map data
 					SetState(IClient::STATE_LOADING);
 					CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA, true);
-					SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+					SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 					if(g_Config.m_Debug)
 						m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested first chunk package");
 						
@@ -1257,7 +1271,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			{
 				// request next chunk package of map data
 				CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA, true);
-				SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 
 				if(g_Config.m_Debug)
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
@@ -1310,7 +1324,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			{
 				// request next chunk package of mod data
 				CMsgPacker Msg(NETMSG_MODAPI_REQUEST_MOD_DATA, true);
-				SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 
 				if(g_Config.m_Debug)
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
@@ -1334,7 +1348,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 		else if(Msg == NETMSG_PING)
 		{
 			CMsgPacker Msg(NETMSG_PING_REPLY, true);
-			SendMsg(&Msg, 0);
+			SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_CMD_ADD)
 		{
@@ -1607,17 +1621,17 @@ void CClient::PumpNetwork()
 	if(State() != IClient::STATE_DEMOPLAYBACK)
 	{
 		// check for errors
-		if(State() != IClient::STATE_OFFLINE && State() != IClient::STATE_QUITING && m_NetClient.State() == NETSTATE_OFFLINE)
+		if(State() != IClient::STATE_OFFLINE && State() != IClient::STATE_QUITING && m_NetClient.State(CModAPI_MetaNetClient::DST_SERVER) == NETSTATE_OFFLINE)
 		{
 			SetState(IClient::STATE_OFFLINE);
 			Disconnect();
 			char aBuf[256];
-			str_format(aBuf, sizeof(aBuf), "offline error='%s'", m_NetClient.ErrorString());
+			str_format(aBuf, sizeof(aBuf), "offline error='%s'", m_NetClient.ErrorString(CModAPI_MetaNetClient::DST_SERVER));
 			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
 		}
 
 		//
-		if(State() == IClient::STATE_CONNECTING && m_NetClient.State() == NETSTATE_ONLINE)
+		if(State() == IClient::STATE_CONNECTING && m_NetClient.State(CModAPI_MetaNetClient::DST_SERVER) == NETSTATE_ONLINE)
 		{
 			// we switched to online
 			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", "connected, sending info");
@@ -1625,22 +1639,8 @@ void CClient::PumpNetwork()
 			SendInfo();
 		}
 	}
-
-	// process non-connless packets
-	CNetChunk Packet;
-	while(m_NetClient.Recv(&Packet))
-	{
-		if(!(Packet.m_Flags&NETSENDFLAG_CONNLESS))
-			ProcessServerPacket(&Packet);
-	}
-
-	// process connless packets data
-	m_ContactClient.Update();
-	while(m_ContactClient.Recv(&Packet))
-	{
-		if(Packet.m_Flags&NETSENDFLAG_CONNLESS)
-			ProcessConnlessPacket(&Packet);
-	}
+	
+	m_NetClient.RecvLoop();
 }
 
 void CClient::OnDemoPlayerSnapshot(void *pData, int Size)
@@ -1850,7 +1850,7 @@ void CClient::VersionUpdate()
 {
 	if(m_VersionInfo.m_State == CVersionInfo::STATE_INIT)
 	{
-		Engine()->HostLookup(&m_VersionInfo.m_VersionServeraddr, g_Config.m_ClVersionServer, m_ContactClient.NetType());
+		Engine()->HostLookup(&m_VersionInfo.m_VersionServeraddr, g_Config.m_ClVersionServer, m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER));
 		m_VersionInfo.m_State = CVersionInfo::STATE_START;
 	}
 	else if(m_VersionInfo.m_State == CVersionInfo::STATE_START)
@@ -1869,7 +1869,7 @@ void CClient::VersionUpdate()
 			Packet.m_DataSize = sizeof(VERSIONSRV_GETVERSION);
 			Packet.m_Flags = NETSENDFLAG_CONNLESS;
 
-			m_ContactClient.Send(&Packet);
+			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
 			m_VersionInfo.m_State = CVersionInfo::STATE_READY;
 		}
 	}
@@ -1899,7 +1899,7 @@ void CClient::InitInterfaces()
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
 	//
-	m_ServerBrowser.Init(&m_ContactClient, m_pGameClient->NetVersion());
+	m_ServerBrowser.Init(&m_NetClient, m_pGameClient->NetVersion());
 	m_Friends.Init();
 }
 
@@ -1942,7 +1942,10 @@ void CClient::Run()
 	// init sound, allowed to fail
 	m_SoundInitFailed = Sound()->Init() != 0;
 	Sound()->SetMaxDistance(1.5f*Graphics()->ScreenWidth()/2.0f);
-
+	
+	m_NetClient.Init(m_pMasterServer, m_pConsole);
+	m_NetClient.SetCallbacks(this);
+	
 	// open socket
 	{
 		NETADDR BindAddr;
@@ -1956,15 +1959,22 @@ void CClient::Run()
 			mem_zero(&BindAddr, sizeof(BindAddr));
 			BindAddr.type = NETTYPE_ALL;
 		}
-		if(!m_NetClient.Open(BindAddr, BindAddr.port ? 0 : NETCREATE_FLAG_RANDOMPORT))
+		
+		CModAPI_NetClient_TW07* pNetClientTW07 = new CModAPI_NetClient_TW07(&m_NetClient, ProcessServerPacketCallback_TW07, 0);
+		if(!m_NetClient.OpenServerNetClient(pNetClientTW07, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
 		{
-			dbg_msg("client", "couldn't open socket(net)");
+			dbg_msg("server", "couldn't open socket(net)");
+			delete pNetClientTW07;
 			return;
 		}
+		
 		BindAddr.port = 0;
-		if(!m_ContactClient.Open(BindAddr, 0))
+		
+		CModAPI_NetClient_TW07* pNetClientContact = new CModAPI_NetClient_TW07(&m_NetClient, 0, ProcessConnlessPacketCallback_TW07);
+		if(!m_NetClient.OpenMasterNetClient(pNetClientContact, BindAddr, 0x0))
 		{
-			dbg_msg("client", "couldn't open socket(contact)");
+			dbg_msg("server", "couldn't open socket(contact)");
+			delete pNetClientContact;
 			return;
 		}
 	}
@@ -1976,7 +1986,7 @@ void CClient::Run()
 	Input()->Init();
 
 	// start refreshing addresses while we load
-	MasterServer()->RefreshAddresses(m_ContactClient.NetType());
+	MasterServer()->RefreshAddresses(m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER));
 
 	// init the editor
 	m_pEditor->Init();
@@ -2232,7 +2242,7 @@ void CClient::Con_Ping(IConsole::IResult *pResult, void *pUserData)
 	CClient *pSelf = (CClient *)pUserData;
 
 	CMsgPacker Msg(NETMSG_PING, true);
-	pSelf->SendMsg(&Msg, 0);
+	pSelf->SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
 	pSelf->m_PingStartTime = time_get();
 }
 
@@ -2282,7 +2292,7 @@ const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 	int Crc;
 	
 	Disconnect();
-	m_NetClient.ResetErrorString();
+	m_NetClient.ResetErrorString(CModAPI_MetaNetClient::DST_SERVER);
 
 	// try to start playback
 	m_DemoPlayer.SetListner(this);

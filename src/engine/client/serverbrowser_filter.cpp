@@ -89,6 +89,8 @@ void CServerBrowserFilter::CServerFilter::Filter()
 			Filtered = 1;
 		else if(!(m_SortHash&IServerBrowser::FILTER_GAMETYPE_STRICT) && m_aGametype[0] && !str_find_nocase(m_pServerBrowserFilter->m_ppServerlist[i]->m_Info.m_aGameType, m_aGametype))
 			Filtered = 1;
+		else if(m_SortHash&IServerBrowser::FILTER_TW06 && str_comp_num(m_pServerBrowserFilter->m_ppServerlist[i]->m_Info.m_aVersion, "0.6", 3) != 0)
+			Filtered = 1;
 		else
 		{
 			if(m_SortHash&IServerBrowser::FILTER_COUNTRY)

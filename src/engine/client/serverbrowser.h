@@ -19,7 +19,7 @@ public:
 	};
 		
 	CServerBrowser();
-	void Init(class CNetClient *pClient, const char *pNetVersion);
+	void Init(class CModAPI_MetaNetClient *pNetClient, const char *pNetVersion);
 	void Set(const NETADDR &Addr, int SetType, int Token, const CServerInfo *pInfo);
 	void Update(bool ForceResort);	
 
@@ -48,7 +48,7 @@ public:
 	void RemoveFilter(int Index) { m_ServerBrowserFilter.RemoveFilter(Index); };
 
 private:
-	class CNetClient *m_pNetClient;
+	class CModAPI_MetaNetClient *m_pNetClient;
 	class IConsole *m_pConsole;
 	class IMasterServer *m_pMasterServer;
 		
