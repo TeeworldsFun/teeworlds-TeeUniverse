@@ -118,6 +118,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 
 	//
 	char m_aCmdConnect[256];
+	int m_CmdConnectProtocol;
 
 	// map download
 	char m_aMapdownloadFilename[256];
@@ -227,7 +228,7 @@ public:
 	void OnEnterGame();
 	virtual void EnterGame();
 
-	virtual void Connect(const char *pAddress);
+	virtual void Connect(const char *pAddress, int Protocol);
 	void DisconnectWithReason(const char *pReason);
 	virtual void Disconnect();
 
@@ -257,10 +258,15 @@ public:
 
 	static int PlayerScoreComp(const void *a, const void *b);
 
-	int UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken);
+	int UnpackServerInfo_TW06(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken);
+	int UnpackServerInfo_TW07(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken);
+	void ProcessConnlessPacket_TW06(CNetChunk *pPacket);
 	void ProcessConnlessPacket_TW07(CNetChunk *pPacket);
+	void ProcessServerPacket_TW06(CNetChunk *pPacket);
 	void ProcessServerPacket_TW07(CNetChunk *pPacket);
+	static void ProcessConnlessPacketCallback_TW06(CNetChunk *pPacket, void *pUser);
 	static void ProcessConnlessPacketCallback_TW07(CNetChunk *pPacket, void *pUser);
+	static void ProcessServerPacketCallback_TW06(CNetChunk *pPacket, void *pUser);
 	static void ProcessServerPacketCallback_TW07(CNetChunk *pPacket, void *pUser);
 
 	virtual const char *MapDownloadName() const { return m_aMapdownloadName; }

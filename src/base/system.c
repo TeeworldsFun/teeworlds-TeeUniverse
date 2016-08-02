@@ -882,7 +882,7 @@ static int priv_net_create_socket(int domain, int type, struct sockaddr *addr, i
 		setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&ipv6only, sizeof(ipv6only));
 	}
 #endif
-
+			
 	/* bind the socket */
 	while(1)
 	{

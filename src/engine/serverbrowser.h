@@ -110,6 +110,7 @@ public:
 		FILTER_COUNTRY=1<<15,
 		FILTER_PING=1<<16,
 		FILTER_TW06=1<<17,
+		FILTER_TW07=1<<18,
 	};
 
 	virtual void SetType(int Type) = 0;

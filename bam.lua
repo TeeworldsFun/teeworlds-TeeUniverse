@@ -324,7 +324,7 @@ function BuildGameCommon(settings)
 end
 
 function BuildModAPICommon(settings)
-	settings.link.extrafiles:Merge(Compile(settings, Collect("src/modapi/shared/*.cpp")))
+	settings.link.extrafiles:Merge(Compile(settings, Collect("src/modapi/shared/*.cpp"), Collect("src/tw06/*.cpp")))
 end
 
 
@@ -346,14 +346,12 @@ function BuildServer(settings, family, platform)
 	local server = Compile(settings, Collect("src/engine/server/*.cpp"))
 	
 	local game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), SharedServerFiles())
-	
-	local tw06_server = Compile(settings, CollectRecursive("src/tw06/*.cpp"))
-	
+		
 	local server_modapi = Compile(settings, Collect("src/modapi/server/*.cpp"))
 	
 	local server_mod = Compile(settings, CollectRecursive("src/mod/*.cpp"))
 	
-	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], libs["png"], server, game_server, server_modapi, server_mod, tw06_server)
+	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], libs["png"], server, game_server, server_modapi, server_mod)
 end
 
 function BuildTools(settings)

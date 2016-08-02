@@ -16,6 +16,8 @@
 #include <game/client/ui.h>
 #include <game/client/components/countryflags.h>
 
+#include <modapi/compatibility.h>
+
 #include "menus.h"
 
 CMenus::CColumn CMenus::ms_aCols[] = {
@@ -1039,6 +1041,10 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 				int ItemIndex = i;
 				const CServerInfo *pItem = pFilter->SortedGet(ItemIndex);
 				
+				int Protocol = MODAPI_SERVERPROTOCOL_TW07;
+				if(str_comp_num(pItem->m_aVersion, "0.6", 3) == 0)
+					Protocol = MODAPI_SERVERPROTOCOL_TW06;
+				
 				CUIRect SelectHitBox;
 
 				View.HSplitTop(ms_ListheaderHeight, &Row, &View);
@@ -1079,7 +1085,7 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 					m_SelectedServer.m_Index = i;
 					str_copy(g_Config.m_UiServerAddress, pItem->m_aAddress, sizeof(g_Config.m_UiServerAddress));
 					if(Input()->MouseDoubleClick())
-						Client()->Connect(g_Config.m_UiServerAddress);
+						Client()->Connect(g_Config.m_UiServerAddress, Protocol);
 				}
 				
 			}
@@ -1589,7 +1595,7 @@ void CMenus::RenderServerbrowserBottomBox(CUIRect MainView)
 {
 	// same size like tabs in top but variables not really needed
 	float Spacing = 3.0f;
-	float ButtonWidth = MainView.w/2.0f-Spacing/2.0f;
+	float ButtonWidth = MainView.w/3.0f-Spacing/3.0f;
 
 	// render background
 	RenderTools()->DrawUIRect4(&MainView, vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.25f), vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(0.0f, 0.0f, 0.0f, 0.0f), CUI::CORNER_T, 5.0f);
@@ -1612,7 +1618,16 @@ void CMenus::RenderServerbrowserBottomBox(CUIRect MainView)
 	static CButtonContainer s_JoinButton;
 	if(DoButton_Menu(&s_JoinButton, Localize("Connect"), 0, &Button) || m_EnterPressed)
 	{
-		Client()->Connect(g_Config.m_UiServerAddress);
+		Client()->Connect(g_Config.m_UiServerAddress, MODAPI_SERVERPROTOCOL_TW07);
+		m_EnterPressed = false;
+	}
+
+	MainView.VSplitLeft(Spacing, 0, &MainView); // little space
+	MainView.VSplitLeft(ButtonWidth, &Button, &MainView);
+	static CButtonContainer s_JoinButtonTW06;
+	if(DoButton_Menu(&s_JoinButtonTW06, Localize("Connect (0.6)"), 0, &Button) || m_EnterPressed)
+	{
+		Client()->Connect(g_Config.m_UiServerAddress, MODAPI_SERVERPROTOCOL_TW06);
 		m_EnterPressed = false;
 	}
 }
@@ -1663,7 +1678,7 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
 
 	MainView.VSplitRight(ButtonWidth+Spacing, &MainView, 0);
 	MainView.HSplitBottom(60.0f, 0, &BottomBox);
-	BottomBox.VSplitRight(ButtonWidth*2.0f+Spacing, 0, &BottomBox);
+	BottomBox.VSplitRight(ButtonWidth*3.0f+Spacing*2.0f, 0, &BottomBox);
 
 	// connect box
 	{

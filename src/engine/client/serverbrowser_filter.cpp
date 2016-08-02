@@ -91,6 +91,8 @@ void CServerBrowserFilter::CServerFilter::Filter()
 			Filtered = 1;
 		else if(m_SortHash&IServerBrowser::FILTER_TW06 && str_comp_num(m_pServerBrowserFilter->m_ppServerlist[i]->m_Info.m_aVersion, "0.6", 3) != 0)
 			Filtered = 1;
+		else if(m_SortHash&IServerBrowser::FILTER_TW07 && str_comp_num(m_pServerBrowserFilter->m_ppServerlist[i]->m_Info.m_aVersion, "0.7", 3) != 0)
+			Filtered = 1;
 		else
 		{
 			if(m_SortHash&IServerBrowser::FILTER_COUNTRY)
@@ -180,6 +182,8 @@ int CServerBrowserFilter::CServerFilter::GetSortHash() const
 	if(m_SortHash&IServerBrowser::FILTER_GAMETYPE_STRICT) i |= 1<<14;
 	if(m_SortHash&IServerBrowser::FILTER_COUNTRY) i |= 1<<15;
 	if(m_SortHash&IServerBrowser::FILTER_PING) i |= 1<<16;
+	if(m_SortHash&IServerBrowser::FILTER_TW06) i |= 1<<17;
+	if(m_SortHash&IServerBrowser::FILTER_TW07) i |= 1<<18;
 	return i;
 }
 

@@ -41,13 +41,16 @@
 #include <versionsrv/versionsrv.h>
 
 //ModAPI
-#include <modapi/shared/assetsfile.h>
 #include <modapi/compatibility.h>
+#include <modapi/shared/assetsfile.h>
 #include <modapi/client/assetseditor/assetseditor.h>
 #include <modapi/client/clientmode.h>
 #include <modapi/client/assetsmanager.h>
 #include <modapi/client/metanetclient.h>
+#include <modapi/client/netclient_tw06.h>
 #include <modapi/client/netclient_tw07.h>
+
+#include <tw06/network.h>
 
 #include "friends.h"
 #include "serverbrowser.h"
@@ -291,6 +294,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	//
 	m_aCmdConnect[0] = 0;
+	m_CmdConnectProtocol = MODAPI_SERVERPROTOCOL_TW07;
 	
 	m_ModDownloadFinished = false;
 	m_MapDownloadFinished = false;
@@ -344,10 +348,20 @@ int CClient::SendMsg(int Dst, CMsgPacker *pMsg, int Flags)
 	Packet.m_pData = pMsg->Data();
 	Packet.m_DataSize = pMsg->Size();
 
-	if(Flags&MSGFLAG_VITAL)
-		Packet.m_Flags |= NETSENDFLAG_VITAL;
-	if(Flags&MSGFLAG_FLUSH)
-		Packet.m_Flags |= NETSENDFLAG_FLUSH;
+	if(Dst == CModAPI_MetaNetClient::DST_MASTER06)
+	{
+		if(Flags&MSGFLAG_VITAL)
+			Packet.m_Flags |= TW06_NETSENDFLAG_VITAL;
+		if(Flags&MSGFLAG_FLUSH)
+			Packet.m_Flags |= TW06_NETSENDFLAG_FLUSH;
+	}
+	else
+	{
+		if(Flags&MSGFLAG_VITAL)
+			Packet.m_Flags |= NETSENDFLAG_VITAL;
+		if(Flags&MSGFLAG_FLUSH)
+			Packet.m_Flags |= NETSENDFLAG_FLUSH;
+	}
 
 	if(Flags&MSGFLAG_RECORD)
 	{
@@ -522,7 +536,7 @@ void CClient::EnterGame()
 	OnEnterGame();
 }
 
-void CClient::Connect(const char *pAddress)
+void CClient::Connect(const char *pAddress, int Protocol)
 {
 	char aBuf[512];
 	int Port = 8303;
@@ -531,7 +545,7 @@ void CClient::Connect(const char *pAddress)
 
 	str_copy(m_aServerAddressStr, pAddress, sizeof(m_aServerAddressStr));
 
-	str_format(aBuf, sizeof(aBuf), "connecting to '%s'", m_aServerAddressStr);
+	str_format(aBuf, sizeof(aBuf), "connecting to '%s' (proto %s)", m_aServerAddressStr, (Protocol == MODAPI_SERVERPROTOCOL_TW06 ? "tw06" : "tw07"));
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
 
 	mem_zero(&m_CurrentServerInfo, sizeof(m_CurrentServerInfo));
@@ -547,8 +561,23 @@ void CClient::Connect(const char *pAddress)
 	m_RconAuthed = 0;
 	if(m_ServerAddress.port == 0)
 		m_ServerAddress.port = Port;
-	m_NetClient.Connect(CModAPI_MetaNetClient::DST_SERVER, &m_ServerAddress);
-	SetState(IClient::STATE_CONNECTING);
+	
+	bool ConnectionRes;
+	if(Protocol == MODAPI_SERVERPROTOCOL_TW06)
+		ConnectionRes = m_NetClient.Connect(CModAPI_MetaNetClient::DST_SERVER06, &m_ServerAddress);
+	else
+		ConnectionRes = m_NetClient.Connect(CModAPI_MetaNetClient::DST_SERVER07, &m_ServerAddress);
+	
+	if(ConnectionRes)
+	{
+		SetState(IClient::STATE_CONNECTING);
+	}
+	else
+	{
+		char aBufMsg[256];
+		str_format(aBufMsg, sizeof(aBufMsg), "could not connect to the server %s", pAddress);
+		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBufMsg);
+	}
 
 	if(m_DemoRecorder.IsRecording())
 		DemoRecorder_Stop();
@@ -900,7 +929,45 @@ int CClient::PlayerScoreComp(const void *a, const void *b)
 	return -1;
 }
 
-int CClient::UnpackServerInfo(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken)
+int CClient::UnpackServerInfo_TW06(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken)
+{
+	if(pToken)
+		*pToken = str_toint(pUnpacker->GetString());
+	str_copy(pInfo->m_aVersion, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aVersion));
+	str_copy(pInfo->m_aName, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aName));
+	str_clean_whitespaces(pInfo->m_aName);
+	str_copy(pInfo->m_aHostname, pInfo->m_aAddress, sizeof(pInfo->m_aHostname));
+	str_copy(pInfo->m_aMap, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aMap));
+	str_copy(pInfo->m_aGameType, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aGameType));
+	pInfo->m_Flags = ((str_toint(pUnpacker->GetString()))&SERVERINFO_FLAG_PASSWORD) ? IServerBrowser::FLAG_PASSWORD : 0;
+	pInfo->m_ServerLevel = SERVERINFO_LEVEL_MAX;
+	pInfo->m_NumPlayers = str_toint(pUnpacker->GetString());
+	pInfo->m_MaxPlayers = str_toint(pUnpacker->GetString());
+	pInfo->m_NumClients = str_toint(pUnpacker->GetString());
+	pInfo->m_MaxClients = str_toint(pUnpacker->GetString());
+
+	// don't add invalid info to the server browser list
+	if(pInfo->m_NumClients < 0 || pInfo->m_NumClients > MAX_CLIENTS || pInfo->m_MaxClients < 0 || pInfo->m_MaxClients > MAX_CLIENTS ||
+		pInfo->m_NumPlayers < 0 || pInfo->m_NumPlayers > pInfo->m_NumClients || pInfo->m_MaxPlayers < 0 || pInfo->m_MaxPlayers > pInfo->m_MaxClients)
+		return -1;
+
+	// use short version
+	if(!pToken)
+		return 0;
+
+	for(int i = 0; i < pInfo->m_NumClients; i++)
+	{
+		str_copy(pInfo->m_aClients[i].m_aName, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aClients[i].m_aName));
+		str_copy(pInfo->m_aClients[i].m_aClan, pUnpacker->GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES), sizeof(pInfo->m_aClients[i].m_aClan));
+		pInfo->m_aClients[i].m_Country = str_toint(pUnpacker->GetString());
+		pInfo->m_aClients[i].m_Score = str_toint(pUnpacker->GetString());
+		pInfo->m_aClients[i].m_Player = str_toint(pUnpacker->GetString()) != 0 ? true : false;
+	}
+
+	return 0;
+}
+
+int CClient::UnpackServerInfo_TW07(CUnpacker *pUnpacker, CServerInfo *pInfo, int *pToken)
 {
 	if(pToken)
 		*pToken = pUnpacker->GetInt();
@@ -982,7 +1049,7 @@ void CClient::ProcessConnlessPacket_TW07(CNetChunk *pPacket)
 			Packet.m_pData = VERSIONSRV_GETMAPLIST;
 			Packet.m_DataSize = sizeof(VERSIONSRV_GETMAPLIST);
 			Packet.m_Flags = NETSENDFLAG_CONNLESS;
-			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
+			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER07, &Packet);
 		}
 
 		// map version list
@@ -1042,7 +1109,7 @@ void CClient::ProcessConnlessPacket_TW07(CNetChunk *pPacket)
 			}
 			Addr.port = (pAddrs[i].m_aPort[0]<<8) | pAddrs[i].m_aPort[1];
 
-			m_ServerBrowser.Set(Addr, CServerBrowser::SET_MASTER_ADD, -1, 0x0);
+			m_ServerBrowser.Set(Addr, CServerBrowser::SET_MASTER_ADD, -1, 0x0, MODAPI_SERVERPROTOCOL_TW07);
 		}
 	}
 
@@ -1054,10 +1121,561 @@ void CClient::ProcessConnlessPacket_TW07(CNetChunk *pPacket)
 		Up.Reset((unsigned char*)pPacket->m_pData+sizeof(SERVERBROWSE_INFO), pPacket->m_DataSize-sizeof(SERVERBROWSE_INFO));
 		net_addr_str(&pPacket->m_Address, Info.m_aAddress, sizeof(Info.m_aAddress), true);
 		int Token;
-		if(!UnpackServerInfo(&Up, &Info, &Token) && !Up.Error())
+		if(!UnpackServerInfo_TW07(&Up, &Info, &Token) && !Up.Error())
 		{
 			qsort(Info.m_aClients, Info.m_NumClients, sizeof(*Info.m_aClients), PlayerScoreComp);
-			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info);
+			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info, MODAPI_SERVERPROTOCOL_TW07);
+		}
+	}
+}
+
+void CClient::ProcessConnlessPacketCallback_TW06(CNetChunk *pPacket, void *pUser)
+{
+	CClient *pThis = (CClient *)pUser;
+	pThis->ProcessConnlessPacket_TW06(pPacket);
+}
+
+void CClient::ProcessConnlessPacket_TW06(CNetChunk *pPacket)
+{
+	// server list from master server
+	if(pPacket->m_DataSize >= (int)sizeof(SERVERBROWSE_LIST) &&
+		mem_comp(pPacket->m_pData, SERVERBROWSE_LIST, sizeof(SERVERBROWSE_LIST)) == 0)
+	{
+		// check for valid master server address
+		bool Valid = false;
+		for(int i = 0; i < IMasterServer::MAX_MASTERSERVERS; ++i)
+		{
+			if(m_pMasterServer->IsValid(i))
+			{
+				NETADDR Addr = m_pMasterServer->GetAddr(i);
+				if(net_addr_comp(&pPacket->m_Address, &Addr) == 0)
+				{
+					Valid = true;
+					break;
+				}
+			}
+		}
+		if(!Valid)
+			return;
+
+		int Size = pPacket->m_DataSize-sizeof(SERVERBROWSE_LIST);
+		int Num = Size/sizeof(CMastersrvAddr);
+		CMastersrvAddr *pAddrs = (CMastersrvAddr *)((char*)pPacket->m_pData+sizeof(SERVERBROWSE_LIST));
+		for(int i = 0; i < Num; i++)
+		{
+			NETADDR Addr;
+
+			static unsigned char s_aIPV4Mapping[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF};
+
+			// copy address
+			if(!mem_comp(s_aIPV4Mapping, pAddrs[i].m_aIp, sizeof(s_aIPV4Mapping)))
+			{
+				mem_zero(&Addr, sizeof(Addr));
+				Addr.type = NETTYPE_IPV4;
+				Addr.ip[0] = pAddrs[i].m_aIp[12];
+				Addr.ip[1] = pAddrs[i].m_aIp[13];
+				Addr.ip[2] = pAddrs[i].m_aIp[14];
+				Addr.ip[3] = pAddrs[i].m_aIp[15];
+			}
+			else
+			{
+				Addr.type = NETTYPE_IPV6;
+				mem_copy(Addr.ip, pAddrs[i].m_aIp, sizeof(Addr.ip));
+			}
+			Addr.port = (pAddrs[i].m_aPort[0]<<8) | pAddrs[i].m_aPort[1];
+
+			m_ServerBrowser.Set(Addr, CServerBrowser::SET_MASTER_ADD, -1, 0x0, MODAPI_SERVERPROTOCOL_TW06);
+		}
+	}
+
+	// server info
+	if(pPacket->m_DataSize >= (int)sizeof(SERVERBROWSE_INFO) && mem_comp(pPacket->m_pData, SERVERBROWSE_INFO, sizeof(SERVERBROWSE_INFO)) == 0)
+	{
+		CUnpacker Up;
+		CServerInfo Info = {0};
+		Up.Reset((unsigned char*)pPacket->m_pData+sizeof(SERVERBROWSE_INFO), pPacket->m_DataSize-sizeof(SERVERBROWSE_INFO));
+		net_addr_str(&pPacket->m_Address, Info.m_aAddress, sizeof(Info.m_aAddress), true);
+		int Token;
+		if(!UnpackServerInfo_TW06(&Up, &Info, &Token) && !Up.Error())
+		{
+			qsort(Info.m_aClients, Info.m_NumClients, sizeof(*Info.m_aClients), PlayerScoreComp);
+			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info, MODAPI_SERVERPROTOCOL_TW06);
+		}
+	}
+}
+
+void CClient::ProcessServerPacketCallback_TW06(CNetChunk *pPacket, void *pUser)
+{
+	CClient *pThis = (CClient *)pUser;
+	pThis->ProcessServerPacket_TW06(pPacket);
+}
+
+void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
+{
+	CUnpacker Unpacker;
+	Unpacker.Reset(pPacket->m_pData, pPacket->m_DataSize);
+
+	// unpack msgid and system flag
+	int Msg = Unpacker.GetInt();
+	int Sys = Msg&1;
+	Msg >>= 1;
+
+	if(Unpacker.Error())
+		return;
+
+	if(Sys)
+	{
+		// system message
+		//ModAPI
+		if(Msg == NETMSG_MAP_CHANGE)
+		{
+			const char *pMap = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
+			int MapCrc = Unpacker.GetInt();
+			int MapSize = Unpacker.GetInt();
+			const char *pError = 0;
+
+			if(Unpacker.Error())
+				return;
+
+			// check for valid standard map
+			if(!m_MapChecker.IsMapValid(pMap, MapCrc, MapSize))
+				pError = "invalid standard map";
+
+			// protect the player from nasty map names
+			for(int i = 0; pMap[i]; i++)
+			{
+				if(pMap[i] == '/' || pMap[i] == '\\')
+					pError = "strange character in map name";
+			}
+
+			if(MapSize <= 0)
+				pError = "invalid map size";
+
+			if(pError)
+				DisconnectWithReason(pError);
+			else
+			{
+				pError = LoadMapSearch(pMap, MapCrc);
+
+				if(!pError)
+				{
+					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
+					m_MapDownloadFinished = true;
+					SendReady();
+				}
+				else
+				{
+					// start map download
+					str_format(m_aMapdownloadFilename, sizeof(m_aMapdownloadFilename), "downloadedmaps/%s_%08x.map", pMap, MapCrc);
+
+					char aBuf[256];
+					str_format(aBuf, sizeof(aBuf), "starting to download map to '%s'", m_aMapdownloadFilename);
+					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", aBuf);
+
+					m_MapdownloadChunk = 0;
+					str_copy(m_aMapdownloadName, pMap, sizeof(m_aMapdownloadName));
+					if(m_MapdownloadFile)
+						io_close(m_MapdownloadFile);
+					m_MapdownloadFile = Storage()->OpenFile(m_aMapdownloadFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
+					m_MapdownloadCrc = MapCrc;
+					m_MapdownloadTotalsize = MapSize;
+					m_MapdownloadAmount = 0;
+
+					//~ CMsgPacker Msg(TW06_NETMSG_REQUEST_MAP_DATA);
+					//~ Msg.AddInt(m_MapdownloadChunk);
+					//~ SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+					//~ if(g_Config.m_Debug)
+						//~ m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested first chunk package");
+				}
+			}
+		}
+		else if(Msg == NETMSG_MAP_DATA)
+		{
+			int Last = Unpacker.GetInt();
+			int MapCRC = Unpacker.GetInt();
+			int Chunk = Unpacker.GetInt();
+			int Size = Unpacker.GetInt();
+			const unsigned char *pData = Unpacker.GetRaw(Size);
+			if(Unpacker.Error())
+				return;
+ 
+			// check fior errors
+			if(Unpacker.Error() || Size <= 0 || MapCRC != m_MapdownloadCrc || Chunk != m_MapdownloadChunk || !m_MapdownloadFile)
+				return;
+
+			io_write(m_MapdownloadFile, pData, Size);
+
+			m_MapdownloadAmount += Size;
+
+			if(m_MapdownloadAmount == m_MapdownloadTotalsize)
+			{
+				// map download complete
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "download complete, loading map");
+
+				if(m_MapdownloadFile)
+					io_close(m_MapdownloadFile);
+				m_MapdownloadFile = 0;
+				m_MapdownloadAmount = 0;
+				m_MapdownloadTotalsize = -1;
+				
+				m_MapDownloadFinished = true;
+
+				// load map
+				const char *pError = LoadMap(m_aMapdownloadName, m_aMapdownloadFilename, m_MapdownloadCrc);
+				if(!pError)
+				{
+					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
+					if(m_ModDownloadFinished || !m_ModAPIServer)
+					{
+						SendReady();
+					}
+				}
+				else
+					DisconnectWithReason(pError);
+			}
+			else if(m_MapdownloadChunk%m_MapdownloadChunkNum == 0)
+			{
+				// request next chunk package of map data
+				CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA, true);
+				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+
+				if(g_Config.m_Debug)
+					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
+			}
+		}
+		//ModAPI
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MODAPI_MOD_DATA)
+		{			
+			if(!m_ModdownloadFile)
+				return;
+
+			int Size = min(m_ModDownloadChunkSize, m_ModdownloadTotalsize-m_ModdownloadAmount);
+			const unsigned char *pData = Unpacker.GetRaw(Size);
+			if(Unpacker.Error())
+				return;
+ 
+			io_write(m_ModdownloadFile, pData, Size);
+			++m_ModdownloadChunk;
+			m_ModdownloadAmount += Size;
+
+			if(m_ModdownloadAmount == m_ModdownloadTotalsize)
+			{
+				// mod download complete
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "download complete, loading mod");
+
+				if(m_ModdownloadFile)
+					io_close(m_ModdownloadFile);
+				m_ModdownloadFile = 0;
+				m_ModdownloadAmount = 0;
+				m_ModdownloadTotalsize = -1;
+				
+				m_ModDownloadFinished = true;
+
+				// load mod
+				const char *pError = LoadMod(m_aModdownloadName, m_aModdownloadFilename, m_ModdownloadCrc);
+				if(!pError)
+				{
+					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
+					if(m_MapDownloadFinished)
+					{
+						SendReady();
+					}
+				}
+				else
+				{
+					DisconnectWithReason(pError);
+				}
+			}
+			else if(m_ModdownloadChunk%m_ModdownloadChunkNum == 0)
+			{
+				// request next chunk package of mod data
+				CMsgPacker Msg(NETMSG_MODAPI_REQUEST_MOD_DATA, true);
+				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+
+				if(g_Config.m_Debug)
+					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
+			}
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_SERVERINFO)
+		{
+			CServerInfo Info = {0};
+			net_addr_str(&pPacket->m_Address, Info.m_aAddress, sizeof(Info.m_aAddress), true);
+			if(!UnpackServerInfo_TW07(&Unpacker, &Info, 0) && !Unpacker.Error())
+			{
+				qsort(Info.m_aClients, Info.m_NumClients, sizeof(*Info.m_aClients), PlayerScoreComp);
+				mem_copy(&m_CurrentServerInfo, &Info, sizeof(m_CurrentServerInfo));
+				m_CurrentServerInfo.m_NetAddr = m_ServerAddress;
+			}
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_CON_READY)
+		{
+			GameClient()->OnConnected();
+		}
+		else if(Msg == NETMSG_PING)
+		{
+			CMsgPacker Msg(NETMSG_PING_REPLY, true);
+			SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_CMD_ADD)
+		{
+			const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+			const char *pHelp = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+			const char *pParams = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+			if(Unpacker.Error() == 0)
+				m_pConsole->RegisterTemp(pName, pParams, CFGFLAG_SERVER, pHelp);
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_CMD_REM)
+		{
+			const char *pName = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+			if(Unpacker.Error() == 0)
+				m_pConsole->DeregisterTemp(pName);
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_AUTH_ON)
+		{
+			m_RconAuthed = 1;
+			m_UseTempRconCommands = 1;
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_AUTH_OFF)
+		{
+			m_RconAuthed = 0;
+			if(m_UseTempRconCommands)
+				m_pConsole->DeregisterTempAll();
+			m_UseTempRconCommands = 0;
+		}
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_LINE)
+		{
+			const char *pLine = Unpacker.GetString();
+			if(Unpacker.Error() == 0)
+				GameClient()->OnRconLine(pLine);
+		}
+		else if(Msg == NETMSG_PING_REPLY)
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "latency %.2f", (time_get() - m_PingStartTime)*1000 / (float)time_freq());
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client/network", aBuf);
+		}
+		else if(Msg == NETMSG_INPUTTIMING)
+		{
+			int InputPredTick = Unpacker.GetInt();
+			int TimeLeft = Unpacker.GetInt();
+
+			// adjust our prediction time
+			int64 Target = 0;
+			for(int k = 0; k < 200; k++)
+			{
+				if(m_aInputs[k].m_Tick == InputPredTick)
+				{
+					Target = m_aInputs[k].m_PredictedTime + (time_get() - m_aInputs[k].m_Time);
+					Target = Target - (int64)(((TimeLeft-PREDICTION_MARGIN)/1000.0f)*time_freq());
+					break;
+				}
+			}
+
+			if(Target)
+				m_PredictedTime.Update(&m_InputtimeMarginGraph, Target, TimeLeft, 1);
+		}
+		else if(Msg == NETMSG_SNAP || Msg == NETMSG_SNAPSINGLE || Msg == NETMSG_SNAPEMPTY)
+		{
+			int NumParts = 1;
+			int Part = 0;
+			int GameTick = Unpacker.GetInt();
+			int DeltaTick = GameTick-Unpacker.GetInt();
+			int PartSize = 0;
+			int Crc = 0;
+			int CompleteSize = 0;
+			const char *pData = 0;
+
+			// we are not allowed to process snapshot yet
+			if(State() <= IClient::STATE_CONNECTING)
+				return;
+
+			if(Msg == NETMSG_SNAP)
+			{
+				NumParts = Unpacker.GetInt();
+				Part = Unpacker.GetInt();
+			}
+
+			if(Msg != NETMSG_SNAPEMPTY)
+			{
+				Crc = Unpacker.GetInt();
+				PartSize = Unpacker.GetInt();
+			}
+
+			pData = (const char *)Unpacker.GetRaw(PartSize);
+
+			if(Unpacker.Error())
+				return;
+
+			if(GameTick >= m_CurrentRecvTick)
+			{
+				if(GameTick != m_CurrentRecvTick)
+				{
+					m_SnapshotParts = 0;
+					m_CurrentRecvTick = GameTick;
+				}
+
+				// TODO: clean this up abit
+				mem_copy((char*)m_aSnapshotIncommingData + Part*MAX_SNAPSHOT_PACKSIZE, pData, PartSize);
+				m_SnapshotParts |= 1<<Part;
+
+				if(m_SnapshotParts == (unsigned)((1<<NumParts)-1))
+				{
+					static CSnapshot Emptysnap;
+					CSnapshot *pDeltaShot = &Emptysnap;
+					int PurgeTick;
+					void *pDeltaData;
+					int DeltaSize;
+					unsigned char aTmpBuffer2[CSnapshot::MAX_SIZE];
+					unsigned char aTmpBuffer3[CSnapshot::MAX_SIZE];
+					CSnapshot *pTmpBuffer3 = (CSnapshot*)aTmpBuffer3;	// Fix compiler warning for strict-aliasing
+					int SnapSize;
+
+					CompleteSize = (NumParts-1) * MAX_SNAPSHOT_PACKSIZE + PartSize;
+
+					// reset snapshoting
+					m_SnapshotParts = 0;
+
+					// find snapshot that we should use as delta
+					Emptysnap.Clear();
+
+					// find delta
+					if(DeltaTick >= 0)
+					{
+						int DeltashotSize = m_SnapshotStorage.Get(DeltaTick, 0, &pDeltaShot, 0);
+
+						if(DeltashotSize < 0)
+						{
+							// couldn't find the delta snapshots that the server used
+							// to compress this snapshot. force the server to resync
+							if(g_Config.m_Debug)
+							{
+								char aBuf[256];
+								str_format(aBuf, sizeof(aBuf), "error, couldn't find the delta snapshot");
+								m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client", aBuf);
+							}
+
+							// ack snapshot
+							// TODO: combine this with the input message
+							m_AckGameTick = -1;
+							return;
+						}
+					}
+
+					// decompress snapshot
+					pDeltaData = m_SnapshotDelta.EmptyDelta();
+					DeltaSize = sizeof(int)*3;
+
+					if(CompleteSize)
+					{
+						int IntSize = CVariableInt::Decompress(m_aSnapshotIncommingData, CompleteSize, aTmpBuffer2);
+
+						if(IntSize < 0) // failure during decompression, bail
+							return;
+
+						pDeltaData = aTmpBuffer2;
+						DeltaSize = IntSize;
+					}
+
+					// unpack delta
+					SnapSize = m_SnapshotDelta.UnpackDelta(pDeltaShot, pTmpBuffer3, pDeltaData, DeltaSize);
+					if(SnapSize < 0)
+					{
+						m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client", "delta unpack failed!");
+						return;
+					}
+
+					if(Msg != NETMSG_SNAPEMPTY && pTmpBuffer3->Crc() != Crc)
+					{
+						if(g_Config.m_Debug)
+						{
+							char aBuf[256];
+							str_format(aBuf, sizeof(aBuf), "snapshot crc error #%d - tick=%d wantedcrc=%d gotcrc=%d compressed_size=%d delta_tick=%d",
+								m_SnapCrcErrors, GameTick, Crc, pTmpBuffer3->Crc(), CompleteSize, DeltaTick);
+							m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client", aBuf);
+						}
+
+						m_SnapCrcErrors++;
+						if(m_SnapCrcErrors > 10)
+						{
+							// to many errors, send reset
+							m_AckGameTick = -1;
+							SendInput();
+							m_SnapCrcErrors = 0;
+						}
+						return;
+					}
+					else
+					{
+						if(m_SnapCrcErrors)
+							m_SnapCrcErrors--;
+					}
+
+					// purge old snapshots
+					PurgeTick = DeltaTick;
+					if(m_aSnapshots[SNAP_PREV] && m_aSnapshots[SNAP_PREV]->m_Tick < PurgeTick)
+						PurgeTick = m_aSnapshots[SNAP_PREV]->m_Tick;
+					if(m_aSnapshots[SNAP_CURRENT] && m_aSnapshots[SNAP_CURRENT]->m_Tick < PurgeTick)
+						PurgeTick = m_aSnapshots[SNAP_CURRENT]->m_Tick;
+					m_SnapshotStorage.PurgeUntil(PurgeTick);
+
+					// add new
+					m_SnapshotStorage.Add(GameTick, time_get(), SnapSize, pTmpBuffer3, 1);
+
+					// add snapshot to demo
+					if(m_DemoRecorder.IsRecording())
+					{
+						// build up snapshot and add local messages
+						m_DemoRecSnapshotBuilder.Init(pTmpBuffer3);
+						GameClient()->OnDemoRecSnap();
+						SnapSize = m_DemoRecSnapshotBuilder.Finish(pTmpBuffer3);
+
+						// write snapshot
+						m_DemoRecorder.RecordSnapshot(GameTick, pTmpBuffer3, SnapSize);
+					}
+
+					// apply snapshot, cycle pointers
+					m_RecivedSnapshots++;
+
+					m_CurrentRecvTick = GameTick;
+
+					// we got two snapshots until we see us self as connected
+					if(m_RecivedSnapshots == 2)
+					{
+						// start at 200ms and work from there
+						m_PredictedTime.Init(GameTick*time_freq()/50);
+						m_PredictedTime.SetAdjustSpeed(1, 1000.0f);
+						m_GameTime.Init((GameTick-1)*time_freq()/50);
+						m_aSnapshots[SNAP_PREV] = m_SnapshotStorage.m_pFirst;
+						m_aSnapshots[SNAP_CURRENT] = m_SnapshotStorage.m_pLast;
+						m_LocalStartTime = time_get();
+						SetState(IClient::STATE_ONLINE);
+						DemoRecorder_HandleAutoStart();
+					}
+
+					// adjust game time
+					if(m_RecivedSnapshots > 2)
+					{
+						int64 Now = m_GameTime.Get(time_get());
+						int64 TickStart = GameTick*time_freq()/50;
+						int64 TimeLeft = (TickStart-Now)*1000 / time_freq();
+						m_GameTime.Update(&m_GametimeMarginGraph, (GameTick-1)*time_freq()/50, TimeLeft, 0);
+					}
+
+					// ack snapshot
+					m_AckGameTick = GameTick;
+				}
+			}
+		}
+	}
+	else
+	{
+		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0)
+		{
+			// game message
+			GameClient()->OnMessage(Msg, &Unpacker);
+
+			if(m_RecordGameMessage && m_DemoRecorder.IsRecording())
+				m_DemoRecorder.RecordMessage(pPacket->m_pData, pPacket->m_DataSize);
 		}
 	}
 }
@@ -1334,7 +1952,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 		{
 			CServerInfo Info = {0};
 			net_addr_str(&pPacket->m_Address, Info.m_aAddress, sizeof(Info.m_aAddress), true);
-			if(!UnpackServerInfo(&Unpacker, &Info, 0) && !Unpacker.Error())
+			if(!UnpackServerInfo_TW07(&Unpacker, &Info, 0) && !Unpacker.Error())
 			{
 				qsort(Info.m_aClients, Info.m_NumClients, sizeof(*Info.m_aClients), PlayerScoreComp);
 				mem_copy(&m_CurrentServerInfo, &Info, sizeof(m_CurrentServerInfo));
@@ -1816,7 +2434,7 @@ void CClient::Update()
 			if(Now > ActionTaken+time_freq()*2)
 			{
 				m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "stress", "reconnecting!");
-				Connect(g_Config.m_DbgStressServer);
+				Connect(g_Config.m_DbgStressServer, MODAPI_CLIENTPROTOCOL_TW07);
 				ActionTaken = Now;
 			}
 		}
@@ -1850,7 +2468,7 @@ void CClient::VersionUpdate()
 {
 	if(m_VersionInfo.m_State == CVersionInfo::STATE_INIT)
 	{
-		Engine()->HostLookup(&m_VersionInfo.m_VersionServeraddr, g_Config.m_ClVersionServer, m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER));
+		Engine()->HostLookup(&m_VersionInfo.m_VersionServeraddr, g_Config.m_ClVersionServer, m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER07));
 		m_VersionInfo.m_State = CVersionInfo::STATE_START;
 	}
 	else if(m_VersionInfo.m_State == CVersionInfo::STATE_START)
@@ -1869,7 +2487,7 @@ void CClient::VersionUpdate()
 			Packet.m_DataSize = sizeof(VERSIONSRV_GETVERSION);
 			Packet.m_Flags = NETSENDFLAG_CONNLESS;
 
-			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
+			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER07, &Packet);
 			m_VersionInfo.m_State = CVersionInfo::STATE_READY;
 		}
 	}
@@ -1960,22 +2578,44 @@ void CClient::Run()
 			BindAddr.type = NETTYPE_ALL;
 		}
 		
-		CModAPI_NetClient_TW07* pNetClientTW07 = new CModAPI_NetClient_TW07(&m_NetClient, ProcessServerPacketCallback_TW07, 0);
-		if(!m_NetClient.OpenServerNetClient(pNetClientTW07, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
 		{
-			dbg_msg("server", "couldn't open socket(net)");
-			delete pNetClientTW07;
-			return;
+			CModAPI_NetClient_TW07* pNetClient = new CModAPI_NetClient_TW07(&m_NetClient, ProcessServerPacketCallback_TW07, 0);
+			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_SERVER07, pNetClient, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
+			{
+				dbg_msg("server", "couldn't open socket(net)");
+				delete pNetClient;
+				return;
+			}
+		}
+		{
+			CModAPI_NetClient_TW06* pNetClient = new CModAPI_NetClient_TW06(&m_NetClient, ProcessServerPacketCallback_TW06, 0);
+			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_SERVER06, pNetClient, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
+			{
+				dbg_msg("server", "couldn't open socket(net)");
+				delete pNetClient;
+				return;
+			}
 		}
 		
 		BindAddr.port = 0;
 		
-		CModAPI_NetClient_TW07* pNetClientContact = new CModAPI_NetClient_TW07(&m_NetClient, 0, ProcessConnlessPacketCallback_TW07);
-		if(!m_NetClient.OpenMasterNetClient(pNetClientContact, BindAddr, 0x0))
 		{
-			dbg_msg("server", "couldn't open socket(contact)");
-			delete pNetClientContact;
-			return;
+			CModAPI_NetClient_TW07* pNetClient = new CModAPI_NetClient_TW07(&m_NetClient, 0, ProcessConnlessPacketCallback_TW07);
+			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_MASTER07, pNetClient, BindAddr, 0x0))
+			{
+				dbg_msg("server", "couldn't open socket(contact)");
+				delete pNetClient;
+				return;
+			}
+		}
+		{
+			CModAPI_NetClient_TW06* pNetClient = new CModAPI_NetClient_TW06(&m_NetClient, 0, ProcessConnlessPacketCallback_TW06);
+			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_MASTER06, pNetClient, BindAddr, 0x0))
+			{
+				dbg_msg("server", "couldn't open socket(contact)");
+				delete pNetClient;
+				return;
+			}
 		}
 	}
 
@@ -1986,7 +2626,7 @@ void CClient::Run()
 	Input()->Init();
 
 	// start refreshing addresses while we load
-	MasterServer()->RefreshAddresses(m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER));
+	MasterServer()->RefreshAddresses(m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER07));
 
 	// init the editor
 	m_pEditor->Init();
@@ -2030,8 +2670,9 @@ void CClient::Run()
 		if(m_aCmdConnect[0])
 		{
 			str_copy(g_Config.m_UiServerAddress, m_aCmdConnect, sizeof(g_Config.m_UiServerAddress));
-			Connect(m_aCmdConnect);
+			Connect(m_aCmdConnect, m_CmdConnectProtocol);
 			m_aCmdConnect[0] = 0;
+			m_CmdConnectProtocol = MODAPI_SERVERPROTOCOL_TW07;
 		}
 
 		// update input
@@ -2217,6 +2858,7 @@ void CClient::Con_Connect(IConsole::IResult *pResult, void *pUserData)
 {
 	CClient *pSelf = (CClient *)pUserData;
 	str_copy(pSelf->m_aCmdConnect, pResult->GetString(0), sizeof(pSelf->m_aCmdConnect));
+	pSelf->m_CmdConnectProtocol = MODAPI_SERVERPROTOCOL_TW07;
 }
 
 void CClient::Con_Disconnect(IConsole::IResult *pResult, void *pUserData)
@@ -2292,7 +2934,7 @@ const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 	int Crc;
 	
 	Disconnect();
-	m_NetClient.ResetErrorString(CModAPI_MetaNetClient::DST_SERVER);
+	m_NetClient.ResetErrorString(CModAPI_MetaNetClient::DST_SERVER07);
 
 	// try to start playback
 	m_DemoPlayer.SetListner(this);

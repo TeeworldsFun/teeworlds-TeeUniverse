@@ -1,5 +1,4 @@
 ModAPI for Teeworlds
-=========
 
 A new protocol and a set functionalities to make great mods in TeeWorlds.
 

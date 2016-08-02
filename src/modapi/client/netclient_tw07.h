@@ -30,6 +30,7 @@ public:
 	virtual bool Send(CNetChunk *pChunk, TOKEN Token = NET_TOKEN_NONE);
 	virtual bool GotProblems() const;
 	virtual int State() const;
+	virtual NETSOCKET Socket() const;
 	virtual int NetType() const;
 	virtual const char* ErrorString() const;
 	virtual void ResetErrorString();

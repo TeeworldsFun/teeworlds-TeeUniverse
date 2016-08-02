@@ -20,7 +20,7 @@ public:
 		
 	CServerBrowser();
 	void Init(class CModAPI_MetaNetClient *pNetClient, const char *pNetVersion);
-	void Set(const NETADDR &Addr, int SetType, int Token, const CServerInfo *pInfo);
+	void Set(const NETADDR &Addr, int SetType, int Token, const CServerInfo *pInfo, int Protocol);
 	void Update(bool ForceResort);	
 
 	// interface functions
@@ -84,7 +84,7 @@ private:
 	int m_RefreshFlags;
 	int64 m_BroadcastTime;
 
-	CServerEntry *Add(int ServerlistType, const NETADDR &Addr);
+	CServerEntry *Add(int ServerlistType, const NETADDR &Addr, int Protocol);
 	CServerEntry *Find(int ServerlistType, const NETADDR &Addr);
 	void QueueRequest(CServerEntry *pEntry);
 	void RemoveRequest(CServerEntry *pEntry);

@@ -18,6 +18,7 @@ public:
 	int m_InfoState;
 	int m_CurrentToken;	// the token is to keep server refresh separated from each other
 	class CServerInfo m_Info;
+	int m_Protocol; //MODAPI_SERVERPROTOCOL_XXX
 
 	CServerEntry *m_pNextIp; // ip hashed list
 

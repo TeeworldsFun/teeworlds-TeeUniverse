@@ -226,6 +226,11 @@ int CModAPI_NetClient_TW07::State() const
 	return NETSTATE_CONNECTING;
 }
 
+NETSOCKET CModAPI_NetClient_TW07::Socket() const
+{
+	return m_Socket;
+}
+
 int CModAPI_NetClient_TW07::NetType() const
 {
 	return (time_get() - m_Connection.LastRecvTime() > time_freq());

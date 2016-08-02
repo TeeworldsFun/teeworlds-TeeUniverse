@@ -222,7 +222,7 @@ const NETADDR *CServerBrowserFavorites::UpdateFavorites()
 		{
 			if(m_aFavoriteServers[i].m_State <= FAVSTATE_LOOKUPCHECK)
 			{
-				m_pEngine->HostLookup(&m_FavLookup.m_HostLookup, m_aFavoriteServers[i].m_aHostname, m_pNetClient->NetType(CModAPI_MetaNetClient::DST_MASTER));
+				m_pEngine->HostLookup(&m_FavLookup.m_HostLookup, m_aFavoriteServers[i].m_aHostname, m_pNetClient->NetType(CModAPI_MetaNetClient::DST_MASTER07));
 				m_FavLookup.m_FavoriteIndex = i;
 				--m_FavLookup.m_LookupCount;
 				m_FavLookup.m_Active = true;

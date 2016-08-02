@@ -82,7 +82,7 @@ public:
 	inline float LocalTime() const { return m_LocalTime; }
 
 	// actions
-	virtual void Connect(const char *pAddress) = 0;
+	virtual void Connect(const char *pAddress, int Protocol) = 0;
 	virtual void Disconnect() = 0;
 	virtual void Quit() = 0;
 	virtual const char *DemoPlayer_Play(const char *pFilename, int StorageType) = 0;

@@ -16,7 +16,10 @@
 
 #include <mastersrv/mastersrv.h>
 
+#include <modapi/compatibility.h>
 #include <modapi/client/metanetclient.h>
+
+#include <tw06/network.h>
 
 #include "serverbrowser.h"
 
@@ -80,7 +83,7 @@ void CServerBrowser::Init(class CModAPI_MetaNetClient *pNetClient, const char *p
 	m_ServerBrowserFilter.Init(Kernel()->RequestInterface<IFriends>(), pNetVersion);
 }
 
-void CServerBrowser::Set(const NETADDR &Addr, int SetType, int Token, const CServerInfo *pInfo)
+void CServerBrowser::Set(const NETADDR &Addr, int SetType, int Token, const CServerInfo *pInfo, int Protocol)
 {
 	CServerEntry *pEntry = 0;
 	switch(SetType)
@@ -92,7 +95,7 @@ void CServerBrowser::Set(const NETADDR &Addr, int SetType, int Token, const CSer
 
 			if(!Find(IServerBrowser::TYPE_INTERNET, Addr))
 			{
-				pEntry = Add(IServerBrowser::TYPE_INTERNET, Addr);
+				pEntry = Add(IServerBrowser::TYPE_INTERNET, Addr, Protocol);
 				QueueRequest(pEntry);
 			}
 		}
@@ -117,15 +120,27 @@ void CServerBrowser::Set(const NETADDR &Addr, int SetType, int Token, const CSer
 			{
 				Type = IServerBrowser::TYPE_INTERNET;
 				pEntry = Find(Type, Addr);
-				if(pEntry && (pEntry->m_InfoState != CServerEntry::STATE_PENDING || Token != pEntry->m_CurrentToken))
-					pEntry = 0;					
+				if(pEntry)
+				{
+					if(pEntry->m_InfoState != CServerEntry::STATE_PENDING)
+						pEntry = 0;
+					else if(Protocol == MODAPI_SERVERPROTOCOL_TW06)
+					{
+						char TokenChar;
+						mem_copy(&TokenChar, &pEntry->m_CurrentToken, 1);
+						if(Token != (int)TokenChar)
+							pEntry = 0;
+					}
+					else if(Token != pEntry->m_CurrentToken)
+						pEntry = 0;		
+				}		
 			}
 
 			// lan entry
 			if(!pEntry && (m_RefreshFlags&IServerBrowser::REFRESHFLAG_LAN) && m_BroadcastTime+time_freq() >= time_get())
 			{
 				Type = IServerBrowser::TYPE_LAN;
-				pEntry = Add(Type, Addr);
+				pEntry = Add(Type, Addr, Protocol);
 			}
 			
 			// set info
@@ -161,7 +176,6 @@ void CServerBrowser::Update(bool ForceResort)
 
 		mem_zero(&Packet, sizeof(Packet));
 		Packet.m_ClientID = -1;
-		Packet.m_Flags = NETSENDFLAG_CONNLESS;
 		Packet.m_DataSize = sizeof(SERVERBROWSE_GETLIST);
 		Packet.m_pData = SERVERBROWSE_GETLIST;
 
@@ -171,7 +185,12 @@ void CServerBrowser::Update(bool ForceResort)
 				continue;
 
 			Packet.m_Address = m_pMasterServer->GetAddr(i);
-			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
+			
+			Packet.m_Flags = NETSENDFLAG_CONNLESS;
+			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER07, &Packet);
+			
+			Packet.m_Flags = TW06_NETSENDFLAG_CONNLESS;
+			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER06, &Packet);
 		}
 
 		if(g_Config.m_Debug)
@@ -265,7 +284,6 @@ void CServerBrowser::Refresh(int RefreshFlags)
 		/* do the broadcast version */
 		CNetChunk Packet;
 		mem_zero(&Packet, sizeof(Packet));
-		Packet.m_Address.type = m_pNetClient->NetType(CModAPI_MetaNetClient::DST_MASTER)|NETTYPE_LINK_BROADCAST;
 		Packet.m_ClientID = -1;
 		Packet.m_Flags = NETSENDFLAG_CONNLESS|NETSENDFLAG_STATELESS;
 		Packet.m_DataSize = Packer.Size();
@@ -275,7 +293,12 @@ void CServerBrowser::Refresh(int RefreshFlags)
 		for(int i = 8303; i <= 8310; i++)
 		{
 			Packet.m_Address.port = i;
-			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
+			
+			Packet.m_Address.type = m_pNetClient->NetType(CModAPI_MetaNetClient::DST_MASTER07)|NETTYPE_LINK_BROADCAST;
+			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER07, &Packet);
+			
+			Packet.m_Address.type = m_pNetClient->NetType(CModAPI_MetaNetClient::DST_MASTER06)|NETTYPE_LINK_BROADCAST;
+			m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER06, &Packet);
 		}
 
 		if(g_Config.m_Debug)
@@ -351,7 +374,7 @@ void CServerBrowser::RemoveFavorite(const CServerInfo *pInfo)
 }
 
 // manipulate entries
-CServerEntry *CServerBrowser::Add(int ServerlistType, const NETADDR &Addr)
+CServerEntry *CServerBrowser::Add(int ServerlistType, const NETADDR &Addr, int Protocol)
 {
 	// create new pEntry
 	CServerEntry *pEntry = (CServerEntry *)m_aServerlist[ServerlistType].m_ServerlistHeap.Allocate(sizeof(CServerEntry));
@@ -362,6 +385,7 @@ CServerEntry *CServerBrowser::Add(int ServerlistType, const NETADDR &Addr)
 	pEntry->m_InfoState = CServerEntry::STATE_INVALID;
 	pEntry->m_CurrentToken = GetNewToken();
 	pEntry->m_Info.m_NetAddr = Addr;
+	pEntry->m_Protocol = Protocol;
 
 	pEntry->m_Info.m_Latency = 999;
 	net_addr_str(&Addr, pEntry->m_Info.m_aAddress, sizeof(pEntry->m_Info.m_aAddress), true);
@@ -454,24 +478,43 @@ void CServerBrowser::RequestImpl(const NETADDR &Addr, CServerEntry *pEntry) cons
 		char aAddrStr[NETADDR_MAXSTRSIZE];
 		net_addr_str(&Addr, aAddrStr, sizeof(aAddrStr), true);
 		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf),"requesting server info from %s", aAddrStr);
+		str_format(aBuf, sizeof(aBuf),"requesting server info from %s (proto = %s)", aAddrStr, (pEntry && pEntry->m_Protocol == MODAPI_SERVERPROTOCOL_TW06) ? "tw06" : "tw07");
 		m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client_srvbrowse", aBuf);
 	}
 
-	CPacker Packer;
-	Packer.Reset();
-	Packer.AddRaw(SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
-	Packer.AddInt(pEntry ? pEntry->m_CurrentToken : m_CurrentLanToken);
+	if(pEntry && pEntry->m_Protocol == MODAPI_SERVERPROTOCOL_TW06)
+	{
+		CPacker Packer;
+		Packer.Reset();
+		Packer.AddRaw(SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
+		Packer.AddRaw(pEntry ? &pEntry->m_CurrentToken : &m_CurrentLanToken, 1);
+		
+		CNetChunk Packet;
+		Packet.m_ClientID = -1;
+		Packet.m_Address = Addr;
+		Packet.m_Flags = TW06_NETSENDFLAG_CONNLESS;
+		Packet.m_DataSize = Packer.Size();
+		Packet.m_pData = Packer.Data();
+
+		m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER06, &Packet);
+	}
+	else
+	{
+		CPacker Packer;
+		Packer.Reset();
+		Packer.AddRaw(SERVERBROWSE_GETINFO, sizeof(SERVERBROWSE_GETINFO));
+		Packer.AddInt(pEntry ? pEntry->m_CurrentToken : m_CurrentLanToken);
+		
+		CNetChunk Packet;
+		Packet.m_ClientID = -1;
+		Packet.m_Address = Addr;
+		Packet.m_Flags = NETSENDFLAG_CONNLESS|NETSENDFLAG_STATELESS;
+		Packet.m_DataSize = Packer.Size();
+		Packet.m_pData = Packer.Data();
+
+		m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER07, &Packet);
+	}
 	
-	CNetChunk Packet;
-	Packet.m_ClientID = -1;
-	Packet.m_Address = Addr;
-	Packet.m_Flags = NETSENDFLAG_CONNLESS|NETSENDFLAG_STATELESS;
-	Packet.m_DataSize = Packer.Size();
-	Packet.m_pData = Packer.Data();
-
-	m_pNetClient->Send(CModAPI_MetaNetClient::DST_MASTER, &Packet);
-
 	if(pEntry)
 	{
 		pEntry->m_RequestTime = time_get();

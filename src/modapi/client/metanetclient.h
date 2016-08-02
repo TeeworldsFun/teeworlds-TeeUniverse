@@ -13,8 +13,12 @@ public:
 
 	enum
 	{
-		DST_SERVER = 0,
-		DST_MASTER
+		DST_SERVER07 = 0,
+		DST_SERVER06,
+		DST_MASTER07,
+		DST_MASTER06,
+		NUM_DST,
+		DST_SERVER,
 	};
 
 public:
@@ -48,9 +52,7 @@ public:
 	};
 
 public:
-	int m_ServerNetClient;
-	int m_MasterNetClient;
-	array<CNetClient*> m_lpNetClient;
+	CNetClient* m_apNetClient[NUM_DST];
 	
 private:
 	class IMasterServer *m_pMasterServer;
@@ -58,6 +60,7 @@ private:
 
 public:
 	void* m_pData;
+	int m_DstServerID;
 
 public:
 	CModAPI_MetaNetClient();
@@ -66,8 +69,7 @@ public:
 	void Init(class IMasterServer *pMasterServer, class IConsole *pConsole);
 	void SetCallbacks(void* pData);
 	
-	bool OpenServerNetClient(CNetClient* pNetClient, NETADDR BindAddr, int Flags);
-	bool OpenMasterNetClient(CNetClient* pNetClient, NETADDR BindAddr, int Flags);
+	bool OpenNetClient(int Dst, CNetClient* pNetClient, NETADDR BindAddr, int Flags);
 	bool Connect(int Dst, NETADDR *pAddr);
 	bool Disconnect(int Dst, const char* pReason);
 	bool Update();

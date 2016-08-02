@@ -14,7 +14,7 @@ CModAPI_MetaNetClient::CNetClient::CNetClient(CModAPI_MetaNetClient* pMetaNetCli
 	m_pMetaNetClient(pMetaNetClient),
 	m_fProcessServerPacket(fProcessServerPacket),
 	m_fProcessConnlessPacket(fProcessConnlessPacket),
-	m_NetClientID(-1)
+	m_NetClientID(DST_SERVER07)
 {
 	
 }
@@ -28,17 +28,17 @@ CModAPI_MetaNetClient::CNetClient::~CNetClient()
 
 CModAPI_MetaNetClient::CModAPI_MetaNetClient() :
 	m_pData(0),
-	m_ServerNetClient(-1),
-	m_MasterNetClient(-1)
+	m_DstServerID(-1)
 {
 	
 }
 
 CModAPI_MetaNetClient::~CModAPI_MetaNetClient()
 {
-	for(int i=0; i<m_lpNetClient.size(); i++)
+	for(int i=0; i<NUM_DST; i++)
 	{
-		delete m_lpNetClient[i];
+		if(m_apNetClient[i])
+			delete m_apNetClient[i];
 	}
 }
 
@@ -53,42 +53,32 @@ void CModAPI_MetaNetClient::SetCallbacks(void* pData)
 	m_pData = pData;
 }
 
-bool CModAPI_MetaNetClient::OpenServerNetClient(CNetClient* pNetClient, NETADDR BindAddr, int Flags)
+bool CModAPI_MetaNetClient::OpenNetClient(int Dst, CNetClient* pNetClient, NETADDR BindAddr, int Flags)
 {
-	int NetClientID = m_lpNetClient.size();
-	bool res = pNetClient->Open(NetClientID, BindAddr, Flags);
+	if(Dst >= NUM_DST || Dst < 0)
+		return false;
+	
+	bool res = pNetClient->Open(Dst, BindAddr, Flags);
 	if(res)
 	{
-		m_lpNetClient.add(pNetClient);
+		if(m_apNetClient[Dst])
+			delete m_apNetClient[Dst];
+		
+		m_apNetClient[Dst] = pNetClient;
 	}
-	m_ServerNetClient = NetClientID;
-	return res;
-}
-
-bool CModAPI_MetaNetClient::OpenMasterNetClient(CNetClient* pNetClient, NETADDR BindAddr, int Flags)
-{
-	int NetClientID = m_lpNetClient.size();
-	bool res = pNetClient->Open(NetClientID, BindAddr, Flags);
-	if(res)
-	{
-		m_lpNetClient.add(pNetClient);
-	}
-	m_MasterNetClient = NetClientID;
+	
 	return res;
 }
 
 bool CModAPI_MetaNetClient::Connect(int Dst, NETADDR *pAddr)
 {
-	switch(Dst)
+	if(m_apNetClient[Dst])
 	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_ServerNetClient]->Connect(pAddr);
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_MasterNetClient]->Connect(pAddr);
-			break;
+		if(m_apNetClient[Dst]->Connect(pAddr))
+		{
+			m_DstServerID = Dst;
+			return true;
+		}
 	}
 	
 	return false;
@@ -96,133 +86,91 @@ bool CModAPI_MetaNetClient::Connect(int Dst, NETADDR *pAddr)
 
 bool CModAPI_MetaNetClient::Disconnect(int Dst, const char* pReason)
 {
-	switch(Dst)
-	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_ServerNetClient]->Disconnect(pReason);
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_MasterNetClient]->Disconnect(pReason);
-			break;
-	}
+	if(Dst == DST_SERVER)
+		Dst = m_DstServerID;
+	
+	if(m_apNetClient[Dst])
+		return m_apNetClient[Dst]->Disconnect(pReason);
 	
 	return false;
 }
 
 bool CModAPI_MetaNetClient::Update()
 {
-	for(int i=0; i<m_lpNetClient.size(); i++)
+	for(int i=0; i<NUM_DST; i++)
 	{
-		m_lpNetClient[i]->Update();
+		m_apNetClient[i]->Update();
 	}
 }
 
 bool CModAPI_MetaNetClient::RecvLoop()
 {
-	for(int i=0; i<m_lpNetClient.size(); i++)
+	for(int i=0; i<NUM_DST; i++)
 	{
-		m_lpNetClient[i]->RecvLoop();
+		m_apNetClient[i]->RecvLoop();
 	}
 }
 
 bool CModAPI_MetaNetClient::Send(int Dst, CNetChunk *pChunk, TOKEN Token)
 {
-	switch(Dst)
-	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_ServerNetClient]->Send(pChunk, Token);
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_MasterNetClient]->Send(pChunk, Token);
-			break;
-	}
+	if(Dst == DST_SERVER)
+		Dst = m_DstServerID;
+	
+	if(m_apNetClient[Dst])
+		return m_apNetClient[Dst]->Send(pChunk, Token);
 	
 	return false;
 }
 
 bool CModAPI_MetaNetClient::GotProblems(int Dst) const
 {
-	switch(Dst)
-	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_ServerNetClient]->GotProblems();
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_MasterNetClient]->GotProblems();
-			break;
-	}
+	if(Dst == DST_SERVER)
+		Dst = m_DstServerID;
+	
+	if(m_apNetClient[Dst])
+		return m_apNetClient[Dst]->GotProblems();
 	
 	return false;
 }
 
 int CModAPI_MetaNetClient::State(int Dst) const
 {
-	switch(Dst)
-	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_ServerNetClient]->State();
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_MasterNetClient]->State();
-			break;
-	}
+	if(Dst == DST_SERVER)
+		Dst = m_DstServerID;
+	
+	if(m_apNetClient[Dst])
+		return m_apNetClient[Dst]->State();
 	
 	return NET_CONNSTATE_OFFLINE;
 }
 
 int CModAPI_MetaNetClient::NetType(int Dst) const
 {
-	switch(Dst)
-	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_ServerNetClient]->NetType();
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_MasterNetClient]->NetType();
-			break;
-	}
+	if(Dst == DST_SERVER)
+		Dst = m_DstServerID;
+	
+	if(m_apNetClient[Dst])
+		return m_apNetClient[Dst]->NetType();
 	
 	return 0;
 }
 
 const char* CModAPI_MetaNetClient::ErrorString(int Dst) const
 {
-	switch(Dst)
-	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_ServerNetClient]->ErrorString();
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				return m_lpNetClient[m_MasterNetClient]->ErrorString();
-			break;
-	}
+	if(Dst == DST_SERVER)
+		Dst = m_DstServerID;
+	
+	if(m_apNetClient[Dst])
+		return m_apNetClient[Dst]->ErrorString();
 	
 	return 0;
 }
 
 void CModAPI_MetaNetClient::ResetErrorString(int Dst)
 {
-	switch(Dst)
-	{
-		case CModAPI_MetaNetClient::DST_SERVER:
-			if(m_ServerNetClient >= 0 && m_ServerNetClient < m_lpNetClient.size())
-				m_lpNetClient[m_ServerNetClient]->ResetErrorString();
-			break;
-		case CModAPI_MetaNetClient::DST_MASTER:
-			if(m_MasterNetClient >= 0 && m_MasterNetClient < m_lpNetClient.size())
-				m_lpNetClient[m_MasterNetClient]->ResetErrorString();
-			break;
-	}
+	if(Dst == DST_SERVER)
+		Dst = m_DstServerID;
+	
+	if(m_apNetClient[Dst])
+		m_apNetClient[Dst]->ResetErrorString();
 }

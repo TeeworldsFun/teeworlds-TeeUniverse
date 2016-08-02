@@ -26,6 +26,8 @@
 #include <game/client/lineinput.h>
 #include <mastersrv/mastersrv.h>
 
+#include <modapi/compatibility.h>
+
 #include "maplayers.h"
 #include "countryflags.h"
 #include "menus.h"
@@ -1810,7 +1812,7 @@ int CMenus::Render()
 			static CButtonContainer s_ButtonTryAgain;
 			if(DoButton_Menu(&s_ButtonTryAgain, Localize("Try again"), 0, &TryAgain) || m_EnterPressed)
 			{
-				Client()->Connect(g_Config.m_UiServerAddress);
+				Client()->Connect(g_Config.m_UiServerAddress, MODAPI_SERVERPROTOCOL_TW07);
 			}
 		}
 		else if(m_Popup == POPUP_CONNECTING)
@@ -2298,10 +2300,10 @@ bool CMenus::OnInput(IInput::CEvent e)
 void CMenus::OnConsoleInit()
 {
 	// add filters
-	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, Localize("Teeworlds"), ServerBrowser(), IServerBrowser::FILTER_COMPAT_VERSION|IServerBrowser::FILTER_PURE|IServerBrowser::FILTER_PURE_MAP|IServerBrowser::FILTER_PING, 999, -1, "", ""));
+	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_STANDARD, Localize("Teeworlds"), ServerBrowser(), IServerBrowser::FILTER_TW07|IServerBrowser::FILTER_COMPAT_VERSION|IServerBrowser::FILTER_PURE|IServerBrowser::FILTER_PURE_MAP|IServerBrowser::FILTER_PING, 999, -1, "", ""));
 	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_FAVORITES, Localize("Favorites"), ServerBrowser(), IServerBrowser::FILTER_FAVORITE|IServerBrowser::FILTER_PING, 999, -1, "", ""));
-	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_ALL, Localize("All 0.7 servers"), ServerBrowser(), IServerBrowser::FILTER_PING, 999, -1, "", ""));
-	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_ALL, Localize("All 0.6 servers"), ServerBrowser(), IServerBrowser::FILTER_TW06|IServerBrowser::FILTER_PING, 999, -1, "", ""));
+	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_TW07, Localize("All 0.7 servers"), ServerBrowser(), IServerBrowser::FILTER_TW07|IServerBrowser::FILTER_PING, 999, -1, "", ""));
+	m_lFilters.add(CBrowserFilter(CBrowserFilter::FILTER_TW06, Localize("All 0.6 servers"), ServerBrowser(), IServerBrowser::FILTER_TW06|IServerBrowser::FILTER_PING, 999, -1, "", ""));
 	
 	m_lFilters[0].Switch();
 }

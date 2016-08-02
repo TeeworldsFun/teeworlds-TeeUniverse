@@ -276,7 +276,6 @@ void CGameClient::OnInit()
 		Client()->SnapSetStaticsize(i, m_NetObjHandler.GetObjSize(i));
 
 	// load default font
-	static CFont *pDefaultFont = 0;
 	char aFontName[256];
 	str_format(aFontName, sizeof(aFontName), "fonts/%s", g_Config.m_ClFontfile);
 	char aFilename[512];
@@ -284,14 +283,12 @@ void CGameClient::OnInit()
 	if(File)
 	{
 		io_close(File);
-		pDefaultFont = TextRender()->LoadFont(aFilename);
-		TextRender()->SetDefaultFont(pDefaultFont);
-	}
-	if(!pDefaultFont)
-	{
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "failed to load font. filename='%s'", aFontName);
-		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "gameclient", aBuf);
+		if(!TextRender()->LoadFont(aFilename))
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "failed to load font. filename='%s'", aFontName);
+			Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "gameclient", aBuf);
+		}
 	}
 
 	// init all components
