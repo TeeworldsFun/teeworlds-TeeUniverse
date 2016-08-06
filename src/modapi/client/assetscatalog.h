@@ -3,7 +3,6 @@
 
 #include <base/tl/array.h>
 #include <modapi/client/assets.h>
-#include <modapi/client/assets/list.h>
 
 template<class T>
 class CModAPI_AssetCatalog

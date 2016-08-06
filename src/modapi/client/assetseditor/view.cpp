@@ -408,12 +408,91 @@ void CModAPI_AssetsEditorGui_View::RenderSkeletonAnimation()
 
 void CModAPI_AssetsEditorGui_View::RenderCharacter()
 {
+	CModAPI_Asset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Character>(m_pAssetsEditor->m_ViewedAssetPath);
+	if(!pCharacter)
+		return;
+		
+	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
 	
+	if(m_GizmoEnabled[GIZMO_AIM])
+		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
+	
+	if(m_GizmoEnabled[GIZMO_MOTION])
+		SkeletonRenderer.SetMotion(m_GizmoPos[GIZMO_MOTION]);
+	
+	if(m_GizmoEnabled[GIZMO_HOOK])
+		SkeletonRenderer.SetHook(m_GizmoPos[GIZMO_HOOK]);
+	
+	CModAPI_Asset_CharacterPart* pCharacterPart;
+	for(int i=0; i<pCharacter->m_Parts.size(); i++)
+	{
+		if(!pCharacter->m_Parts[i].m_DefaultPath.IsNull())
+		{
+			CModAPI_AssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
+			CModAPI_Asset_CharacterPart* pCharacterPart = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_CharacterPart>(DefaultCharacterPartPath);
+
+			if(pCharacterPart)
+			{
+				SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart->m_SkeletonSkinPath, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			}
+		}
+	}
+	
+	SkeletonRenderer.ApplyAnimation(pCharacter->m_IdlePath, 0.0f);
+	
+	SkeletonRenderer.Finalize();
+	SkeletonRenderer.RenderSkins(GetTeePosition(), m_Zoom);	
 }
 
 void CModAPI_AssetsEditorGui_View::RenderCharacterPart()
 {
 	
+}
+
+void CModAPI_AssetsEditorGui_View::RenderWeapon()
+{
+	CModAPI_Asset_Weapon* pWeapon = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Weapon>(m_pAssetsEditor->m_ViewedAssetPath);
+	if(!pWeapon)
+		return;
+		
+	CModAPI_Asset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Character>(pWeapon->m_CharacterPath);
+	if(!pCharacter)
+		return;
+		
+	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+	
+	if(m_GizmoEnabled[GIZMO_AIM])
+		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
+	
+	if(m_GizmoEnabled[GIZMO_MOTION])
+		SkeletonRenderer.SetMotion(m_GizmoPos[GIZMO_MOTION]);
+	
+	if(m_GizmoEnabled[GIZMO_HOOK])
+		SkeletonRenderer.SetHook(m_GizmoPos[GIZMO_HOOK]);
+	
+	CModAPI_Asset_CharacterPart* pCharacterPart;
+	for(int i=0; i<pCharacter->m_Parts.size(); i++)
+	{
+		if(!pCharacter->m_Parts[i].m_DefaultPath.IsNull())
+		{
+			CModAPI_AssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
+			CModAPI_Asset_CharacterPart* pCharacterPart = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_CharacterPart>(DefaultCharacterPartPath);
+
+			if(pCharacterPart)
+			{
+				SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart->m_SkeletonSkinPath, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+			}
+		}
+	}
+	
+	SkeletonRenderer.ApplyAnimation(pCharacter->m_IdlePath, 0.0f);
+	
+	// Weapon
+	SkeletonRenderer.AddSkinWithSkeleton(pWeapon->m_SkinPath, vec4(1.0, 1.0f, 1.0f, 1.0f));
+	SkeletonRenderer.ApplyAnimation(pWeapon->m_AttackAnimationPath, 0.0f);
+	
+	SkeletonRenderer.Finalize();
+	SkeletonRenderer.RenderSkins(GetTeePosition(), m_Zoom);	
 }
 
 void CModAPI_AssetsEditorGui_View::RenderGizmos()
@@ -517,8 +596,8 @@ void CModAPI_AssetsEditorGui_View::Render()
 			RenderCharacterPart();
 			RenderGizmos();
 			break;
-		case CModAPI_AssetPath::TYPE_ATTACH:
-			RenderCharacterPart();
+		case CModAPI_AssetPath::TYPE_WEAPON:
+			RenderWeapon();
 			RenderGizmos();
 			break;
 	}
@@ -745,6 +824,27 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 								break;
 							}
 						}
+					}
+				}
+				case CModAPI_AssetPath::TYPE_CHARACTER:
+				case CModAPI_AssetPath::TYPE_CHARACTERPART:
+				case CModAPI_AssetPath::TYPE_WEAPON:
+				{
+					//Check gizmo first
+					int GizmoFound = -1;
+					for(int i=NUM_GIZMOS-1; i>=0; i--)
+					{
+						if(IsOnGizmo(i, X, Y))
+						{
+							GizmoFound = i;
+							break;
+						}
+					}
+					
+					if(GizmoFound >= 0)
+					{
+						m_DragType = DRAGTYPE_GIZMO;
+						m_SelectedGizmo = GizmoFound;
 					}
 				}
 			}

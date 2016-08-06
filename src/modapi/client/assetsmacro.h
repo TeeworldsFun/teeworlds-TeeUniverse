@@ -1,0 +1,8 @@
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_Image, m_ImagesCatalog)
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_Sprite, m_SpritesCatalog)
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_Skeleton, m_SkeletonsCatalog)
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_SkeletonSkin, m_SkeletonSkinsCatalog)
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_SkeletonAnimation, m_SkeletonAnimationsCatalog)
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_Character, m_CharactersCatalog)
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_CharacterPart, m_CharacterPartsCatalog)
+MODAPI_MACRO_ASSETTYPE(CModAPI_Asset_Weapon, m_WeaponsCatalog)

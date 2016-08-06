@@ -6,15 +6,12 @@
 #include <modapi/client/assetscatalog.h>
 #include <modapi/client/assets/image.h>
 #include <modapi/client/assets/sprite.h>
-#include <modapi/client/assets/animation.h>
-#include <modapi/client/assets/teeanimation.h>
-#include <modapi/client/assets/attach.h>
-#include <modapi/client/assets/linestyle.h>
 #include <modapi/client/assets/skeleton.h>
 #include <modapi/client/assets/skeletonskin.h>
 #include <modapi/client/assets/skeletonanimation.h>
 #include <modapi/client/assets/character.h>
 #include <modapi/client/assets/characterpart.h>
+#include <modapi/client/assets/weapon.h>
 
 class IModAPI_AssetsFile;
 
@@ -31,19 +28,9 @@ private:
 	IGraphics* m_pGraphics;
 	class IStorage* m_pStorage;
 	
-	//Search Tag: TAG_NEW_ASSET
-	CModAPI_AssetCatalog<CModAPI_Asset_Image> m_ImagesCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_Sprite> m_SpritesCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_Animation> m_AnimationsCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_TeeAnimation> m_TeeAnimationsCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_Attach> m_AttachesCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_LineStyle> m_LineStylesCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_Skeleton> m_SkeletonsCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_SkeletonSkin> m_SkeletonSkinsCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_SkeletonAnimation> m_SkeletonAnimationsCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_Character> m_CharactersCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_CharacterPart> m_CharacterPartsCatalog;
-	CModAPI_AssetCatalog<CModAPI_Asset_List> m_ListsCatalog;
+	#define MODAPI_MACRO_ASSETTYPE(ClassName, CatalogName) CModAPI_AssetCatalog<ClassName> CatalogName;
+	#include <modapi/client/assetsmacro.h>
+	#undef MODAPI_MACRO_ASSETTYPE
 
 public:
 	CModAPI_AssetManager(IGraphics* pGraphics, class IStorage* pStorage);
@@ -119,8 +106,7 @@ public:
 			GET_ASSET_VALUE(CModAPI_Asset_SkeletonAnimation);
 			GET_ASSET_VALUE(CModAPI_Asset_Character);
 			GET_ASSET_VALUE(CModAPI_Asset_CharacterPart);
-			GET_ASSET_VALUE(CModAPI_Asset_Attach);
-			GET_ASSET_VALUE(CModAPI_Asset_List);
+			GET_ASSET_VALUE(CModAPI_Asset_Weapon);
 		}
 		
 		return DefaultValue;
@@ -147,8 +133,7 @@ public:
 			SET_ASSET_VALUE(CModAPI_Asset_SkeletonAnimation);
 			SET_ASSET_VALUE(CModAPI_Asset_Character);
 			SET_ASSET_VALUE(CModAPI_Asset_CharacterPart);
-			SET_ASSET_VALUE(CModAPI_Asset_Attach);
-			SET_ASSET_VALUE(CModAPI_Asset_List);
+			SET_ASSET_VALUE(CModAPI_Asset_Weapon);
 		}
 		
 		return false;

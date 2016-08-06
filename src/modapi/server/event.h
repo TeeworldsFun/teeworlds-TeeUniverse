@@ -84,17 +84,6 @@ public:
 	void Send(const char* pText);
 };
 
-/* ANIMATED TEXT EVENT ************************************************/
-
-class CModAPI_Event_AnimatedText : public CModAPI_Event
-{
-MODAPI_EVENT_HEADER(CModAPI_Event_AnimatedText)
-
-public:
-	CModAPI_Event_AnimatedText(CGameContext* pGameServer);
-	void Send(vec2 Pos, int ItemLayer, const char* pText, int Size, vec4 Color, int Alignment, int AnimationID, int Duration, vec2 Offset);
-};
-
 /* SOUND **************************************************************/
 
 class CModAPI_Event_Sound : public CModAPI_Event

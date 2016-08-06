@@ -659,23 +659,6 @@ public:
 		CModAPI_AssetPath m_AssetPath;
 		int m_SubId;
 		CModAPI_AssetsEditor* m_pAssetsEditor;
-		
-	protected:
-		virtual void MouseClickAction()
-		{
-			switch(m_AssetPath.GetType())
-			{
-				case CModAPI_AssetPath::TYPE_ANIMATION:
-				{
-					CModAPI_Asset_Animation* pAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Animation>(m_AssetPath);
-					if(!pAnimation)
-						return;
-					pAnimation->DeleteKeyFrame(m_SubId);
-					m_pAssetsEditor->RefreshAssetEditor();
-					break;
-				}
-			}
-		}
 
 	public:
 		CDeleteSubItem(CModAPI_AssetsEditor* pAssetsEditor, CModAPI_AssetPath AssetPath, int SubId) :
@@ -694,23 +677,6 @@ public:
 		CModAPI_AssetPath m_AssetPath;
 		int m_SubId;
 		CModAPI_AssetsEditor* m_pAssetsEditor;
-		
-	protected:
-		virtual void MouseClickAction()
-		{
-			switch(m_AssetPath.GetType())
-			{
-				case CModAPI_AssetPath::TYPE_ANIMATION:
-				{
-					CModAPI_Asset_Animation* pAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Animation>(m_AssetPath);
-					if(!pAnimation)
-						return;
-					pAnimation->MoveDownKeyFrame(m_SubId);
-					m_pAssetsEditor->RefreshAssetEditor();
-					break;
-				}
-			}
-		}
 
 	public:
 		CMoveDownSubItem(CModAPI_AssetsEditor* pAssetsEditor, CModAPI_AssetPath AssetPath, int SubId) :
@@ -729,23 +695,6 @@ public:
 		CModAPI_AssetPath m_AssetPath;
 		int m_SubId;
 		CModAPI_AssetsEditor* m_pAssetsEditor;
-		
-	protected:
-		virtual void MouseClickAction()
-		{
-			switch(m_AssetPath.GetType())
-			{
-				case CModAPI_AssetPath::TYPE_ANIMATION:
-				{
-					CModAPI_Asset_Animation* pAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Animation>(m_AssetPath);
-					if(!pAnimation)
-						return;
-					pAnimation->MoveUpKeyFrame(m_SubId);
-					m_pAssetsEditor->RefreshAssetEditor();
-					break;
-				}
-			}
-		}
 
 	public:
 		CMoveUpSubItem(CModAPI_AssetsEditor* pAssetsEditor, CModAPI_AssetPath AssetPath, int SubId) :
@@ -836,17 +785,6 @@ public:
 		CModAPI_AssetPath m_AssetPath;
 		int m_FrameId;
 		
-	protected:
-		virtual void MouseClickAction()
-		{
-			CModAPI_Asset_Animation* pAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Animation>(m_AssetPath);
-			if(!pAnimation)
-				return;
-			
-			pAnimation->DuplicateKeyFrame(m_FrameId);
-			m_pAssetsEditor->RefreshAssetEditor();
-		}
-		
 	public:
 		CDuplicateFrameButton(CModAPI_AssetsEditor* pAssetsEditor, CModAPI_AssetPath AssetPath, int FrameId) :
 			CModAPI_ClientGui_TextButton(pAssetsEditor->m_pGuiConfig, "Duplicate", MODAPI_ASSETSEDITOR_ICON_DUPLICATE),
@@ -933,7 +871,7 @@ protected:
 	void RefreshTab_Character_Asset(bool KeepStatus);
 	void RefreshTab_Character_Parts(bool KeepStatus);
 	void RefreshTab_CharacterPart_Asset(bool KeepStatus);
-	void RefreshTab_Attach_Asset(bool KeepStatus);
+	void RefreshTab_Weapon_Asset(bool KeepStatus);
 	
 public:
 	CModAPI_AssetsEditorGui_Editor(CModAPI_AssetsEditor* pAssetsEditor);

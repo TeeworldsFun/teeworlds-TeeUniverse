@@ -241,6 +241,7 @@ void CPlayers::RenderPlayer(
 		}
 	}
 	
+	// Skin
 	CModAPI_Asset_Character* pCharacter = AssetManager()->GetAsset<CModAPI_Asset_Character>(CharacterPath);
 	if(pCharacter)
 	{
@@ -271,7 +272,21 @@ void CPlayers::RenderPlayer(
 			SkeletonRenderer.ApplyAnimation(pCharacter->m_WalkPath, WalkTime);
 		}
 	}
-
+	
+	// Weapon
+	static float s_LastGameTickTime = Client()->GameTickTime();
+	if(m_pClient->m_Snap.m_pGameData && !(m_pClient->m_Snap.m_pGameData->m_GameStateFlags&GAMESTATEFLAG_PAUSED))
+		s_LastGameTickTime = Client()->GameTickTime();
+	
+	float WeaponTime = clamp(5.0f*((Client()->PrevGameTick()-Player.m_AttackTick)/(float)SERVER_TICK_SPEED + s_LastGameTickTime), 0.0f, 1.0f);
+	switch(Player.m_Weapon)
+	{
+		case WEAPON_HAMMER:
+			SkeletonRenderer.AddSkinWithSkeleton(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_SKELETONSKIN, MODAPI_SKELETONSKIN_HAMMER), vec4(1.0, 1.0, 1.0, 1.0));
+			SkeletonRenderer.ApplyAnimation(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_SKELETONANIMATION, MODAPI_SKELETONANIMATION_HAMMERATTACK), WeaponTime);
+			break;
+	}
+	
 	// do skidding
 	if(!InAir && WantOtherDir && length(Vel*50) > 500.0f)
 	{

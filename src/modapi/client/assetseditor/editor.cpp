@@ -760,6 +760,7 @@ void CModAPI_AssetsEditorGui_Editor::RefreshTab_Character_Parts(bool KeepStatus)
 	if(!EditedSubPath.IsNull() && EditedSubPath.GetType() == CModAPI_Asset_Character::CSubPath::TYPE_PART)
 	{
 		AddTextField(m_pTabs[TAB_CHARACTER_PARTS], CModAPI_Asset_Character::PART_NAME, m_pAssetsEditor->m_EditedAssetSubPath, sizeof(CModAPI_Asset_Character::CPart::m_aName), "Name:");
+		AddAssetField(m_pTabs[TAB_CHARACTER_PARTS], CModAPI_Asset_Character::PART_DEFAULTPATH, CModAPI_AssetPath::TYPE_CHARACTERPART, EditedSubPath.ConvertToInteger(), "Name:");
 	}
 }
 
@@ -774,13 +775,16 @@ void CModAPI_AssetsEditorGui_Editor::RefreshTab_CharacterPart_Asset(bool KeepSta
 	AddAssetField(m_pTabs[TAB_ASSET], CModAPI_Asset_CharacterPart::SKELETONSKINPATH, CModAPI_AssetPath::TYPE_SKELETONSKIN, -1, "Skin:");
 }
 
-void CModAPI_AssetsEditorGui_Editor::RefreshTab_Attach_Asset(bool KeepStatus)
+void CModAPI_AssetsEditorGui_Editor::RefreshTab_Weapon_Asset(bool KeepStatus)
 {
-	CModAPI_Asset_Attach* pAttach = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Attach>(m_pAssetsEditor->m_EditedAssetPath);
-	if(!pAttach)
+	CModAPI_Asset_Weapon* pWeapon = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Weapon>(m_pAssetsEditor->m_EditedAssetPath);
+	if(!pWeapon)
 		return;
 	
-	AddAssetField(m_pTabs[TAB_ASSET], CModAPI_Asset_Attach::CHARACTERPATH, CModAPI_AssetPath::TYPE_CHARACTER, -1, "Character:");
+	AddAssetField(m_pTabs[TAB_ASSET], CModAPI_Asset_Weapon::CHARACTERPATH, CModAPI_AssetPath::TYPE_CHARACTER, -1, "Character:");
+	AddAssetField(m_pTabs[TAB_ASSET], CModAPI_Asset_Weapon::CURSORPATH, CModAPI_AssetPath::TYPE_SPRITE, -1, "Cursor:");
+	AddAssetField(m_pTabs[TAB_ASSET], CModAPI_Asset_Weapon::SKINPATH, CModAPI_AssetPath::TYPE_SKELETONSKIN, -1, "Skin:");
+	AddAssetField(m_pTabs[TAB_ASSET], CModAPI_Asset_Weapon::ATTACKANIMATIONPATH, CModAPI_AssetPath::TYPE_SKELETONANIMATION, -1, "Attack Animation:");
 }
 
 void CModAPI_AssetsEditorGui_Editor::Refresh(int Tab)
@@ -871,8 +875,8 @@ void CModAPI_AssetsEditorGui_Editor::Refresh(int Tab)
 		case CModAPI_AssetPath::TYPE_CHARACTERPART:
 			RefreshTab_CharacterPart_Asset(KeepStatus);
 			break;
-		case CModAPI_AssetPath::TYPE_ATTACH:
-			RefreshTab_Attach_Asset(KeepStatus);
+		case CModAPI_AssetPath::TYPE_WEAPON:
+			RefreshTab_Weapon_Asset(KeepStatus);
 			break;
 	}
 	

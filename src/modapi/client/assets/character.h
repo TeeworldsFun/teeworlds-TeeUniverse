@@ -13,6 +13,7 @@ public:
 		struct CPart
 		{
 			char m_aName[128];
+			int m_DefaultPath;
 		};
 		
 		int m_NumParts;
@@ -51,11 +52,18 @@ public:
 	{
 	public:
 		char m_aName[128];
+		CModAPI_AssetPath m_DefaultPath;
 	
 	public:
 		inline CPart& Name(const char* pText)
 		{
 			str_copy(m_aName, pText, sizeof(m_aName));
+			return *this;
+		}
+		
+		inline CPart& Default(const CModAPI_AssetPath& Path)
+		{
+			m_DefaultPath = Path;
 			return *this;
 		}
 	};
@@ -80,6 +88,7 @@ public:
 	enum
 	{
 		PART_NAME = CModAPI_Asset::NUM_MEMBERS, //Int
+		PART_DEFAULTPATH, //Path
 		IDLEPATH, //Path
 		WALKPATH, //Path
 		CONTROLLEDJUMPPATH, //Path

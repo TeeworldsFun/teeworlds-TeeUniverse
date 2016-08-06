@@ -160,7 +160,7 @@ public:
 			ADD_ASSETTYPE_HEADER(CModAPI_AssetPath::TYPE_SKELETONANIMATION, "Skeleton Animations")
 			ADD_ASSETTYPE_HEADER(CModAPI_AssetPath::TYPE_CHARACTER, "Characters")
 			ADD_ASSETTYPE_HEADER(CModAPI_AssetPath::TYPE_CHARACTERPART, "Character Parts")
-			ADD_ASSETTYPE_HEADER(CModAPI_AssetPath::TYPE_ATTACH, "Attaches")
+			ADD_ASSETTYPE_HEADER(CModAPI_AssetPath::TYPE_WEAPON, "Weapons")
 			ADD_ASSETTYPE_HEADER(CModAPI_AssetPath::TYPE_LIST, "Lists")
 		}
 		Add(new CAddButton(this));
@@ -193,16 +193,12 @@ public:
 			}
 			//Search Tag: TAG_NEW_ASSET
 			ON_NEW_ASSET(CModAPI_Asset_Sprite, "sprite%d")
-			ON_NEW_ASSET(CModAPI_Asset_Animation, "animation%d")
-			ON_NEW_ASSET(CModAPI_Asset_TeeAnimation, "teeAnimation%d")
-			ON_NEW_ASSET(CModAPI_Asset_LineStyle, "linestyle%d")
 			ON_NEW_ASSET(CModAPI_Asset_Skeleton, "skeleton%d")
 			ON_NEW_ASSET(CModAPI_Asset_SkeletonSkin, "skin%d")
 			ON_NEW_ASSET(CModAPI_Asset_SkeletonAnimation, "animation%d")
 			ON_NEW_ASSET(CModAPI_Asset_Character, "character%d")
 			ON_NEW_ASSET(CModAPI_Asset_CharacterPart, "characterpart%d")
-			ON_NEW_ASSET(CModAPI_Asset_Attach, "attach%d")
-			ON_NEW_ASSET(CModAPI_Asset_List, "list%d")
+			ON_NEW_ASSET(CModAPI_Asset_Weapon, "weapon%d")
 		}
 	}
 };
@@ -285,7 +281,7 @@ public:
 			case CModAPI_AssetPath::TYPE_CHARACTERPART:
 				IconId = MODAPI_ASSETSEDITOR_ICON_CHARACTERPART;
 				break;
-			case CModAPI_AssetPath::TYPE_ATTACH:
+			case CModAPI_AssetPath::TYPE_WEAPON:
 				IconId = MODAPI_ASSETSEDITOR_ICON_CHARACTERPART;
 				break;
 		}
@@ -490,17 +486,6 @@ public:
 				}
 				else
 					delete pItem;
-			}
-		}
-		
-		for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<CModAPI_Asset_Attach>(m_Source); i++)
-		{
-			CModAPI_AssetPath AttachPath = CModAPI_AssetPath::Asset(CModAPI_Asset_Attach::TypeId, m_Source, i);
-			CModAPI_AssetPath CharacterPath = m_pAssetsEditor->AssetManager()->GetAssetValue<CModAPI_AssetPath>(AttachPath, CModAPI_Asset_Attach::CHARACTERPATH, -1, CModAPI_AssetPath::Null());
-			if(CharacterPath == m_AssetPath)
-			{
-				Add(new CModAPI_AssetsEditorGui_AssetListItem(m_pAssetsEditor, AttachPath));
-				m_SourceFound = true;
 			}
 		}
 		
@@ -783,26 +768,6 @@ void CModAPI_AssetsEditor::RefreshAssetList(int Source)
 		}
 	}
 	
-	//Attach
-	{
-		int nbAssets = AssetManager()->GetNumAssets<CModAPI_Asset_Attach>(Source);
-		if(nbAssets > 0)
-		{
-			m_pGuiAssetList[Source]->AddSeparator();
-			m_pGuiAssetList[Source]->Add(new CModAPI_AssetsEditorGui_AssetListHeader(this, CModAPI_Asset_Attach::TypeId, Source));
-			for(int i=0; i<nbAssets; i++)
-			{
-				CModAPI_AssetPath AttachPath = CModAPI_AssetPath::Asset(CModAPI_Asset_Attach::TypeId, Source, i);
-				CModAPI_AssetPath CharacterPath = AssetManager()->GetAssetValue<CModAPI_AssetPath>(AttachPath, CModAPI_Asset_Attach::CHARACTERPATH, -1, 0);
-				CModAPI_Asset_Character* pCharacter = AssetManager()->GetAsset<CModAPI_Asset_Character>(CharacterPath);
-				if(!pCharacter)
-				{
-					m_pGuiAssetList[Source]->Add(new CModAPI_AssetsEditorGui_AssetListItem(this, AttachPath));
-				}
-			}
-		}
-	}
-	
 	#define REFRESH_ASSET_LIST(TypeName) \
 	{\
 		int nbAssets = AssetManager()->GetNumAssets<TypeName>(Source);\
@@ -817,7 +782,7 @@ void CModAPI_AssetsEditor::RefreshAssetList(int Source)
 		}\
 	}
 	
-	REFRESH_ASSET_LIST(CModAPI_Asset_List)
+	REFRESH_ASSET_LIST(CModAPI_Asset_Weapon)
 	
 	m_pGuiAssetList[Source]->Update();
 }
@@ -872,89 +837,6 @@ void CModAPI_AssetsEditor::ShowCursor()
 	//~ m_ShowCursor = true;
 }
 
-void CModAPI_AssetsEditor::TimeWrap()
-{
-	const float TimeShift = 0.5f;
-	switch(m_ViewedAssetPath.GetType())
-	{
-		case CModAPI_AssetPath::TYPE_ANIMATION:
-		{
-			CModAPI_Asset_Animation* pAnimation = AssetManager()->GetAsset<CModAPI_Asset_Animation>(m_ViewedAssetPath);
-			if(pAnimation && pAnimation->m_lKeyFrames.size() > 0)
-			{
-				float MaxTime = pAnimation->m_lKeyFrames[pAnimation->m_lKeyFrames.size()-1].m_Time;
-				
-				if(pAnimation->m_CycleType == MODAPI_ANIMCYCLETYPE_LOOP)
-					m_Time = fmod(m_Time, MaxTime);
-				else
-					m_Time = fmod(m_Time, MaxTime + TimeShift);
-			}
-			break;
-		}
-		case CModAPI_AssetPath::TYPE_TEEANIMATION:
-		{
-			CModAPI_Asset_TeeAnimation* pTeeAnimation = AssetManager()->GetAsset<CModAPI_Asset_TeeAnimation>(m_ViewedAssetPath);
-			if(pTeeAnimation)
-			{
-				float MaxTime = 0.0f;
-				bool Loop = true;
-				
-				//Body
-				{
-					CModAPI_Asset_Animation* pAnimation = AssetManager()->GetAsset<CModAPI_Asset_Animation>(pTeeAnimation->m_BodyAnimationPath);
-					if(pAnimation && pAnimation->m_lKeyFrames.size() > 0)
-					{
-						MaxTime = max(MaxTime, pAnimation->m_lKeyFrames[pAnimation->m_lKeyFrames.size()-1].m_Time);
-						Loop = Loop && (pAnimation->m_CycleType == MODAPI_ANIMCYCLETYPE_LOOP);
-					}
-				}
-				//BackFoot
-				{
-					CModAPI_Asset_Animation* pAnimation = AssetManager()->GetAsset<CModAPI_Asset_Animation>(pTeeAnimation->m_BackFootAnimationPath);
-					if(pAnimation && pAnimation->m_lKeyFrames.size() > 0)
-					{
-						MaxTime = max(MaxTime, pAnimation->m_lKeyFrames[pAnimation->m_lKeyFrames.size()-1].m_Time);
-						Loop = Loop && (pAnimation->m_CycleType == MODAPI_ANIMCYCLETYPE_LOOP);
-					}
-				}
-				//FrontFoot
-				{
-					CModAPI_Asset_Animation* pAnimation = AssetManager()->GetAsset<CModAPI_Asset_Animation>(pTeeAnimation->m_FrontFootAnimationPath);
-					if(pAnimation && pAnimation->m_lKeyFrames.size() > 0)
-					{
-						MaxTime = max(MaxTime, pAnimation->m_lKeyFrames[pAnimation->m_lKeyFrames.size()-1].m_Time);
-						Loop = Loop && (pAnimation->m_CycleType == MODAPI_ANIMCYCLETYPE_LOOP);
-					}
-				}
-				//BackHand
-				{
-					CModAPI_Asset_Animation* pAnimation = AssetManager()->GetAsset<CModAPI_Asset_Animation>(pTeeAnimation->m_BackHandAnimationPath);
-					if(pAnimation && pAnimation->m_lKeyFrames.size() > 0)
-					{
-						MaxTime = max(MaxTime, pAnimation->m_lKeyFrames[pAnimation->m_lKeyFrames.size()-1].m_Time);
-						Loop = Loop && (pAnimation->m_CycleType == MODAPI_ANIMCYCLETYPE_LOOP);
-					}
-				}
-				//FrontHand
-				{
-					CModAPI_Asset_Animation* pAnimation = AssetManager()->GetAsset<CModAPI_Asset_Animation>(pTeeAnimation->m_FrontHandAnimationPath);
-					if(pAnimation && pAnimation->m_lKeyFrames.size() > 0)
-					{
-						MaxTime = max(MaxTime, pAnimation->m_lKeyFrames[pAnimation->m_lKeyFrames.size()-1].m_Time);
-						Loop = Loop && (pAnimation->m_CycleType == MODAPI_ANIMCYCLETYPE_LOOP);
-					}
-				}
-				
-				if(Loop)
-					m_Time = fmod(m_Time, MaxTime);
-				else
-					m_Time = fmod(m_Time, MaxTime + TimeShift);
-			}
-			break;
-		}
-	}
-}
-
 void CModAPI_AssetsEditor::UpdateAndRender()
 {
 	if(Input()->KeyIsPressed(KEY_ESCAPE))
@@ -971,7 +853,6 @@ void CModAPI_AssetsEditor::UpdateAndRender()
 		else m_Time += (Client()->LocalTime() - m_LastTime);
 	}
 	m_LastTime = Client()->LocalTime();
-	TimeWrap();
 	
 	//Update popup state
 	for(int i=0; i<m_GuiPopups.size(); i++)

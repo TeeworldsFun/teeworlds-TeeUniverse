@@ -103,8 +103,9 @@ bool CModAPI_Asset_Character::SetValue<const char*>(int ValueType, int PathInt, 
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CModAPI_AssetPath CModAPI_Asset_Character::GetValue(int ValueType, int Path, CModAPI_AssetPath DefaultValue)
+CModAPI_AssetPath CModAPI_Asset_Character::GetValue(int ValueType, int PathInt, CModAPI_AssetPath DefaultValue)
 {
+	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
 		case IDLEPATH:
@@ -115,14 +116,20 @@ CModAPI_AssetPath CModAPI_Asset_Character::GetValue(int ValueType, int Path, CMo
 			return m_ControlledJumpPath;
 		case UNCONTROLLEDJUMPPATH:
 			return m_UncontrolledJumpPath;
+		case PART_DEFAULTPATH:
+			if(Path.GetType() == CSubPath::TYPE_PART && Path.GetId() >= 0 && Path.GetId() < m_Parts.size())
+				return m_Parts[Path.GetId()].m_DefaultPath;
+			else
+				return DefaultValue;
 		default:
-			return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, Path, DefaultValue);
+			return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Character::SetValue<CModAPI_AssetPath>(int ValueType, int Path, CModAPI_AssetPath Value)
+bool CModAPI_Asset_Character::SetValue<CModAPI_AssetPath>(int ValueType, int PathInt, CModAPI_AssetPath Value)
 {
+	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
 		case IDLEPATH:
@@ -137,7 +144,14 @@ bool CModAPI_Asset_Character::SetValue<CModAPI_AssetPath>(int ValueType, int Pat
 		case UNCONTROLLEDJUMPPATH:
 			m_UncontrolledJumpPath = Value;
 			return true;
+		case PART_DEFAULTPATH:
+			if(Path.GetType() == CSubPath::TYPE_PART && Path.GetId() >= 0 && Path.GetId() < m_Parts.size())
+			{
+				m_Parts[Path.GetId()].m_DefaultPath = Value;
+				return true;
+			}
+			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, Path, Value);
+	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, PathInt, Value);
 }

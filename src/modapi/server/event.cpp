@@ -255,35 +255,6 @@ void CModAPI_Event_MOTD::Send(const char* pText)
 	}
 }
 
-/* ANIMATED TEXT EVENT ************************************************/
-
-CModAPI_Event_AnimatedText::CModAPI_Event_AnimatedText(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
-{
-	
-}
-
-MODAPI_EVENT_CORE(CModAPI_Event_AnimatedText)
-
-void CModAPI_Event_AnimatedText::Send(vec2 Pos, int ItemLayer, const char* pText, int Size, vec4 Color, int Alignment, int AnimationID, int Duration, vec2 Offset)
-{
-	CNetEvent_ModAPI_AnimatedText *pEvent = (CNetEvent_ModAPI_AnimatedText *)GameServer()->m_Events07ModAPI.Create(NETEVENTTYPE_MODAPI_ANIMATEDTEXT, sizeof(CNetEvent_ModAPI_AnimatedText), GetMask07ModAPI());
-	if(pEvent)
-	{
-		pEvent->m_X = (int)Pos.x;
-		pEvent->m_Y = (int)Pos.y;
-		pEvent->m_ItemLayer = ItemLayer;
-		pEvent->m_Alignment = Alignment;
-		pEvent->m_Color = ModAPI_ColorToInt(Color);
-		pEvent->m_Size = Size;
-		StrToInts(pEvent->m_aText, 16, pText);
-		pEvent->m_AnimationId = AnimationID;
-		pEvent->m_Duration = Duration;
-		pEvent->m_OffsetX = (int)Offset.x;
-		pEvent->m_OffsetY = (int)Offset.y;
-	}
-}
-
 /* SOUND **************************************************************/
 
 CModAPI_Event_Sound::CModAPI_Event_Sound(CGameContext* pGameServer) :

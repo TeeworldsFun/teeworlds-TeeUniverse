@@ -232,16 +232,12 @@ public:
 			//Search Tag: TAG_NEW_ASSET
 			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Image, "Images")
 			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Sprite, "Sprites")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Animation, "Animations")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_TeeAnimation, "Tee Animations")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_LineStyle, "Line Styles")
 			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Skeleton, "Skeletons")
 			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_SkeletonSkin, "Skeleton Skins")
 			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_SkeletonAnimation, "Skeleton Animations")
 			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Character, "Characters")
 			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_CharacterPart, "Character Parts")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Attach, "Attaches")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_List, "Lists")
+			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Weapon, "Weapons")
 		}
 		
 		CModAPI_ClientGui_Popup::Update();

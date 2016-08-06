@@ -142,7 +142,6 @@ public:
 	
 private:
 	void Render();
-	void TimeWrap();
 
 public:
 	CModAPI_AssetsEditor();
