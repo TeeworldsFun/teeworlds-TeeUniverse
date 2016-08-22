@@ -79,9 +79,9 @@ public:
 
 	void Clear();
 
-	CEventHandler m_Events06;
-	CEventHandler m_Events07;
-	CEventHandler m_Events07ModAPI;
+	CEventHandler m_Events_TW06;
+	CEventHandler m_Events_TW07;
+	CEventHandler m_Events_TU07;
 	class CPlayer *m_apPlayers[MAX_CLIENTS];
 
 	class IGameController *m_pController;
@@ -157,9 +157,9 @@ public:
 
 	virtual void OnTick();
 	virtual void OnPreSnap();
-	virtual void OnSnap06(int ClientID);
-	virtual void OnSnap07(int ClientID);
-	virtual void OnSnap07ModAPI(int ClientID);
+	virtual void OnSnap_TW06(int ClientID);
+	virtual void OnSnap_TW07(int ClientID);
+	virtual void OnSnap_TU07(int ClientID);
 	virtual void OnPostSnap();
 
 	virtual void OnMessage_TW06(int MsgID, CUnpacker *pUnpacker, int ClientID);

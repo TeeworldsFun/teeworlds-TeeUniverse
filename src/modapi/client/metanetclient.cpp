@@ -8,9 +8,12 @@
 
 #include <engine/shared/config.h>
 
+namespace tu
+{
+
 /* CNetClient *********************************************************/
 
-CModAPI_MetaNetClient::CNetClient::CNetClient(CModAPI_MetaNetClient* pMetaNetClient, FProcessPacket fProcessServerPacket, FProcessPacket fProcessConnlessPacket) :
+CMetaNetClient::CNetClient::CNetClient(CMetaNetClient* pMetaNetClient, FProcessPacket fProcessServerPacket, FProcessPacket fProcessConnlessPacket) :
 	m_pMetaNetClient(pMetaNetClient),
 	m_fProcessServerPacket(fProcessServerPacket),
 	m_fProcessConnlessPacket(fProcessConnlessPacket),
@@ -19,21 +22,21 @@ CModAPI_MetaNetClient::CNetClient::CNetClient(CModAPI_MetaNetClient* pMetaNetCli
 	
 }
 
-CModAPI_MetaNetClient::CNetClient::~CNetClient()
+CMetaNetClient::CNetClient::~CNetClient()
 {
 	
 }
 
-/* CModAPI_MetaNetClient **********************************************/
+/* CMetaNetClient **********************************************/
 
-CModAPI_MetaNetClient::CModAPI_MetaNetClient() :
+CMetaNetClient::CMetaNetClient() :
 	m_pData(0),
 	m_DstServerID(-1)
 {
 	
 }
 
-CModAPI_MetaNetClient::~CModAPI_MetaNetClient()
+CMetaNetClient::~CMetaNetClient()
 {
 	for(int i=0; i<NUM_DST; i++)
 	{
@@ -42,18 +45,18 @@ CModAPI_MetaNetClient::~CModAPI_MetaNetClient()
 	}
 }
 
-void CModAPI_MetaNetClient::Init(IMasterServer *pMasterServer, IConsole *pConsole)
+void CMetaNetClient::Init(IMasterServer *pMasterServer, IConsole *pConsole)
 {
 	m_pMasterServer = pMasterServer;
 	m_pConsole = pConsole;
 }
 
-void CModAPI_MetaNetClient::SetCallbacks(void* pData)
+void CMetaNetClient::SetCallbacks(void* pData)
 {
 	m_pData = pData;
 }
 
-bool CModAPI_MetaNetClient::OpenNetClient(int Dst, CNetClient* pNetClient, NETADDR BindAddr, int Flags)
+bool CMetaNetClient::OpenNetClient(int Dst, CNetClient* pNetClient, NETADDR BindAddr, int Flags)
 {
 	if(Dst >= NUM_DST || Dst < 0)
 		return false;
@@ -70,7 +73,7 @@ bool CModAPI_MetaNetClient::OpenNetClient(int Dst, CNetClient* pNetClient, NETAD
 	return res;
 }
 
-bool CModAPI_MetaNetClient::Connect(int Dst, NETADDR *pAddr)
+bool CMetaNetClient::Connect(int Dst, NETADDR *pAddr)
 {
 	if(m_apNetClient[Dst])
 	{
@@ -84,7 +87,7 @@ bool CModAPI_MetaNetClient::Connect(int Dst, NETADDR *pAddr)
 	return false;
 }
 
-bool CModAPI_MetaNetClient::Disconnect(int Dst, const char* pReason)
+bool CMetaNetClient::Disconnect(int Dst, const char* pReason)
 {
 	if(Dst == DST_SERVER)
 		Dst = m_DstServerID;
@@ -95,7 +98,7 @@ bool CModAPI_MetaNetClient::Disconnect(int Dst, const char* pReason)
 	return false;
 }
 
-bool CModAPI_MetaNetClient::Update()
+bool CMetaNetClient::Update()
 {
 	for(int i=0; i<NUM_DST; i++)
 	{
@@ -103,7 +106,7 @@ bool CModAPI_MetaNetClient::Update()
 	}
 }
 
-bool CModAPI_MetaNetClient::RecvLoop()
+bool CMetaNetClient::RecvLoop()
 {
 	for(int i=0; i<NUM_DST; i++)
 	{
@@ -111,7 +114,7 @@ bool CModAPI_MetaNetClient::RecvLoop()
 	}
 }
 
-bool CModAPI_MetaNetClient::Send(int Dst, CNetChunk *pChunk, TOKEN Token)
+bool CMetaNetClient::Send(int Dst, CNetChunk *pChunk, TOKEN Token)
 {
 	if(Dst == DST_SERVER)
 		Dst = m_DstServerID;
@@ -122,7 +125,7 @@ bool CModAPI_MetaNetClient::Send(int Dst, CNetChunk *pChunk, TOKEN Token)
 	return false;
 }
 
-bool CModAPI_MetaNetClient::GotProblems(int Dst) const
+bool CMetaNetClient::GotProblems(int Dst) const
 {
 	if(Dst == DST_SERVER)
 		Dst = m_DstServerID;
@@ -133,7 +136,7 @@ bool CModAPI_MetaNetClient::GotProblems(int Dst) const
 	return false;
 }
 
-int CModAPI_MetaNetClient::State(int Dst) const
+int CMetaNetClient::State(int Dst) const
 {
 	if(Dst == DST_SERVER)
 		Dst = m_DstServerID;
@@ -144,7 +147,7 @@ int CModAPI_MetaNetClient::State(int Dst) const
 	return NET_CONNSTATE_OFFLINE;
 }
 
-int CModAPI_MetaNetClient::NetType(int Dst) const
+int CMetaNetClient::NetType(int Dst) const
 {
 	if(Dst == DST_SERVER)
 		Dst = m_DstServerID;
@@ -155,7 +158,7 @@ int CModAPI_MetaNetClient::NetType(int Dst) const
 	return 0;
 }
 
-const char* CModAPI_MetaNetClient::ErrorString(int Dst) const
+const char* CMetaNetClient::ErrorString(int Dst) const
 {
 	if(Dst == DST_SERVER)
 		Dst = m_DstServerID;
@@ -166,11 +169,13 @@ const char* CModAPI_MetaNetClient::ErrorString(int Dst) const
 	return 0;
 }
 
-void CModAPI_MetaNetClient::ResetErrorString(int Dst)
+void CMetaNetClient::ResetErrorString(int Dst)
 {
 	if(Dst == DST_SERVER)
 		Dst = m_DstServerID;
 	
 	if(m_apNetClient[Dst])
 		m_apNetClient[Dst]->ResetErrorString();
+}
+
 }

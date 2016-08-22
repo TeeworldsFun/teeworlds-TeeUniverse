@@ -30,9 +30,9 @@ protected:
 	class CLayers *Layers() const { return m_pClient->Layers(); }
 	class CCollision *Collision() const { return m_pClient->Collision(); }
 	
-	//ModAPI
-	class CModAPI_Client_Graphics *ModAPIGraphics() const { return m_pClient->ModAPIGraphics(); }
-	class CModAPI_AssetManager *AssetManager() const { return m_pClient->AssetManager(); }
+	//TU
+	class tu::CClient_Graphics *TUGraphics() const { return m_pClient->TUGraphics(); }
+	class tu::CAssetManager *AssetManager() const { return m_pClient->AssetManager(); }
 	
 public:
 	virtual ~CComponent() {}

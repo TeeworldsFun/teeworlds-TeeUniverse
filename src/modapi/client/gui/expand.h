@@ -1,23 +1,29 @@
-#ifndef MODAPI_CLIENT_GUI_EXPAND_H
-#define MODAPI_CLIENT_GUI_EXPAND_H
+#ifndef TU_CLIENT_GUI_EXPAND_H
+#define TU_CLIENT_GUI_EXPAND_H
 
 #include <base/tl/array.h>
 
 #include "widget.h"
 
-class CModAPI_ClientGui_Expand : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CExpand : public CWidget
 {	
 protected:
-	CModAPI_ClientGui_Widget* m_pTitle;
-	array<CModAPI_ClientGui_Widget*> m_Childs;
+	CWidget* m_pTitle;
+	array<CWidget*> m_Childs;
 
 public:
-	CModAPI_ClientGui_Expand(class CModAPI_ClientGui_Config *pConfig);
-	virtual ~CModAPI_ClientGui_Expand();
+	CExpand(class CConfig *pConfig);
+	virtual ~CExpand();
 	
 	virtual void Clear();
-	virtual void Add(CModAPI_ClientGui_Widget* pWidget);
-	virtual void SetTitle(CModAPI_ClientGui_Widget* pWidget);
+	virtual void Add(CWidget* pWidget);
+	virtual void SetTitle(CWidget* pWidget);
 	
 	virtual void Update();
 	virtual void Render();
@@ -26,5 +32,9 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnInputEvent();
 };
+
+}
+
+}
 
 #endif

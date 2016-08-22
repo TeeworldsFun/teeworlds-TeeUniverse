@@ -3,22 +3,25 @@
 #include <engine/shared/datafile.h>
 #include <modapi/client/graphics.h>
 
-void CModAPI_Asset_Sprite::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager, IModAPI_AssetsFile* pAssetsFile, const CModAPI_Asset_Sprite::CStorageType* pItem)
+namespace tu
+{
+
+void CAsset_Sprite::InitFromAssetsFile(CAssetManager* pAssetManager, IAssetsFile* pAssetsFile, const CAsset_Sprite::CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
 				
 	// copy info
-	m_ImagePath = CModAPI_AssetPath(pItem->m_ImagePath);
+	m_ImagePath = CAssetPath(pItem->m_ImagePath);
 	m_X = pItem->m_X;
 	m_Y = pItem->m_Y;
 	m_Width = pItem->m_Width;
 	m_Height = pItem->m_Height;
 }
 
-void CModAPI_Asset_Sprite::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
+void CAsset_Sprite::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
-	CModAPI_Asset_Sprite::CStorageType Item;
+	CAsset_Sprite::CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 	Item.m_ImagePath = m_ImagePath.ConvertToInteger();
 	Item.m_X = m_X;
@@ -26,16 +29,16 @@ void CModAPI_Asset_Sprite::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 	Item.m_Width = m_Width;
 	Item.m_Height = m_Height;
 	
-	pFileWriter->AddItem(CModAPI_AssetPath::TypeToStoredType(CModAPI_Asset_Sprite::TypeId), Position, sizeof(CModAPI_Asset_Sprite::CStorageType), &Item);
+	pFileWriter->AddItem(CAssetPath::TypeToStoredType(CAsset_Sprite::TypeId), Position, sizeof(CAsset_Sprite::CStorageType), &Item);
 }
 
-void CModAPI_Asset_Sprite::Unload(class CModAPI_AssetManager* pAssetManager)
+void CAsset_Sprite::Unload(class CAssetManager* pAssetManager)
 {
 	
 }
 	
 template<>
-bool CModAPI_Asset_Sprite::SetValue<int>(int ValueType, int Path, int Value)
+bool CAsset_Sprite::SetValue<int>(int ValueType, int Path, int Value)
 {
 	switch(ValueType)
 	{
@@ -53,11 +56,11 @@ bool CModAPI_Asset_Sprite::SetValue<int>(int ValueType, int Path, int Value)
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue<int>(ValueType, Path, Value);
 }
 	
 template<>
-bool CModAPI_Asset_Sprite::SetValue<CModAPI_AssetPath>(int ValueType, int Path, CModAPI_AssetPath Value)
+bool CAsset_Sprite::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -66,11 +69,11 @@ bool CModAPI_Asset_Sprite::SetValue<CModAPI_AssetPath>(int ValueType, int Path, 
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
 }
 
 template<>
-int CModAPI_Asset_Sprite::GetValue(int ValueType, int Path, int DefaultValue)
+int CAsset_Sprite::GetValue(int ValueType, int Path, int DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -83,18 +86,20 @@ int CModAPI_Asset_Sprite::GetValue(int ValueType, int Path, int DefaultValue)
 		case HEIGHT:
 			return m_Height;
 		default:
-			return CModAPI_Asset::GetValue<int>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<int>(ValueType, Path, DefaultValue);
 	}
 }
 
 template<>
-CModAPI_AssetPath CModAPI_Asset_Sprite::GetValue(int ValueType, int Path, CModAPI_AssetPath DefaultValue)
+CAssetPath CAsset_Sprite::GetValue(int ValueType, int Path, CAssetPath DefaultValue)
 {
 	switch(ValueType)
 	{
 		case IMAGEPATH:
 			return m_ImagePath;
 		default:
-			return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
 	}
+}
+
 }

@@ -10,7 +10,7 @@
 
 #include <mod/entities/character.h>
 
-#define MODAPI_EVENT_CORE(TypeName) \
+#define TU_EVENT_CORE(TypeName) \
 TypeName& TypeName::Client(int ClientID) \
 { \
 	m_Mask = 0; \
@@ -46,51 +46,54 @@ TypeName& TypeName::World(int WorldID) \
 	} \
 	return *this; \
 }
+
+namespace tu
+{
 	
-CModAPI_Event::CModAPI_Event(CGameContext* pGameServer) :
+CEvent::CEvent(CGameContext* pGameServer) :
 	m_pGameServer(pGameServer), m_Mask(-1)
 {
 	
 }
 
-IServer* CModAPI_Event::Server()
+IServer* CEvent::Server()
 {
 	return m_pGameServer->Server();
 }
 	
-int CModAPI_Event::GetMask06()
+int CEvent::GetMask_TW06()
 {
 	int Mask = 0;
 	
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW06)
 			Mask |= (1 << i);
 	}
 	
 	return Mask;
 }
 	
-int CModAPI_Event::GetMask07()
+int CEvent::GetMask_TW07()
 {
 	int Mask = 0;
 	
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW07)
+		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW07)
 			Mask |= (1 << i);
 	}
 	
 	return Mask;
 }
 	
-int CModAPI_Event::GetMask07ModAPI()
+int CEvent::GetMask_TU07()
 {
 	int Mask = 0;
 	
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW07MODAPI)
+		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TU07)
 			Mask |= (1 << i);
 	}
 	
@@ -99,15 +102,15 @@ int CModAPI_Event::GetMask07ModAPI()
 
 /* WEAPONPICKUP *******************************************************/
 
-CModAPI_Event_WeaponPickup::CModAPI_Event_WeaponPickup(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_WeaponPickup::CEvent_WeaponPickup(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_WeaponPickup)
+TU_EVENT_CORE(CEvent_WeaponPickup)
 
-void CModAPI_Event_WeaponPickup::Send(int WeaponID)
+void CEvent_WeaponPickup::Send(int WeaponID)
 {
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
@@ -116,7 +119,7 @@ void CModAPI_Event_WeaponPickup::Send(int WeaponID)
 		
 		if(GameServer()->m_apPlayers[i])
 		{
-			if(Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+			if(Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW06)
 			{
 				CTW06_NetMsg_Sv_WeaponPickup Msg;
 				Msg.m_Weapon = WeaponID;
@@ -134,15 +137,15 @@ void CModAPI_Event_WeaponPickup::Send(int WeaponID)
 
 /* BROADCAST **********************************************************/
 
-CModAPI_Event_Broadcast::CModAPI_Event_Broadcast(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_Broadcast::CEvent_Broadcast(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_Broadcast)
+TU_EVENT_CORE(CEvent_Broadcast)
 
-void CModAPI_Event_Broadcast::Send(const char* pText, int Alternative)
+void CEvent_Broadcast::Send(const char* pText, int Alternative)
 {
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
@@ -151,13 +154,13 @@ void CModAPI_Event_Broadcast::Send(const char* pText, int Alternative)
 		
 		if(GameServer()->m_apPlayers[i])
 		{
-			if(Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW07MODAPI)
+			if(Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TU07)
 			{
-				CNetMsg_ModAPI_Sv_Broadcast Msg;
+				CNetMsg_TU_Sv_Broadcast Msg;
 				Msg.m_pMessage = pText;
 				Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
 			}
-			else if(Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+			else if(Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW06)
 			{
 				CTW06_NetMsg_Sv_Broadcast Msg;
 				Msg.m_pMessage = pText;
@@ -183,15 +186,15 @@ void CModAPI_Event_Broadcast::Send(const char* pText, int Alternative)
 
 /* CHAT ***************************************************************/
 
-CModAPI_Event_Chat::CModAPI_Event_Chat(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_Chat::CEvent_Chat(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_Chat)
+TU_EVENT_CORE(CEvent_Chat)
 
-void CModAPI_Event_Chat::Send(int From, int Team, const char* pText)
+void CEvent_Chat::Send(int From, int Team, const char* pText)
 {
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
@@ -200,7 +203,7 @@ void CModAPI_Event_Chat::Send(int From, int Team, const char* pText)
 		
 		if(GameServer()->m_apPlayers[i])
 		{
-			if(Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+			if(Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW06)
 			{
 				CTW06_NetMsg_Sv_Chat Msg;
 				Msg.m_Team = Team;
@@ -222,15 +225,15 @@ void CModAPI_Event_Chat::Send(int From, int Team, const char* pText)
 
 /* MOTD ***************************************************************/
 
-CModAPI_Event_MOTD::CModAPI_Event_MOTD(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_MOTD::CEvent_MOTD(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_MOTD)
+TU_EVENT_CORE(CEvent_MOTD)
 
-void CModAPI_Event_MOTD::Send(const char* pText)
+void CEvent_MOTD::Send(const char* pText)
 {
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
@@ -239,7 +242,7 @@ void CModAPI_Event_MOTD::Send(const char* pText)
 		
 		if(GameServer()->m_apPlayers[i])
 		{
-			if(Server()->GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+			if(Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW06)
 			{
 				CTW06_NetMsg_Sv_Motd Msg;
 				Msg.m_pMessage = pText;
@@ -257,22 +260,22 @@ void CModAPI_Event_MOTD::Send(const char* pText)
 
 /* SOUND **************************************************************/
 
-CModAPI_Event_Sound::CModAPI_Event_Sound(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_Sound::CEvent_Sound(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_Sound)
+TU_EVENT_CORE(CEvent_Sound)
 
-void CModAPI_Event_Sound::Send(vec2 Pos, int Sound)
+void CEvent_Sound::Send(vec2 Pos, int Sound)
 {
 	if (Sound < 0)
 		return;
 
 	//TW07ModAPI
 	{
-		CNetEvent_SoundWorld *pEvent = (CNetEvent_SoundWorld *)GameServer()->m_Events07ModAPI.Create(NETEVENTTYPE_SOUNDWORLD, sizeof(CNetEvent_SoundWorld), GetMask07ModAPI());
+		CNetEvent_SoundWorld *pEvent = (CNetEvent_SoundWorld *)GameServer()->m_Events_TU07.Create(NETEVENTTYPE_SOUNDWORLD, sizeof(CNetEvent_SoundWorld), GetMask_TU07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -282,7 +285,7 @@ void CModAPI_Event_Sound::Send(vec2 Pos, int Sound)
 	}
 	//TW07
 	{
-		CNetEvent_SoundWorld *pEvent = (CNetEvent_SoundWorld *)GameServer()->m_Events07.Create(NETEVENTTYPE_SOUNDWORLD, sizeof(CNetEvent_SoundWorld), GetMask07());
+		CNetEvent_SoundWorld *pEvent = (CNetEvent_SoundWorld *)GameServer()->m_Events_TW07.Create(NETEVENTTYPE_SOUNDWORLD, sizeof(CNetEvent_SoundWorld), GetMask_TW07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -292,7 +295,7 @@ void CModAPI_Event_Sound::Send(vec2 Pos, int Sound)
 	}
 	//TW06
 	{
-		CTW06_NetEvent_SoundWorld *pEvent = (CTW06_NetEvent_SoundWorld *)GameServer()->m_Events06.Create(TW06_NETEVENTTYPE_SOUNDWORLD, sizeof(CTW06_NetEvent_SoundWorld), GetMask06());
+		CTW06_NetEvent_SoundWorld *pEvent = (CTW06_NetEvent_SoundWorld *)GameServer()->m_Events_TW06.Create(TW06_NETEVENTTYPE_SOUNDWORLD, sizeof(CTW06_NetEvent_SoundWorld), GetMask_TW06());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -304,19 +307,19 @@ void CModAPI_Event_Sound::Send(vec2 Pos, int Sound)
 
 /* SPAWN EFFECT *******************************************************/
 
-CModAPI_Event_SpawnEffect::CModAPI_Event_SpawnEffect(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_SpawnEffect::CEvent_SpawnEffect(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_SpawnEffect)
+TU_EVENT_CORE(CEvent_SpawnEffect)
 
-void CModAPI_Event_SpawnEffect::Send(vec2 Pos)
+void CEvent_SpawnEffect::Send(vec2 Pos)
 {
 	//TW07ModAPI
 	{
-		CNetEvent_Spawn *ev = (CNetEvent_Spawn *)GameServer()->m_Events07ModAPI.Create(NETEVENTTYPE_SPAWN, sizeof(CNetEvent_Spawn), GetMask07ModAPI());
+		CNetEvent_Spawn *ev = (CNetEvent_Spawn *)GameServer()->m_Events_TU07.Create(NETEVENTTYPE_SPAWN, sizeof(CNetEvent_Spawn), GetMask_TU07());
 		
 		if(ev)
 		{
@@ -326,7 +329,7 @@ void CModAPI_Event_SpawnEffect::Send(vec2 Pos)
 	}
 	//TW07
 	{
-		CNetEvent_Spawn *ev = (CNetEvent_Spawn *)GameServer()->m_Events07.Create(NETEVENTTYPE_SPAWN, sizeof(CNetEvent_Spawn), GetMask07());
+		CNetEvent_Spawn *ev = (CNetEvent_Spawn *)GameServer()->m_Events_TW07.Create(NETEVENTTYPE_SPAWN, sizeof(CNetEvent_Spawn), GetMask_TW07());
 		if(ev)
 		{
 			ev->m_X = (int)Pos.x;
@@ -335,7 +338,7 @@ void CModAPI_Event_SpawnEffect::Send(vec2 Pos)
 	}
 	//TW06
 	{
-		CTW06_NetEvent_Spawn *ev = (CTW06_NetEvent_Spawn *)GameServer()->m_Events06.Create(TW06_NETEVENTTYPE_SPAWN, sizeof(CTW06_NetEvent_Spawn), GetMask06());
+		CTW06_NetEvent_Spawn *ev = (CTW06_NetEvent_Spawn *)GameServer()->m_Events_TW06.Create(TW06_NETEVENTTYPE_SPAWN, sizeof(CTW06_NetEvent_Spawn), GetMask_TW06());
 		if(ev)
 		{
 			ev->m_X = (int)Pos.x;
@@ -346,19 +349,19 @@ void CModAPI_Event_SpawnEffect::Send(vec2 Pos)
 
 /* HAMMERHIT EFFECT ***************************************************/
 
-CModAPI_Event_HammerHitEffect::CModAPI_Event_HammerHitEffect(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_HammerHitEffect::CEvent_HammerHitEffect(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_HammerHitEffect)
+TU_EVENT_CORE(CEvent_HammerHitEffect)
 
-void CModAPI_Event_HammerHitEffect::Send(vec2 Pos)
+void CEvent_HammerHitEffect::Send(vec2 Pos)
 {
 	//TW07ModAPI
 	{
-		CNetEvent_HammerHit *pEvent = (CNetEvent_HammerHit *)GameServer()->m_Events07ModAPI.Create(NETEVENTTYPE_HAMMERHIT, sizeof(CNetEvent_HammerHit), GetMask07ModAPI());
+		CNetEvent_HammerHit *pEvent = (CNetEvent_HammerHit *)GameServer()->m_Events_TU07.Create(NETEVENTTYPE_HAMMERHIT, sizeof(CNetEvent_HammerHit), GetMask_TU07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -367,7 +370,7 @@ void CModAPI_Event_HammerHitEffect::Send(vec2 Pos)
 	}
 	//TW07
 	{
-		CNetEvent_HammerHit *pEvent = (CNetEvent_HammerHit *)GameServer()->m_Events07.Create(NETEVENTTYPE_HAMMERHIT, sizeof(CNetEvent_HammerHit), GetMask07());
+		CNetEvent_HammerHit *pEvent = (CNetEvent_HammerHit *)GameServer()->m_Events_TW07.Create(NETEVENTTYPE_HAMMERHIT, sizeof(CNetEvent_HammerHit), GetMask_TW07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -376,7 +379,7 @@ void CModAPI_Event_HammerHitEffect::Send(vec2 Pos)
 	}
 	//TW06
 	{
-		CTW06_NetEvent_HammerHit *pEvent = (CTW06_NetEvent_HammerHit *)GameServer()->m_Events06.Create(TW06_NETEVENTTYPE_HAMMERHIT, sizeof(CTW06_NetEvent_HammerHit), GetMask06());
+		CTW06_NetEvent_HammerHit *pEvent = (CTW06_NetEvent_HammerHit *)GameServer()->m_Events_TW06.Create(TW06_NETEVENTTYPE_HAMMERHIT, sizeof(CTW06_NetEvent_HammerHit), GetMask_TW06());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -387,15 +390,15 @@ void CModAPI_Event_HammerHitEffect::Send(vec2 Pos)
 
 /* DAMAGE INDICATOR EFFECT ********************************************/
 
-CModAPI_Event_DamageIndicator::CModAPI_Event_DamageIndicator(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_DamageIndicator::CEvent_DamageIndicator(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_DamageIndicator)
+TU_EVENT_CORE(CEvent_DamageIndicator)
 
-void CModAPI_Event_DamageIndicator::Send(vec2 Pos, float Angle, int Amount)
+void CEvent_DamageIndicator::Send(vec2 Pos, float Angle, int Amount)
 {
 	float a = 3*pi/2 + Angle;
 	//float a = get_angle(dir);
@@ -408,7 +411,7 @@ void CModAPI_Event_DamageIndicator::Send(vec2 Pos, float Angle, int Amount)
 		
 		//TW07ModAPI
 		{
-			CNetEvent_DamageInd *pEvent = (CNetEvent_DamageInd *)GameServer()->m_Events07ModAPI.Create(NETEVENTTYPE_DAMAGEIND, sizeof(CNetEvent_DamageInd), GetMask07ModAPI());
+			CNetEvent_DamageInd *pEvent = (CNetEvent_DamageInd *)GameServer()->m_Events_TU07.Create(NETEVENTTYPE_DAMAGEIND, sizeof(CNetEvent_DamageInd), GetMask_TU07());
 			if(pEvent)
 			{
 				pEvent->m_X = (int)Pos.x;
@@ -418,7 +421,7 @@ void CModAPI_Event_DamageIndicator::Send(vec2 Pos, float Angle, int Amount)
 		}
 		//TW07
 		{
-			CNetEvent_DamageInd *pEvent = (CNetEvent_DamageInd *)GameServer()->m_Events07.Create(NETEVENTTYPE_DAMAGEIND, sizeof(CNetEvent_DamageInd), GetMask07());
+			CNetEvent_DamageInd *pEvent = (CNetEvent_DamageInd *)GameServer()->m_Events_TW07.Create(NETEVENTTYPE_DAMAGEIND, sizeof(CNetEvent_DamageInd), GetMask_TW07());
 			if(pEvent)
 			{
 				pEvent->m_X = (int)Pos.x;
@@ -428,7 +431,7 @@ void CModAPI_Event_DamageIndicator::Send(vec2 Pos, float Angle, int Amount)
 		}
 		//TW06
 		{
-			CTW06_NetEvent_DamageInd *pEvent = (CTW06_NetEvent_DamageInd *)GameServer()->m_Events06.Create(TW06_NETEVENTTYPE_DAMAGEIND, sizeof(CTW06_NetEvent_DamageInd), GetMask06());
+			CTW06_NetEvent_DamageInd *pEvent = (CTW06_NetEvent_DamageInd *)GameServer()->m_Events_TW06.Create(TW06_NETEVENTTYPE_DAMAGEIND, sizeof(CTW06_NetEvent_DamageInd), GetMask_TW06());
 			if(pEvent)
 			{
 				pEvent->m_X = (int)Pos.x;
@@ -441,19 +444,19 @@ void CModAPI_Event_DamageIndicator::Send(vec2 Pos, float Angle, int Amount)
 
 /* DEATH EFFECT *******************************************************/
 
-CModAPI_Event_DeathEffect::CModAPI_Event_DeathEffect(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_DeathEffect::CEvent_DeathEffect(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_DeathEffect)
+TU_EVENT_CORE(CEvent_DeathEffect)
 
-void CModAPI_Event_DeathEffect::Send(vec2 Pos, int ClientID)
+void CEvent_DeathEffect::Send(vec2 Pos, int ClientID)
 {
 	//TW07ModAPI
 	{
-		CNetEvent_Death *pEvent = (CNetEvent_Death *)GameServer()->m_Events07ModAPI.Create(NETEVENTTYPE_DEATH, sizeof(CNetEvent_Death), GetMask07ModAPI());
+		CNetEvent_Death *pEvent = (CNetEvent_Death *)GameServer()->m_Events_TU07.Create(NETEVENTTYPE_DEATH, sizeof(CNetEvent_Death), GetMask_TU07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -463,7 +466,7 @@ void CModAPI_Event_DeathEffect::Send(vec2 Pos, int ClientID)
 	}
 	//TW07
 	{
-		CNetEvent_Death *pEvent = (CNetEvent_Death *)GameServer()->m_Events07.Create(NETEVENTTYPE_DEATH, sizeof(CNetEvent_Death), GetMask07());
+		CNetEvent_Death *pEvent = (CNetEvent_Death *)GameServer()->m_Events_TW07.Create(NETEVENTTYPE_DEATH, sizeof(CNetEvent_Death), GetMask_TW07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -473,7 +476,7 @@ void CModAPI_Event_DeathEffect::Send(vec2 Pos, int ClientID)
 	}
 	//TW06
 	{
-		CTW06_NetEvent_Death *pEvent = (CTW06_NetEvent_Death *)GameServer()->m_Events06.Create(TW06_NETEVENTTYPE_DEATH, sizeof(CTW06_NetEvent_Death), GetMask06());
+		CTW06_NetEvent_Death *pEvent = (CTW06_NetEvent_Death *)GameServer()->m_Events_TW06.Create(TW06_NETEVENTTYPE_DEATH, sizeof(CTW06_NetEvent_Death), GetMask_TW06());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -485,19 +488,19 @@ void CModAPI_Event_DeathEffect::Send(vec2 Pos, int ClientID)
 
 /* EXPLOSION EFFECT ***************************************************/
 
-CModAPI_Event_ExplosionEffect::CModAPI_Event_ExplosionEffect(CGameContext* pGameServer) :
-	CModAPI_Event(pGameServer)
+CEvent_ExplosionEffect::CEvent_ExplosionEffect(CGameContext* pGameServer) :
+	CEvent(pGameServer)
 {
 	
 }
 
-MODAPI_EVENT_CORE(CModAPI_Event_ExplosionEffect)
+TU_EVENT_CORE(CEvent_ExplosionEffect)
 
-void CModAPI_Event_ExplosionEffect::Send(vec2 Pos)
+void CEvent_ExplosionEffect::Send(vec2 Pos)
 {
 	//TW07ModAPI
 	{
-		CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)GameServer()->m_Events07ModAPI.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion), GetMask07ModAPI());
+		CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)GameServer()->m_Events_TU07.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion), GetMask_TU07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -506,7 +509,7 @@ void CModAPI_Event_ExplosionEffect::Send(vec2 Pos)
 	}
 	//TW07
 	{
-		CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)GameServer()->m_Events07.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion), GetMask07());
+		CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)GameServer()->m_Events_TW07.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion), GetMask_TW07());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
@@ -515,11 +518,13 @@ void CModAPI_Event_ExplosionEffect::Send(vec2 Pos)
 	}
 	//TW06
 	{
-		CTW06_NetEvent_Explosion *pEvent = (CTW06_NetEvent_Explosion *)GameServer()->m_Events06.Create(TW06_NETEVENTTYPE_EXPLOSION, sizeof(CTW06_NetEvent_Explosion), GetMask06());
+		CTW06_NetEvent_Explosion *pEvent = (CTW06_NetEvent_Explosion *)GameServer()->m_Events_TW06.Create(TW06_NETEVENTTYPE_EXPLOSION, sizeof(CTW06_NetEvent_Explosion), GetMask_TW06());
 		if(pEvent)
 		{
 			pEvent->m_X = (int)Pos.x;
 			pEvent->m_Y = (int)Pos.y;
 		}
 	}
+}
+
 }

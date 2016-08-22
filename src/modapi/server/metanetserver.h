@@ -1,12 +1,19 @@
-#ifndef MODAPI_SERVER_METANETSERVER_H
-#define MODAPI_SERVER_METANETSERVER_H
+#ifndef TU_SERVER_METANETSERVER_H
+#define TU_SERVER_METANETSERVER_H
 
 #include <base/tl/array.h>
 #include <engine/shared/network.h>
 #include <engine/shared/packer.h>
 #include <engine/masterserver.h>
 
-class CModAPI_MetaNetServer
+class CNetBan;
+class IMasterServer;
+class IConsole;
+
+namespace tu
+{
+
+class CMetaNetServer
 {
 public:
 	typedef int (*FDeleteClient)(int ClientID, const char* pReason, void *pUser);
@@ -18,7 +25,7 @@ public:
 	class CNetServer
 	{
 	protected:
-		CModAPI_MetaNetServer* m_pMetaNetServer;
+		CMetaNetServer* m_pMetaNetServer;
 		int m_NetServerID;
 		NETADDR m_Address;
 		
@@ -27,7 +34,7 @@ public:
 		FGenerateServerInfo m_fGenerateServerInfo;
 		
 	public:
-		CNetServer(CModAPI_MetaNetServer* MetaNetServer, FProcessClientPacket fProcessClientPacket, FGenerateServerInfo fGenerateServerInfo);
+		CNetServer(CMetaNetServer* MetaNetServer, FProcessClientPacket fProcessClientPacket, FGenerateServerInfo fGenerateServerInfo);
 		virtual ~CNetServer();
 		
 		//NetServer
@@ -54,9 +61,9 @@ private:
 	int m_aClientNetServer[NET_MAX_CLIENTS]; //To associate a netserver to each client
 	int m_MaxClients;
 	int m_MaxClientsPerIP;
-	class CNetBan *m_pNetBan;
-	class IMasterServer *m_pMasterServer;
-	class IConsole *m_pConsole;
+	CNetBan *m_pNetBan;
+	IMasterServer *m_pMasterServer;
+	IConsole *m_pConsole;
 	
 	FNewClient m_fNewClient;
 	FDeleteClient m_fDeleteClient;
@@ -65,8 +72,8 @@ public:
 	void* m_pData;
 
 public:
-	CModAPI_MetaNetServer();
-	~CModAPI_MetaNetServer();
+	CMetaNetServer();
+	~CMetaNetServer();
 	
 	void Init(class CNetBan* pNetBan, int MaxClients, int MaxClientsPerIP, class IMasterServer *pMasterServer, class IConsole *pConsole);
 	void SetCallbacks(FNewClient fNewClient, FDeleteClient fDeleteClient, void* pData);
@@ -95,5 +102,7 @@ public:
 	class IMasterServer* MasterServer() { return m_pMasterServer; }
 	class IConsole* Console() { return m_pConsole; }
 };
+
+}
 
 #endif

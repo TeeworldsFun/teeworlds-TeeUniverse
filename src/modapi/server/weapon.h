@@ -1,18 +1,21 @@
-#ifndef MODAPI_SERVER_WEAPON_H
-#define MODAPI_SERVER_WEAPON_H
+#ifndef TU_SERVER_WEAPON_H
+#define TU_SERVER_WEAPON_H
 
 #include <base/vmath.h>
 #include <modapi/weapon.h>
 
-class CModAPI_Weapon
+namespace tu
+{
+
+class CWeapon
 {
 private:
 	int m_ID;
 	class CCharacter* m_pCharacter;
 	
 public:
-	CModAPI_Weapon(int ID, class CCharacter* pCharacter);
-	virtual ~CModAPI_Weapon() {}
+	CWeapon(int ID, class CCharacter* pCharacter);
+	virtual ~CWeapon() {}
 
 	int GetID() const { return m_ID; }
 	class CCharacter* Character();
@@ -35,12 +38,12 @@ public:
 	virtual bool OnFire(vec2 Direction) = 0;
 	virtual void OnActivation() {}
 	
-	virtual void Snap06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pChar) = 0;
-	virtual void Snap07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar) = 0;
-	virtual void Snap07ModAPI(int Snapshot, int SnappingClient, class CNetObj_Character* pChar) = 0;
+	virtual void Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pChar) = 0;
+	virtual void Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar) = 0;
+	virtual void Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar) = 0;
 };
 
-class CModAPI_Weapon_GenericGun07 : public CModAPI_Weapon
+class CWeapon_GenericGun07 : public CWeapon
 {
 protected:
 	int m_TW07ID;
@@ -50,10 +53,10 @@ protected:
 	int m_Ammo;
 	
 public:
-	CModAPI_Weapon_GenericGun07(int WID, int TW07ID, class CCharacter* pCharacter, int Ammo);
+	CWeapon_GenericGun07(int WID, int TW07ID, class CCharacter* pCharacter, int Ammo);
 	
 	virtual int GetMaxAmmo() const;
-	virtual int GetAmmoType() const { return MODAPI_AMMOTYPE_INTEGER; }
+	virtual int GetAmmoType() const { return tu::AMMOTYPE_INTEGER; }
 	virtual int GetAmmo() const;
 	virtual bool AddAmmo(int Ammo);
 	virtual bool IsWeaponSwitchLocked() const;
@@ -63,11 +66,13 @@ public:
 	virtual bool OnFire(vec2 Direction);
 	virtual void OnActivation();
 
-	virtual void Snap06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pChar);
-	virtual void Snap07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
-	virtual void Snap07ModAPI(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
+	virtual void Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pChar);
+	virtual void Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
+	virtual void Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
 	
 	virtual void CreateProjectile(vec2 Pos, vec2 Direction) = 0;
 };
+
+}
 
 #endif

@@ -3,21 +3,24 @@
 #include <engine/shared/datafile.h>
 #include <modapi/client/graphics.h>
 
-void CModAPI_Asset_Weapon::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager, IModAPI_AssetsFile* pAssetsFile, const CModAPI_Asset_Weapon::CStorageType* pItem)
+namespace tu
+{
+
+void CAsset_Weapon::InitFromAssetsFile(CAssetManager* pAssetManager, tu::IAssetsFile* pAssetsFile, const CAsset_Weapon::CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
 				
 	// copy info
-	m_CharacterPath = CModAPI_AssetPath(pItem->m_CharacterPath);
-	m_CursorPath = CModAPI_AssetPath(pItem->m_CursorPath);
-	m_SkinPath = CModAPI_AssetPath(pItem->m_SkinPath);
-	m_AttackAnimationPath = CModAPI_AssetPath(pItem->m_AttackAnimationPath);
+	m_CharacterPath = CAssetPath(pItem->m_CharacterPath);
+	m_CursorPath = CAssetPath(pItem->m_CursorPath);
+	m_SkinPath = CAssetPath(pItem->m_SkinPath);
+	m_AttackAnimationPath = CAssetPath(pItem->m_AttackAnimationPath);
 }
 
-void CModAPI_Asset_Weapon::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
+void CAsset_Weapon::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
-	CModAPI_Asset_Weapon::CStorageType Item;
+	CAsset_Weapon::CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 	
 	Item.m_CharacterPath = m_CharacterPath.ConvertToInteger();
@@ -25,10 +28,10 @@ void CModAPI_Asset_Weapon::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 	Item.m_SkinPath = m_SkinPath.ConvertToInteger();
 	Item.m_AttackAnimationPath = m_AttackAnimationPath.ConvertToInteger();
 	
-	pFileWriter->AddItem(CModAPI_AssetPath::TypeToStoredType(CModAPI_Asset_Weapon::TypeId), Position, sizeof(CModAPI_Asset_Weapon::CStorageType), &Item);
+	pFileWriter->AddItem(CAssetPath::TypeToStoredType(CAsset_Weapon::TypeId), Position, sizeof(CAsset_Weapon::CStorageType), &Item);
 }
 
-void CModAPI_Asset_Weapon::Unload(class CModAPI_AssetManager* pAssetManager)
+void CAsset_Weapon::Unload(class CAssetManager* pAssetManager)
 {
 	
 }
@@ -36,7 +39,7 @@ void CModAPI_Asset_Weapon::Unload(class CModAPI_AssetManager* pAssetManager)
 /* VALUE ASSETPATH *******************************************************/
 
 template<>
-CModAPI_AssetPath CModAPI_Asset_Weapon::GetValue(int ValueType, int Path, CModAPI_AssetPath DefaultValue)
+CAssetPath CAsset_Weapon::GetValue(int ValueType, int Path, CAssetPath DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -49,12 +52,12 @@ CModAPI_AssetPath CModAPI_Asset_Weapon::GetValue(int ValueType, int Path, CModAP
 		case ATTACKANIMATIONPATH:
 			return m_AttackAnimationPath;
 		default:
-			return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Weapon::SetValue<CModAPI_AssetPath>(int ValueType, int Path, CModAPI_AssetPath Value)
+bool CAsset_Weapon::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -72,5 +75,7 @@ bool CModAPI_Asset_Weapon::SetValue<CModAPI_AssetPath>(int ValueType, int Path, 
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+}
+
 }

@@ -15,7 +15,7 @@
 #include <tw06/protocol.h>
 
 CPickup::CPickup(CGameWorld *pGameWorld, int Type, vec2 Pos)
-: CModAPI_Entity(pGameWorld, MOD_ENTTYPE_PICKUP, Pos, 1, PickupPhysSize)
+: tu::CEntity_TW(pGameWorld, MOD_ENTTYPE_PICKUP, Pos, 1, PickupPhysSize)
 {
 	m_Type = Type;
 
@@ -44,7 +44,7 @@ void CPickup::Tick()
 
 			if(m_Type == PICKUP_GRENADE || m_Type == PICKUP_SHOTGUN || m_Type == PICKUP_LASER)
 			{
-				CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+				tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 					.Send(m_Pos, SOUND_WEAPON_SPAWN);
 			}
 		}
@@ -63,7 +63,7 @@ void CPickup::Tick()
 				if(pChr->IncreaseHealth(1))
 				{
 					Picked = true;
-					CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+					tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 						.Send(m_Pos, SOUND_PICKUP_HEALTH);
 				}
 				break;
@@ -72,7 +72,7 @@ void CPickup::Tick()
 				if(pChr->IncreaseArmor(1))
 				{
 					Picked = true;
-					CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+					tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 						.Send(m_Pos, SOUND_PICKUP_ARMOR);
 				}
 				break;
@@ -90,11 +90,11 @@ void CPickup::Tick()
 				
 				if(Picked)
 				{
-					CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+					tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 						.Send(m_Pos, SOUND_PICKUP_GRENADE);
 						
 					if(pChr->GetPlayer())
-						CModAPI_Event_WeaponPickup(GameServer()).Client(pChr->GetPlayer()->GetCID()).Send(WEAPON_GRENADE);
+						tu::CEvent_WeaponPickup(GameServer()).Client(pChr->GetPlayer()->GetCID()).Send(WEAPON_GRENADE);
 				}
 				break;
 			case PICKUP_SHOTGUN:
@@ -110,11 +110,11 @@ void CPickup::Tick()
 				
 				if(Picked)
 				{
-					CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+					tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 						.Send(m_Pos, SOUND_PICKUP_SHOTGUN);
 						
 					if(pChr->GetPlayer())
-						CModAPI_Event_WeaponPickup(GameServer()).Client(pChr->GetPlayer()->GetCID()).Send(WEAPON_SHOTGUN);
+						tu::CEvent_WeaponPickup(GameServer()).Client(pChr->GetPlayer()->GetCID()).Send(WEAPON_SHOTGUN);
 				}
 				break;
 			case PICKUP_LASER:
@@ -130,11 +130,11 @@ void CPickup::Tick()
 				
 				if(Picked)
 				{
-					CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+					tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 						.Send(m_Pos, SOUND_PICKUP_SHOTGUN);
 												
 					if(pChr->GetPlayer())
-						CModAPI_Event_WeaponPickup(GameServer()).Client(pChr->GetPlayer()->GetCID()).Send(WEAPON_LASER);
+						tu::CEvent_WeaponPickup(GameServer()).Client(pChr->GetPlayer()->GetCID()).Send(WEAPON_LASER);
 				}
 				break;
 
@@ -144,7 +144,7 @@ void CPickup::Tick()
 					pChr->SetWeapon(MOD_WEAPON_NINJA);
 					Picked = true;
 
-					CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+					tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 						.Send(m_Pos, SOUND_PICKUP_NINJA);
 
 					// loop through all players, setting their emotes
@@ -179,7 +179,7 @@ void CPickup::TickPaused()
 		++m_SpawnTick;
 }
 
-void CPickup::Snap06(int Snapshot, int SnappingClient)
+void CPickup::Snap_TW06(int Snapshot, int SnappingClient)
 {
 	if(m_SpawnTick != -1 || NetworkClipped(SnappingClient))
 		return;
@@ -220,7 +220,7 @@ void CPickup::Snap06(int Snapshot, int SnappingClient)
 	}
 }
 
-void CPickup::Snap07(int Snapshot, int SnappingClient)
+void CPickup::Snap_TW07(int Snapshot, int SnappingClient)
 {
 	if(m_SpawnTick != -1 || NetworkClipped(SnappingClient))
 		return;

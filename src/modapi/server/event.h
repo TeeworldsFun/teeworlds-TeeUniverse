@@ -1,5 +1,5 @@
-#ifndef MODAPI_SERVER_EVENT_H
-#define MODAPI_SERVER_EVENT_H
+#ifndef TU_SERVER_EVENT_H
+#define TU_SERVER_EVENT_H
 
 #include <base/vmath.h>
 #include <mod/defines.h>
@@ -7,12 +7,15 @@
 class IServer;
 class CGameContext;
 
-#define MODAPI_EVENT_HEADER(TypeName) public:\
+#define TU_EVENT_HEADER(TypeName) public:\
 	TypeName& Client(int WorldID); \
 	TypeName& Mask(int Mask); \
 	TypeName& World(int WorldID);
 
-class CModAPI_Event
+namespace tu
+{
+
+class CEvent
 {
 protected:
 	IServer* m_pServer;
@@ -21,12 +24,12 @@ protected:
 protected:
 	int m_Mask;
 	
-	int GetMask06();
-	int GetMask07();
-	int GetMask07ModAPI();
+	int GetMask_TW06();
+	int GetMask_TW07();
+	int GetMask_TU07();
 
 public:
-	CModAPI_Event(CGameContext* pGameServer);
+	CEvent(CGameContext* pGameServer);
 	
 	IServer* Server();
 	CGameContext* GameServer() { return m_pGameServer; }
@@ -34,20 +37,20 @@ public:
 
 /* WEAPONPICKUP *******************************************************/
 
-class CModAPI_Event_WeaponPickup : public CModAPI_Event
+class CEvent_WeaponPickup : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_WeaponPickup)
+TU_EVENT_HEADER(CEvent_WeaponPickup)
 
 public:
-	CModAPI_Event_WeaponPickup(CGameContext* pGameServer);
+	CEvent_WeaponPickup(CGameContext* pGameServer);
 	void Send(int WeaponID);
 };
 
 /* BROADCAST **********************************************************/
 
-class CModAPI_Event_Broadcast : public CModAPI_Event
+class CEvent_Broadcast : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_Broadcast)
+TU_EVENT_HEADER(CEvent_Broadcast)
 
 public:
 	enum
@@ -58,96 +61,98 @@ public:
 	};
 
 public:
-	CModAPI_Event_Broadcast(CGameContext* pGameServer);
+	CEvent_Broadcast(CGameContext* pGameServer);
 	void Send(const char* pText, int Alternative);
 };
 
 /* CHAT **********************************************************/
 
-class CModAPI_Event_Chat : public CModAPI_Event
+class CEvent_Chat : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_Chat)
+TU_EVENT_HEADER(CEvent_Chat)
 
 public:
-	CModAPI_Event_Chat(CGameContext* pGameServer);
+	CEvent_Chat(CGameContext* pGameServer);
 	void Send(int From, int Team, const char* pText);
 };
 
 /* MOTD ***************************************************************/
 
-class CModAPI_Event_MOTD : public CModAPI_Event
+class CEvent_MOTD : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_MOTD)
+TU_EVENT_HEADER(CEvent_MOTD)
 
 public:
-	CModAPI_Event_MOTD(CGameContext* pGameServer);
+	CEvent_MOTD(CGameContext* pGameServer);
 	void Send(const char* pText);
 };
 
 /* SOUND **************************************************************/
 
-class CModAPI_Event_Sound : public CModAPI_Event
+class CEvent_Sound : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_Sound)
+TU_EVENT_HEADER(CEvent_Sound)
 
 public:
-	CModAPI_Event_Sound(CGameContext* pGameServer);
+	CEvent_Sound(CGameContext* pGameServer);
 	void Send(vec2 Pos, int Sound);
 };
 
 /* SPAWN EFFECT *******************************************************/
 
-class CModAPI_Event_SpawnEffect : public CModAPI_Event
+class CEvent_SpawnEffect : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_SpawnEffect)
+TU_EVENT_HEADER(CEvent_SpawnEffect)
 
 public:
-	CModAPI_Event_SpawnEffect(CGameContext* pGameServer);
+	CEvent_SpawnEffect(CGameContext* pGameServer);
 	void Send(vec2 Pos);
 };
 
 /* HAMMERHIT EFFECT ***************************************************/
 
-class CModAPI_Event_HammerHitEffect : public CModAPI_Event
+class CEvent_HammerHitEffect : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_HammerHitEffect)
+TU_EVENT_HEADER(CEvent_HammerHitEffect)
 
 public:
-	CModAPI_Event_HammerHitEffect(CGameContext* pGameServer);
+	CEvent_HammerHitEffect(CGameContext* pGameServer);
 	void Send(vec2 Pos);
 };
 
 /* DAMAGE INDICATOR ***************************************************/
 
-class CModAPI_Event_DamageIndicator : public CModAPI_Event
+class CEvent_DamageIndicator : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_DamageIndicator)
+TU_EVENT_HEADER(CEvent_DamageIndicator)
 
 public:
-	CModAPI_Event_DamageIndicator(CGameContext* pGameServer);
+	CEvent_DamageIndicator(CGameContext* pGameServer);
 	void Send(vec2 Pos, float Angle, int Amount);
 };
 
 /* DEATH EFFECT *******************************************************/
 
-class CModAPI_Event_DeathEffect : public CModAPI_Event
+class CEvent_DeathEffect : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_DeathEffect)
+TU_EVENT_HEADER(CEvent_DeathEffect)
 
 public:
-	CModAPI_Event_DeathEffect(CGameContext* pGameServer);
+	CEvent_DeathEffect(CGameContext* pGameServer);
 	void Send(vec2 Pos, int ClientID);
 };
 
 /* EXPLOSION EFFECT ***************************************************/
 
-class CModAPI_Event_ExplosionEffect : public CModAPI_Event
+class CEvent_ExplosionEffect : public CEvent
 {
-MODAPI_EVENT_HEADER(CModAPI_Event_ExplosionEffect)
+TU_EVENT_HEADER(CEvent_ExplosionEffect)
 
 public:
-	CModAPI_Event_ExplosionEffect(CGameContext* pGameServer);
+	CEvent_ExplosionEffect(CGameContext* pGameServer);
 	void Send(vec2 Pos);
 };
+
+}
 
 #endif

@@ -26,8 +26,9 @@ public:
 	CEventHandler();
 	void *Create(int Type, int Size, int Mask = -1);
 	void Clear();
-	void Snap06(int Snapshot, int SnappingClient);
-	void Snap07(int Snapshot, int SnappingClient);
+	void Snap_TW06(int Snapshot, int SnappingClient);
+	void Snap_TW07(int Snapshot, int SnappingClient);
+	void Snap_TU07(int Snapshot, int SnappingClient);
 };
 
 #endif

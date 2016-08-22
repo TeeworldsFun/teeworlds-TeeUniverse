@@ -3,9 +3,12 @@
 #include <engine/shared/datafile.h>
 #include <modapi/client/graphics.h>
 
+namespace tu
+{
+
 /* IO *****************************************************************/
 
-void CModAPI_Asset_Skeleton::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager, IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Skeleton::InitFromAssetsFile(CAssetManager* pAssetManager, tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// load name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -28,7 +31,7 @@ void CModAPI_Asset_Skeleton::InitFromAssetsFile(CModAPI_AssetManager* pAssetMana
 		Bone.m_Scale = vec2(pBones[i].m_ScaleX, pBones[i].m_ScaleY);
 		Bone.m_Angle = pBones[i].m_Angle;
 		str_copy(Bone.m_aName, pBones[i].m_aName, sizeof(Bone.m_aName));
-		Bone.m_Color = ModAPI_IntToColor(pBones[i].m_Color);
+		Bone.m_Color = tu::IntToColor(pBones[i].m_Color);
 	}
 	
 	// load layers
@@ -42,7 +45,7 @@ void CModAPI_Asset_Skeleton::InitFromAssetsFile(CModAPI_AssetManager* pAssetMana
 	}
 }
 
-void CModAPI_Asset_Skeleton::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
+void CAsset_Skeleton::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
@@ -63,7 +66,7 @@ void CModAPI_Asset_Skeleton::SaveInAssetsFile(CDataFileWriter* pFileWriter, int 
 			pBones[i].m_ScaleY = m_Bones[i].m_Scale.y;
 			pBones[i].m_Angle = m_Bones[i].m_Angle;
 			str_copy(pBones[i].m_aName, m_Bones[i].m_aName, sizeof(pBones[i].m_aName));
-			pBones[i].m_Color = ModAPI_ColorToInt(m_Bones[i].m_Color);
+			pBones[i].m_Color = ColorToInt(m_Bones[i].m_Color);
 		}
 		Item.m_NumBones = m_Bones.size();
 		Item.m_BonesData = pFileWriter->AddData(Item.m_NumBones * sizeof(CStorageType::CBone), pBones);
@@ -81,41 +84,41 @@ void CModAPI_Asset_Skeleton::SaveInAssetsFile(CDataFileWriter* pFileWriter, int 
 		delete[] pLayers;
 	}
 	
-	pFileWriter->AddItem(CModAPI_AssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
+	pFileWriter->AddItem(CAssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
 }
 
-void CModAPI_Asset_Skeleton::Unload(class CModAPI_AssetManager* pAssetManager)
+void CAsset_Skeleton::Unload(class CAssetManager* pAssetManager)
 {
 	
 }
 
 /* IMPLEMENTATION *****************************************************/
 	
-void CModAPI_Asset_Skeleton::AddBone(const CModAPI_Asset_Skeleton::CBone& Bone)
+void CAsset_Skeleton::AddBone(const CAsset_Skeleton::CBone& Bone)
 {
 	m_Bones.add(Bone);
 }
 	
-CModAPI_Asset_Skeleton::CBone& CModAPI_Asset_Skeleton::AddBone()
+CAsset_Skeleton::CBone& CAsset_Skeleton::AddBone()
 {
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf), "bone%d", m_Bones.size());
-	m_Bones.add(CModAPI_Asset_Skeleton::CBone());
+	m_Bones.add(CAsset_Skeleton::CBone());
 	return m_Bones[m_Bones.size()-1].Name(aBuf);
 }
 	
-CModAPI_Asset_Skeleton::CLayer& CModAPI_Asset_Skeleton::AddLayer()
+CAsset_Skeleton::CLayer& CAsset_Skeleton::AddLayer()
 {
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf), "layer%d", m_Layers.size());
-	m_Layers.add(CModAPI_Asset_Skeleton::CLayer());
+	m_Layers.add(CAsset_Skeleton::CLayer());
 	return m_Layers[m_Layers.size()-1].Name(aBuf);
 }
 
 /* VALUE FLOAT ********************************************************/
 
 template<>
-float CModAPI_Asset_Skeleton::GetValue<float>(int ValueType, int PathInt, float DefaultValue)
+float CAsset_Skeleton::GetValue<float>(int ValueType, int PathInt, float DefaultValue)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -156,12 +159,12 @@ float CModAPI_Asset_Skeleton::GetValue<float>(int ValueType, int PathInt, float 
 			else
 				return DefaultValue;
 		default:
-			return CModAPI_Asset::GetValue<float>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<float>(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Skeleton::SetValue<float>(int ValueType, int PathInt, float Value)
+bool CAsset_Skeleton::SetValue<float>(int ValueType, int PathInt, float Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -217,13 +220,13 @@ bool CModAPI_Asset_Skeleton::SetValue<float>(int ValueType, int PathInt, float V
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<float>(ValueType, PathInt, Value);
+	return CAsset::SetValue<float>(ValueType, PathInt, Value);
 }
 
 /* VALUE VEC4 *********************************************************/
 	
 template<>
-vec4 CModAPI_Asset_Skeleton::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue)
+vec4 CAsset_Skeleton::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -234,12 +237,12 @@ vec4 CModAPI_Asset_Skeleton::GetValue<vec4>(int ValueType, int PathInt, vec4 Def
 			else
 				return DefaultValue;
 		default:
-			return CModAPI_Asset::GetValue<vec4>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<vec4>(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Skeleton::SetValue<vec4>(int ValueType, int PathInt, vec4 Value)
+bool CAsset_Skeleton::SetValue<vec4>(int ValueType, int PathInt, vec4 Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -253,13 +256,13 @@ bool CModAPI_Asset_Skeleton::SetValue<vec4>(int ValueType, int PathInt, vec4 Val
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<vec4>(ValueType, PathInt, Value);
+	return CAsset::SetValue<vec4>(ValueType, PathInt, Value);
 }
 
 /* VALUE STRING *******************************************************/
 
 template<>
-char* CModAPI_Asset_Skeleton::GetValue(int ValueType, int PathInt, char* DefaultValue)
+char* CAsset_Skeleton::GetValue(int ValueType, int PathInt, char* DefaultValue)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -275,12 +278,12 @@ char* CModAPI_Asset_Skeleton::GetValue(int ValueType, int PathInt, char* Default
 			else
 				return DefaultValue;
 		default:
-			return CModAPI_Asset::GetValue<char*>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<char*>(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Skeleton::SetValue<const char*>(int ValueType, int PathInt, const char* pText)
+bool CAsset_Skeleton::SetValue<const char*>(int ValueType, int PathInt, const char* pText)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -301,13 +304,13 @@ bool CModAPI_Asset_Skeleton::SetValue<const char*>(int ValueType, int PathInt, c
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<const char*>(ValueType, PathInt, pText);
+	return CAsset::SetValue<const char*>(ValueType, PathInt, pText);
 }
 
 /* VALUE ASSETPATH ****************************************************/
 	
 template<>
-CModAPI_AssetPath CModAPI_Asset_Skeleton::GetValue<CModAPI_AssetPath>(int ValueType, int PathInt, CModAPI_AssetPath DefaultValue)
+CAssetPath CAsset_Skeleton::GetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -316,12 +319,12 @@ CModAPI_AssetPath CModAPI_Asset_Skeleton::GetValue<CModAPI_AssetPath>(int ValueT
 		case SKINPATH:
 			return m_DefaultSkinPath;
 		default:
-			return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<CAssetPath>(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Skeleton::SetValue<CModAPI_AssetPath>(int ValueType, int Path, CModAPI_AssetPath Value)
+bool CAsset_Skeleton::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -333,13 +336,13 @@ bool CModAPI_Asset_Skeleton::SetValue<CModAPI_AssetPath>(int ValueType, int Path
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
 }
 
 /* VALUE BONEPATH *****************************************************/
 	
 template<>
-CModAPI_Asset_Skeleton::CBonePath CModAPI_Asset_Skeleton::GetValue<CModAPI_Asset_Skeleton::CBonePath>(int ValueType, int PathInt, CModAPI_Asset_Skeleton::CBonePath DefaultValue)
+CAsset_Skeleton::CBonePath CAsset_Skeleton::GetValue<CAsset_Skeleton::CBonePath>(int ValueType, int PathInt, CAsset_Skeleton::CBonePath DefaultValue)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -350,12 +353,12 @@ CModAPI_Asset_Skeleton::CBonePath CModAPI_Asset_Skeleton::GetValue<CModAPI_Asset
 			else
 				return DefaultValue;
 		default:
-			return CModAPI_Asset::GetValue<CModAPI_Asset_Skeleton::CBonePath>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<CAsset_Skeleton::CBonePath>(ValueType, PathInt, DefaultValue);
 	}
 }
 
 template<>
-bool CModAPI_Asset_Skeleton::SetValue<CModAPI_Asset_Skeleton::CBonePath>(int ValueType, int PathInt, CModAPI_Asset_Skeleton::CBonePath Value)
+bool CAsset_Skeleton::SetValue<CAsset_Skeleton::CBonePath>(int ValueType, int PathInt, CAsset_Skeleton::CBonePath Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -369,5 +372,7 @@ bool CModAPI_Asset_Skeleton::SetValue<CModAPI_Asset_Skeleton::CBonePath>(int Val
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_Asset_Skeleton::CBonePath>(ValueType, PathInt, Value);
+	return CAsset::SetValue<CAsset_Skeleton::CBonePath>(ValueType, PathInt, Value);
+}
+
 }

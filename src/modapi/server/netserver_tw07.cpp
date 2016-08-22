@@ -12,8 +12,11 @@
 #include <engine/shared/config.h>
 #include <engine/shared/netban.h>
 
-CModAPI_NetServer_TW07::CModAPI_NetServer_TW07(CModAPI_MetaNetServer* MetaNetServer, CModAPI_MetaNetServer::FProcessClientPacket fProcessClientPacket, CModAPI_MetaNetServer::FGenerateServerInfo fGenerateServerInfo) :
-	CModAPI_MetaNetServer::CNetServer(MetaNetServer, fProcessClientPacket, fGenerateServerInfo)
+namespace tu
+{
+
+CNetServer_TW07::CNetServer_TW07(CMetaNetServer* MetaNetServer, CMetaNetServer::FProcessClientPacket fProcessClientPacket, CMetaNetServer::FGenerateServerInfo fGenerateServerInfo) :
+	CMetaNetServer::CNetServer(MetaNetServer, fProcessClientPacket, fGenerateServerInfo)
 {
 	m_RegisterState = REGISTERSTATE_START;
 	m_RegisterStateStart = 0;
@@ -26,7 +29,7 @@ CModAPI_NetServer_TW07::CModAPI_NetServer_TW07(CModAPI_MetaNetServer* MetaNetSer
 
 //NetServer :
 
-bool CModAPI_NetServer_TW07::Open(int NetServerID, NETADDR BindAddr, int Flags)
+bool CNetServer_TW07::Open(int NetServerID, NETADDR BindAddr, int Flags)
 {
 	m_NetServerID = NetServerID;
 	m_Address = BindAddr;
@@ -54,13 +57,13 @@ bool CModAPI_NetServer_TW07::Open(int NetServerID, NETADDR BindAddr, int Flags)
 	return true;
 }
 
-bool CModAPI_NetServer_TW07::ApplyDrop(int ClientID, const char* pReason)
+bool CNetServer_TW07::ApplyDrop(int ClientID, const char* pReason)
 {
 	m_aSlots[ClientID].m_Connection.Disconnect(pReason);
 	return true;
 }
 
-bool CModAPI_NetServer_TW07::Send(CNetChunk *pChunk, TOKEN Token)
+bool CNetServer_TW07::Send(CNetChunk *pChunk, TOKEN Token)
 {
 	if(pChunk->m_Flags&NETSENDFLAG_CONNLESS)
 	{
@@ -132,7 +135,7 @@ bool CModAPI_NetServer_TW07::Send(CNetChunk *pChunk, TOKEN Token)
 	return true;
 }
 
-bool CModAPI_NetServer_TW07::Recv(CNetChunk *pChunk, TOKEN *pResponseToken)
+bool CNetServer_TW07::Recv(CNetChunk *pChunk, TOKEN *pResponseToken)
 {
 	while(1)
 	{
@@ -270,7 +273,7 @@ bool CModAPI_NetServer_TW07::Recv(CNetChunk *pChunk, TOKEN *pResponseToken)
 	return false;
 }
 
-bool CModAPI_NetServer_TW07::RecvLoop()
+bool CNetServer_TW07::RecvLoop()
 {
 	CNetChunk Packet;
 	TOKEN ResponseToken;
@@ -316,7 +319,7 @@ bool CModAPI_NetServer_TW07::RecvLoop()
 	return true;
 }
 
-bool CModAPI_NetServer_TW07::Update()
+bool CNetServer_TW07::Update()
 {
 	int64 Now = time_get();
 	for(int i = 0; i < m_pMetaNetServer->MaxClients(); i++)
@@ -340,30 +343,30 @@ bool CModAPI_NetServer_TW07::Update()
 	return true;
 }
 
-int CModAPI_NetServer_TW07::NetType() const
+int CNetServer_TW07::NetType() const
 {
 	return m_Socket.type;
 }
 
-NETSOCKET CModAPI_NetServer_TW07::Socket() const
+NETSOCKET CNetServer_TW07::Socket() const
 {
 	return m_Socket;
 }
 
-const NETADDR* CModAPI_NetServer_TW07::ClientAddr(int ClientID) const
+const NETADDR* CNetServer_TW07::ClientAddr(int ClientID) const
 {
 	return m_aSlots[ClientID].m_Connection.PeerAddress();
 }
 
 //Register
 
-void CModAPI_NetServer_TW07::RegisterNewState(int State)
+void CNetServer_TW07::RegisterNewState(int State)
 {
 	m_RegisterState = State;
 	m_RegisterStateStart = time_get();
 }
 
-void CModAPI_NetServer_TW07::RegisterSendFwcheckresponse(NETADDR *pAddr, TOKEN Token)
+void CNetServer_TW07::RegisterSendFwcheckresponse(NETADDR *pAddr, TOKEN Token)
 {
 	CNetChunk Packet;
 	Packet.m_ClientID = -1;
@@ -374,7 +377,7 @@ void CModAPI_NetServer_TW07::RegisterSendFwcheckresponse(NETADDR *pAddr, TOKEN T
 	Send(&Packet, Token);
 }
 
-void CModAPI_NetServer_TW07::RegisterSendHeartbeat(NETADDR Addr)
+void CNetServer_TW07::RegisterSendHeartbeat(NETADDR Addr)
 {
 	static unsigned char aData[sizeof(SERVERBROWSE_HEARTBEAT) + 2];
 	unsigned short Port = m_Address.port;
@@ -396,7 +399,7 @@ void CModAPI_NetServer_TW07::RegisterSendHeartbeat(NETADDR Addr)
 	Send(&Packet);
 }
 
-void CModAPI_NetServer_TW07::RegisterSendCountRequest(NETADDR Addr)
+void CNetServer_TW07::RegisterSendCountRequest(NETADDR Addr)
 {
 	CNetChunk Packet;
 	Packet.m_ClientID = -1;
@@ -407,7 +410,7 @@ void CModAPI_NetServer_TW07::RegisterSendCountRequest(NETADDR Addr)
 	Send(&Packet);
 }
 
-void CModAPI_NetServer_TW07::RegisterGotCount(struct CNetChunk *pChunk)
+void CNetServer_TW07::RegisterGotCount(struct CNetChunk *pChunk)
 {
 	unsigned char *pData = (unsigned char *)pChunk->m_pData;
 	int Count = (pData[sizeof(SERVERBROWSE_COUNT)]<<8) | pData[sizeof(SERVERBROWSE_COUNT)+1];
@@ -422,7 +425,7 @@ void CModAPI_NetServer_TW07::RegisterGotCount(struct CNetChunk *pChunk)
 	}
 }
 		
-void CModAPI_NetServer_TW07::RegisterUpdate()
+void CNetServer_TW07::RegisterUpdate()
 {
 	int64 Now = time_get();
 	int64 Freq = time_freq();
@@ -559,7 +562,7 @@ void CModAPI_NetServer_TW07::RegisterUpdate()
 	}
 }
 		
-int CModAPI_NetServer_TW07::RegisterProcessPacket(struct CNetChunk *pPacket, TOKEN Token)
+int CNetServer_TW07::RegisterProcessPacket(struct CNetChunk *pPacket, TOKEN Token)
 {
 	// check for masterserver address
 	bool Valid = false;
@@ -610,4 +613,6 @@ int CModAPI_NetServer_TW07::RegisterProcessPacket(struct CNetChunk *pPacket, TOK
 	}
 
 	return 0;
+}
+
 }

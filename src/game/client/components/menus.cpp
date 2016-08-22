@@ -1642,7 +1642,7 @@ int CMenus::Render()
 			pTitle = Localize("Connecting to");
 			pButtonText = Localize("Abort");
 			
-			//ModAPI parallel download
+			//TU parallel download
 			if(Client()->ModDownloadTotalsize() > 0 || Client()->MapDownloadTotalsize() > 0)
 			{
 				str_format(aBuf, sizeof(aBuf), "%s", Localize("Downloading"));
@@ -1812,7 +1812,7 @@ int CMenus::Render()
 			static CButtonContainer s_ButtonTryAgain;
 			if(DoButton_Menu(&s_ButtonTryAgain, Localize("Try again"), 0, &TryAgain) || m_EnterPressed)
 			{
-				Client()->Connect(g_Config.m_UiServerAddress, MODAPI_SERVERPROTOCOL_TW07);
+			Client()->Connect(g_Config.m_UiServerAddress, tu::SERVERPROTOCOL_TW07);
 			}
 		}
 		else if(m_Popup == POPUP_CONNECTING)

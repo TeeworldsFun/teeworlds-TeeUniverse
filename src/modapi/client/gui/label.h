@@ -1,9 +1,15 @@
-#ifndef MODAPI_CLIENT_GUI_LABEL_H
-#define MODAPI_CLIENT_GUI_LABEL_H
+#ifndef TU_CLIENT_GUI_LABEL_H
+#define TU_CLIENT_GUI_LABEL_H
 
 #include "widget.h"
 
-class CModAPI_ClientGui_Label : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CLabel : public CWidget
 {
 protected:
 	int m_TextStyle;
@@ -13,10 +19,14 @@ protected:
 	int m_TextHeight;
 	
 public:
-	CModAPI_ClientGui_Label(class CModAPI_ClientGui_Config *pConfig, const char* pText, int Style = MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL);
+	CLabel(class CConfig *pConfig, const char* pText, int Style = TEXTSTYLE_NORMAL);
 	virtual void Render();
 	
 	void SetText(const char* pText);
 };
+
+}
+
+}
 
 #endif

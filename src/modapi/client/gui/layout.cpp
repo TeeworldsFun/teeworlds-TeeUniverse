@@ -5,14 +5,20 @@
 #include "layout.h"
 
 /* H LAYOUT *************************************************************/
+
+namespace tu
+{
+	
+namespace gui
+{
 		
-CModAPI_ClientGui_HListLayout::CSeparator::CSeparator(CModAPI_ClientGui_Config* pConfig) :
-	CModAPI_ClientGui_Widget(pConfig)
+CHListLayout::CSeparator::CSeparator(CConfig* pConfig) :
+	CWidget(pConfig)
 {
 	SetWidth(10);
 }
 
-void CModAPI_ClientGui_HListLayout::CSeparator::Render()
+void CHListLayout::CSeparator::Render()
 {
 	Graphics()->TextureClear();
 	Graphics()->LinesBegin();
@@ -25,15 +31,15 @@ void CModAPI_ClientGui_HListLayout::CSeparator::Render()
 	Graphics()->LinesEnd();
 }
 
-CModAPI_ClientGui_HListLayout::CModAPI_ClientGui_HListLayout(CModAPI_ClientGui_Config *pConfig, int Style, int Model) :
-	CModAPI_ClientGui_Widget(pConfig),
+CHListLayout::CHListLayout(CConfig *pConfig, int Style, int Model) :
+	CWidget(pConfig),
 	m_Style(Style),
 	m_Model(Model)
 {
 	
 }
 
-CModAPI_ClientGui_HListLayout::~CModAPI_ClientGui_HListLayout()
+CHListLayout::~CHListLayout()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -41,7 +47,7 @@ CModAPI_ClientGui_HListLayout::~CModAPI_ClientGui_HListLayout()
 	}
 }
 
-void CModAPI_ClientGui_HListLayout::Clear()
+void CHListLayout::Clear()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -52,12 +58,12 @@ void CModAPI_ClientGui_HListLayout::Clear()
 	Update();
 }
 
-void CModAPI_ClientGui_HListLayout::Update_FillingFirst()
+void CHListLayout::Update_FillingFirst()
 {
 	if(m_Childs.size() == 0)
 		return;
 	
-	int Margin = (m_Style == MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
+	int Margin = (m_Style == LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
 	int AvailableSpace = m_Rect.w - 2*Margin;
 		
 	if(m_Childs.size() > 1)
@@ -68,7 +74,7 @@ void CModAPI_ClientGui_HListLayout::Update_FillingFirst()
 		AvailableSpace -= m_Childs[i]->m_Rect.w;
 	}
 	
-	m_Childs[0]->SetRect(CModAPI_ClientGui_Rect(
+	m_Childs[0]->SetRect(CRect(
 		m_Rect.x + Margin,
 		m_Rect.y + Margin,
 		AvailableSpace,
@@ -78,7 +84,7 @@ void CModAPI_ClientGui_HListLayout::Update_FillingFirst()
 	int PosX = m_Childs[0]->m_Rect.x + m_Childs[0]->m_Rect.w;
 	for(int i=1; i<m_Childs.size(); i++)
 	{
-		m_Childs[i]->SetRect(CModAPI_ClientGui_Rect(
+		m_Childs[i]->SetRect(CRect(
 			PosX + m_pConfig->m_LayoutSpacing,
 			m_Rect.y + Margin,
 			m_Childs[i]->m_Rect.w,
@@ -89,12 +95,12 @@ void CModAPI_ClientGui_HListLayout::Update_FillingFirst()
 	}
 }
 
-void CModAPI_ClientGui_HListLayout::Update_FillingLast()
+void CHListLayout::Update_FillingLast()
 {
 	if(m_Childs.size() == 0)
 		return;
 	
-	int Margin = (m_Style == MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
+	int Margin = (m_Style == LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
 	int AvailableSpace = m_Rect.w - 2*Margin;
 		
 	if(m_Childs.size() > 1)
@@ -108,7 +114,7 @@ void CModAPI_ClientGui_HListLayout::Update_FillingLast()
 	int PosX = m_Rect.x + Margin;
 	for(int i=0; i<m_Childs.size()-1; i++)
 	{
-		m_Childs[i]->SetRect(CModAPI_ClientGui_Rect(
+		m_Childs[i]->SetRect(CRect(
 			PosX,
 			m_Rect.y + Margin,
 			m_Childs[i]->m_Rect.w,
@@ -118,7 +124,7 @@ void CModAPI_ClientGui_HListLayout::Update_FillingLast()
 		PosX += m_Childs[i]->m_Rect.w + m_pConfig->m_LayoutSpacing;
 	}
 	
-	m_Childs[m_Childs.size()-1]->SetRect(CModAPI_ClientGui_Rect(
+	m_Childs[m_Childs.size()-1]->SetRect(CRect(
 		PosX,
 		m_Rect.y + Margin,
 		AvailableSpace,
@@ -126,12 +132,12 @@ void CModAPI_ClientGui_HListLayout::Update_FillingLast()
 	));
 }
 
-void CModAPI_ClientGui_HListLayout::Update_FillingAll()
+void CHListLayout::Update_FillingAll()
 {
 	if(m_Childs.size() == 0)
 		return;
 	
-	int Margin = (m_Style == MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
+	int Margin = (m_Style == LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
 	int AvailableSpace = m_Rect.w - 2*Margin;
 
 	if(m_Childs.size() > 1)
@@ -142,7 +148,7 @@ void CModAPI_ClientGui_HListLayout::Update_FillingAll()
 	int PosX = m_Rect.x + Margin;
 	for(int i=0; i<m_Childs.size()-1; i++)
 	{
-		m_Childs[i]->SetRect(CModAPI_ClientGui_Rect(
+		m_Childs[i]->SetRect(CRect(
 			PosX,
 			m_Rect.y + Margin,
 			Width,
@@ -152,7 +158,7 @@ void CModAPI_ClientGui_HListLayout::Update_FillingAll()
 		PosX += Width + m_pConfig->m_LayoutSpacing;
 	}
 	
-	m_Childs[m_Childs.size()-1]->SetRect(CModAPI_ClientGui_Rect(
+	m_Childs[m_Childs.size()-1]->SetRect(CRect(
 		PosX,
 		m_Rect.y + Margin,
 		m_Rect.x + m_Rect.w - Margin - PosX,
@@ -160,14 +166,14 @@ void CModAPI_ClientGui_HListLayout::Update_FillingAll()
 	));
 }
 
-void CModAPI_ClientGui_HListLayout::Update_FillingNone()
+void CHListLayout::Update_FillingNone()
 {
-	int Margin = (m_Style == MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
+	int Margin = (m_Style == LAYOUTSTYLE_FRAME ? m_pConfig->m_LayoutMargin : 0);
 	
 	int PosX = m_Rect.x + Margin;
 	for(int i=0; i<m_Childs.size(); i++)
 	{
-		m_Childs[i]->SetRect(CModAPI_ClientGui_Rect(
+		m_Childs[i]->SetRect(CRect(
 			PosX,
 			m_Rect.y + Margin,
 			m_Childs[i]->m_Rect.w,
@@ -178,7 +184,7 @@ void CModAPI_ClientGui_HListLayout::Update_FillingNone()
 	}
 }
 
-void CModAPI_ClientGui_HListLayout::Update()
+void CHListLayout::Update()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -187,16 +193,16 @@ void CModAPI_ClientGui_HListLayout::Update()
 	
 	switch(m_Model)
 	{
-		case MODAPI_CLIENTGUI_LAYOUTFILLING_NONE:
+		case LAYOUTFILLING_NONE:
 			Update_FillingNone();
 			break;
-		case MODAPI_CLIENTGUI_LAYOUTFILLING_FIRST:
+		case LAYOUTFILLING_FIRST:
 			Update_FillingFirst();
 			break;
-		case MODAPI_CLIENTGUI_LAYOUTFILLING_LAST:
+		case LAYOUTFILLING_LAST:
 			Update_FillingLast();
 			break;
-		case MODAPI_CLIENTGUI_LAYOUTFILLING_ALL:
+		case LAYOUTFILLING_ALL:
 			Update_FillingAll();
 			break;
 	}
@@ -207,10 +213,10 @@ void CModAPI_ClientGui_HListLayout::Update()
 	}
 }
 	
-void CModAPI_ClientGui_HListLayout::Render()
+void CHListLayout::Render()
 {
 	//Background
-	if(m_Style == MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME)
+	if(m_Style == LAYOUTSTYLE_FRAME)
 	{
 		CUIRect rect;
 		rect.x = m_Rect.x;
@@ -227,17 +233,17 @@ void CModAPI_ClientGui_HListLayout::Render()
 	}
 }
 
-void CModAPI_ClientGui_HListLayout::Add(CModAPI_ClientGui_Widget* pWidget)
+void CHListLayout::Add(CWidget* pWidget)
 {
 	m_Childs.add(pWidget);
 }
 
-void CModAPI_ClientGui_HListLayout::AddSeparator()
+void CHListLayout::AddSeparator()
 {
-	Add(new CModAPI_ClientGui_HListLayout::CSeparator(m_pConfig));
+	Add(new CHListLayout::CSeparator(m_pConfig));
 }
 
-void CModAPI_ClientGui_HListLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CHListLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -245,7 +251,7 @@ void CModAPI_ClientGui_HListLayout::OnMouseOver(int X, int Y, int RelX, int RelY
 	}
 }
 
-void CModAPI_ClientGui_HListLayout::OnButtonClick(int X, int Y, int Button)
+void CHListLayout::OnButtonClick(int X, int Y, int Button)
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -253,7 +259,7 @@ void CModAPI_ClientGui_HListLayout::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_HListLayout::OnButtonRelease(int Button)
+void CHListLayout::OnButtonRelease(int Button)
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -261,7 +267,7 @@ void CModAPI_ClientGui_HListLayout::OnButtonRelease(int Button)
 	}
 }
 
-void CModAPI_ClientGui_HListLayout::OnInputEvent()
+void CHListLayout::OnInputEvent()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -271,13 +277,13 @@ void CModAPI_ClientGui_HListLayout::OnInputEvent()
 
 /* V LAYOUT *************************************************************/
 
-CModAPI_ClientGui_VListLayout::CSeparator::CSeparator(CModAPI_ClientGui_Config* pConfig) :
-	CModAPI_ClientGui_Widget(pConfig)
+CVListLayout::CSeparator::CSeparator(CConfig* pConfig) :
+	CWidget(pConfig)
 {
 	SetHeight(20);
 }
 
-void CModAPI_ClientGui_VListLayout::CSeparator::Render()
+void CVListLayout::CSeparator::Render()
 {
 	Graphics()->TextureClear();
 	Graphics()->LinesBegin();
@@ -290,28 +296,28 @@ void CModAPI_ClientGui_VListLayout::CSeparator::Render()
 	Graphics()->LinesEnd();
 }
 
-CModAPI_ClientGui_VListLayout::CSlider::CSlider(CModAPI_ClientGui_VListLayout* pLayout) :
-	CModAPI_ClientGui_VSlider(pLayout->m_pConfig),
+CVListLayout::CSlider::CSlider(CVListLayout* pLayout) :
+	CVSlider(pLayout->m_pConfig),
 	m_pLayout(pLayout)
 {
 	
 }
 
-void CModAPI_ClientGui_VListLayout::CSlider::OnNewPosition(float Pos)
+void CVListLayout::CSlider::OnNewPosition(float Pos)
 {
 	m_pLayout->OnNewScrollPos(Pos);
 }
 
-CModAPI_ClientGui_VListLayout::CModAPI_ClientGui_VListLayout(CModAPI_ClientGui_Config *pConfig, int Style) :
-	CModAPI_ClientGui_Widget(pConfig),
+CVListLayout::CVListLayout(CConfig *pConfig, int Style) :
+	CWidget(pConfig),
 	m_Style(Style)
 {
-	m_pSlider = new CModAPI_ClientGui_VListLayout::CSlider(this);
+	m_pSlider = new CVListLayout::CSlider(this);
 	m_ShowScrollBar = false;
 	m_ScrollValue = 0;
 }
 
-CModAPI_ClientGui_VListLayout::~CModAPI_ClientGui_VListLayout()
+CVListLayout::~CVListLayout()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -320,7 +326,7 @@ CModAPI_ClientGui_VListLayout::~CModAPI_ClientGui_VListLayout()
 	if(m_pSlider) delete m_pSlider;
 }
 
-void CModAPI_ClientGui_VListLayout::Clear()
+void CVListLayout::Clear()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -331,7 +337,7 @@ void CModAPI_ClientGui_VListLayout::Clear()
 	Update();
 }
 
-void CModAPI_ClientGui_VListLayout::Update()
+void CVListLayout::Update()
 {
 	m_ChildrenHeight = 0;
 	
@@ -342,7 +348,7 @@ void CModAPI_ClientGui_VListLayout::Update()
 	
 	for(int i=0; i<m_Childs.size(); i++)
 	{
-		m_Childs[i]->SetRect(CModAPI_ClientGui_Rect(
+		m_Childs[i]->SetRect(CRect(
 			m_Rect.x + m_pConfig->m_LayoutSpacing,
 			m_Rect.y + m_ChildrenHeight,
 			m_Rect.w - m_pConfig->m_LayoutSpacing*2,
@@ -358,7 +364,7 @@ void CModAPI_ClientGui_VListLayout::Update()
 		m_ShowScrollBar = true;
 		m_ScrollValue = 0;
 		
-		m_pSlider->SetRect(CModAPI_ClientGui_Rect(
+		m_pSlider->SetRect(CRect(
 			m_Rect.x + m_Rect.w - m_pSlider->m_Rect.w,
 			m_Rect.y,
 			m_pSlider->m_Rect.w,
@@ -384,10 +390,10 @@ void CModAPI_ClientGui_VListLayout::Update()
 	}
 }
 	
-void CModAPI_ClientGui_VListLayout::Render()
+void CVListLayout::Render()
 {
 	//Background
-	if(m_Style == MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME)
+	if(m_Style == LAYOUTSTYLE_FRAME)
 	{
 		CUIRect rect;
 		rect.x = m_Rect.x;
@@ -412,17 +418,17 @@ void CModAPI_ClientGui_VListLayout::Render()
 	}
 }
 
-void CModAPI_ClientGui_VListLayout::Add(CModAPI_ClientGui_Widget* pWidget)
+void CVListLayout::Add(CWidget* pWidget)
 {
 	m_Childs.add(pWidget);
 }
 
-void CModAPI_ClientGui_VListLayout::AddSeparator()
+void CVListLayout::AddSeparator()
 {
-	Add(new CModAPI_ClientGui_VListLayout::CSeparator(m_pConfig));
+	Add(new CVListLayout::CSeparator(m_pConfig));
 }
 
-void CModAPI_ClientGui_VListLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CVListLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_ShowScrollBar)
 	{
@@ -435,7 +441,7 @@ void CModAPI_ClientGui_VListLayout::OnMouseOver(int X, int Y, int RelX, int RelY
 	}
 }
 
-void CModAPI_ClientGui_VListLayout::OnButtonClick(int X, int Y, int Button)
+void CVListLayout::OnButtonClick(int X, int Y, int Button)
 {
 	if(m_ShowScrollBar)
 	{
@@ -448,7 +454,7 @@ void CModAPI_ClientGui_VListLayout::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_VListLayout::OnButtonRelease(int Button)
+void CVListLayout::OnButtonRelease(int Button)
 {
 	if(m_ShowScrollBar)
 	{
@@ -461,7 +467,7 @@ void CModAPI_ClientGui_VListLayout::OnButtonRelease(int Button)
 	}
 }
 
-void CModAPI_ClientGui_VListLayout::OnInputEvent()
+void CVListLayout::OnInputEvent()
 {
 	if(m_ShowScrollBar)
 	{
@@ -474,7 +480,7 @@ void CModAPI_ClientGui_VListLayout::OnInputEvent()
 	}
 }
 
-void CModAPI_ClientGui_VListLayout::OnNewScrollPos(float Pos)
+void CVListLayout::OnNewScrollPos(float Pos)
 {
 	int ScrollHeight = m_ChildrenHeight - m_Rect.h;
 	int LastScrollValue = m_ScrollValue;
@@ -488,12 +494,16 @@ void CModAPI_ClientGui_VListLayout::OnNewScrollPos(float Pos)
 	}
 }
 
-void CModAPI_ClientGui_VListLayout::SetScrollPos(float Pos)
+void CVListLayout::SetScrollPos(float Pos)
 {
 	m_pSlider->SetSliderPos(Pos);
 }
 
-float CModAPI_ClientGui_VListLayout::GetScrollPos()
+float CVListLayout::GetScrollPos()
 {
 	return m_pSlider->GetSliderPos();
+}
+
+}
+
 }

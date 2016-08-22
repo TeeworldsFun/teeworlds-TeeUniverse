@@ -1,35 +1,41 @@
-#ifndef MODAPI_CLIENT_GUI_INTEGEREDIT_H
-#define MODAPI_CLIENT_GUI_INTEGEREDIT_H
+#ifndef TU_CLIENT_GUI_INTEGEREDIT_H
+#define TU_CLIENT_GUI_INTEGEREDIT_H
 
 #include "widget.h"
 #include "button.h"
 
-class CModAPI_ClientGui_AbstractIntegerEdit : public CModAPI_ClientGui_Widget
+namespace tu
 {
-	class CIncreaseButton : public CModAPI_ClientGui_IconButton
+	
+namespace gui
+{
+
+class CAbstractIntegerEdit : public CWidget
+{
+	class CIncreaseButton : public CIconButton
 	{
 	protected:
-		CModAPI_ClientGui_AbstractIntegerEdit* m_pIntegerEdit;
+		CAbstractIntegerEdit* m_pIntegerEdit;
 		
 		virtual void MouseClickAction();
 		
 	public:
-		CIncreaseButton(CModAPI_ClientGui_AbstractIntegerEdit *pIntegerEdit);
+		CIncreaseButton(CAbstractIntegerEdit *pIntegerEdit);
 	};
 	
-	class CDecreaseButton : public CModAPI_ClientGui_IconButton
+	class CDecreaseButton : public CIconButton
 	{
 	protected:
-		CModAPI_ClientGui_AbstractIntegerEdit* m_pIntegerEdit;
+		CAbstractIntegerEdit* m_pIntegerEdit;
 		
 		virtual void MouseClickAction();
 		
 	public:
-		CDecreaseButton(CModAPI_ClientGui_AbstractIntegerEdit *pIntegerEdit);
+		CDecreaseButton(CAbstractIntegerEdit *pIntegerEdit);
 	};
 	
 protected:	
-	CModAPI_ClientGui_Rect m_IntegerRect;
+	CRect m_IntegerRect;
 	
 	int m_LastValue;
 	char m_aIntegerText[64];
@@ -47,8 +53,8 @@ protected:
 	virtual int GetValue() = 0;
 	
 public:
-	CModAPI_ClientGui_AbstractIntegerEdit(class CModAPI_ClientGui_Config *pConfig);
-	virtual ~CModAPI_ClientGui_AbstractIntegerEdit();
+	CAbstractIntegerEdit(class CConfig *pConfig);
+	virtual ~CAbstractIntegerEdit();
 	virtual void Update();
 	virtual void Render();
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
@@ -57,7 +63,7 @@ public:
 	virtual void OnInputEvent();
 };
 
-class CModAPI_ClientGui_IntegerEdit : public CModAPI_ClientGui_AbstractIntegerEdit
+class CIntegerEdit : public CAbstractIntegerEdit
 {
 protected:
 	int m_Value;
@@ -66,10 +72,10 @@ protected:
 	virtual int GetValue();
 	
 public:
-	CModAPI_ClientGui_IntegerEdit(class CModAPI_ClientGui_Config *pConfig, int DefaultValue);
+	CIntegerEdit(class CConfig *pConfig, int DefaultValue);
 };
 
-class CModAPI_ClientGui_ExternalIntegerEdit : public CModAPI_ClientGui_AbstractIntegerEdit
+class CExternalIntegerEdit : public CAbstractIntegerEdit
 {
 protected:
 	int* m_Memory;
@@ -78,7 +84,11 @@ protected:
 	virtual int GetValue();
 	
 public:
-	CModAPI_ClientGui_ExternalIntegerEdit(class CModAPI_ClientGui_Config *pConfig, int* m_Memory);
+	CExternalIntegerEdit(class CConfig *pConfig, int* m_Memory);
 };
+
+}
+
+}
 
 #endif

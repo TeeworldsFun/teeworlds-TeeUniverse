@@ -11,52 +11,55 @@
 
 #include "weapon.h"
 
-CModAPI_Weapon::CModAPI_Weapon(int ID, CCharacter* pCharacter) :
+namespace tu
+{
+
+CWeapon::CWeapon(int ID, CCharacter* pCharacter) :
 	m_ID(ID),
 	m_pCharacter(pCharacter)
 {
 	
 }
 
-CCharacter* CModAPI_Weapon::Character()
+CCharacter* CWeapon::Character()
 {
 	return m_pCharacter;
 }
 
-CPlayer* CModAPI_Weapon::Player()
+CPlayer* CWeapon::Player()
 {
 	return m_pCharacter->GetPlayer();
 }
 
-CGameWorld* CModAPI_Weapon::GameWorld()
+CGameWorld* CWeapon::GameWorld()
 {
 	return m_pCharacter->GameWorld();
 }
 
-CGameContext* CModAPI_Weapon::GameServer()
+CGameContext* CWeapon::GameServer()
 {
 	return m_pCharacter->GameServer();
 }
 
-IServer* CModAPI_Weapon::Server()
+IServer* CWeapon::Server()
 {
 	return m_pCharacter->Server();
 }
 
-const IServer* CModAPI_Weapon::Server() const
+const IServer* CWeapon::Server() const
 {
 	return m_pCharacter->Server();
 }
 
-int CModAPI_Weapon::WorldID()
+int CWeapon::WorldID()
 {
 	return Player()->GetWorldID();
 }
 
 /* GENERIC GUN 07 *************************************************** */
 
-CModAPI_Weapon_GenericGun07::CModAPI_Weapon_GenericGun07(int WID, int TW07ID, CCharacter* pCharacter, int Ammo) :
-	CModAPI_Weapon(WID, pCharacter)
+CWeapon_GenericGun07::CWeapon_GenericGun07(int WID, int TW07ID, CCharacter* pCharacter, int Ammo) :
+	CWeapon(WID, pCharacter)
 {
 	m_Ammo = Ammo;
 	m_LastNoAmmoSound = -1;
@@ -64,17 +67,17 @@ CModAPI_Weapon_GenericGun07::CModAPI_Weapon_GenericGun07(int WID, int TW07ID, CC
 	m_TW07ID = TW07ID;
 }
 	
-int CModAPI_Weapon_GenericGun07::GetMaxAmmo() const
+int CWeapon_GenericGun07::GetMaxAmmo() const
 {
 	return g_pData->m_Weapons.m_aId[m_TW07ID].m_Maxammo;
 }
 
-int CModAPI_Weapon_GenericGun07::GetAmmo() const
+int CWeapon_GenericGun07::GetAmmo() const
 {
 	return m_Ammo;
 }
 
-bool CModAPI_Weapon_GenericGun07::AddAmmo(int Ammo)
+bool CWeapon_GenericGun07::AddAmmo(int Ammo)
 {
 	if(m_Ammo < GetMaxAmmo())
 	{
@@ -84,12 +87,12 @@ bool CModAPI_Weapon_GenericGun07::AddAmmo(int Ammo)
 	else return false;
 }
 
-bool CModAPI_Weapon_GenericGun07::IsWeaponSwitchLocked() const
+bool CWeapon_GenericGun07::IsWeaponSwitchLocked() const
 {
 	return m_ReloadTimer != 0;
 }
 
-bool CModAPI_Weapon_GenericGun07::TickPreFire(bool IsActive)
+bool CWeapon_GenericGun07::TickPreFire(bool IsActive)
 {
 	if(!IsActive)
 		return true;
@@ -123,7 +126,7 @@ bool CModAPI_Weapon_GenericGun07::TickPreFire(bool IsActive)
 	return true;
 }
 
-bool CModAPI_Weapon_GenericGun07::OnFire(vec2 Direction)
+bool CWeapon_GenericGun07::OnFire(vec2 Direction)
 {
 	if(m_ReloadTimer > 0)
 		return false;
@@ -135,7 +138,7 @@ bool CModAPI_Weapon_GenericGun07::OnFire(vec2 Direction)
 		m_ReloadTimer = 125 * Server()->TickSpeed() / 1000;
 		if(m_LastNoAmmoSound+Server()->TickSpeed() <= Server()->Tick())
 		{
-			CModAPI_Event_Sound(GameServer()).World(WorldID())
+			CEvent_Sound(GameServer()).World(WorldID())
 				.Send(Character()->GetPos(), SOUND_WEAPON_NOAMMO);
 		
 			m_LastNoAmmoSound = Server()->Tick();
@@ -154,12 +157,12 @@ bool CModAPI_Weapon_GenericGun07::OnFire(vec2 Direction)
 	return true;
 }
 
-void CModAPI_Weapon_GenericGun07::OnActivation()
+void CWeapon_GenericGun07::OnActivation()
 {
 	m_AmmoRegenStart = -1;
 }
 
-bool CModAPI_Weapon_GenericGun07::TickPaused(bool IsActive)
+bool CWeapon_GenericGun07::TickPaused(bool IsActive)
 {
 	if(!IsActive)
 		return true;
@@ -170,20 +173,22 @@ bool CModAPI_Weapon_GenericGun07::TickPaused(bool IsActive)
 	return false;
 }
 	
-void CModAPI_Weapon_GenericGun07::Snap06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pCharNetObj)
+void CWeapon_GenericGun07::Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = m_TW07ID;
 	pCharNetObj->m_AmmoCount = (m_Ammo > 0 ? m_Ammo : 0);
 }
 	
-void CModAPI_Weapon_GenericGun07::Snap07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CWeapon_GenericGun07::Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = m_TW07ID;
 	pCharNetObj->m_AmmoCount = (m_Ammo > 0 ? m_Ammo : 0);
 }
 	
-void CModAPI_Weapon_GenericGun07::Snap07ModAPI(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CWeapon_GenericGun07::Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = m_TW07ID;
 	pCharNetObj->m_AmmoCount = (m_Ammo > 0 ? m_Ammo : 0);
+}
+
 }

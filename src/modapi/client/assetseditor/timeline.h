@@ -1,5 +1,5 @@
-#ifndef MODAPI_ASSETSEDITOR_TIMELINE_H
-#define MODAPI_ASSETSEDITOR_TIMELINE_H
+#ifndef TU_ASSETSEDITOR_TIMELINE_H
+#define TU_ASSETSEDITOR_TIMELINE_H
 
 #include <base/vmath.h>
 #include <engine/kernel.h>
@@ -9,12 +9,15 @@
 
 #include "assetseditor.h"
 
-class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
+namespace tu
 {
-	class CCursorToolButton : public CModAPI_ClientGui_IconButton
+
+class CAssetsEditorGui_Timeline : public gui::CWidget
+{
+	class CCursorToolButton : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Timeline* m_pTimeline;
+		CAssetsEditorGui_Timeline* m_pTimeline;
 		int m_CursorTool;
 		
 	protected:
@@ -24,8 +27,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CCursorToolButton(CModAPI_AssetsEditorGui_Timeline* pTimeline, int Icon, int CursorTool) :
-			CModAPI_ClientGui_IconButton(pTimeline->m_pConfig, Icon),
+		CCursorToolButton(CAssetsEditorGui_Timeline* pTimeline, int Icon, int CursorTool) :
+			gui::CIconButton(pTimeline->m_pConfig, Icon),
 			m_pTimeline(pTimeline),
 			m_CursorTool(CursorTool)
 		{
@@ -36,17 +39,17 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		{
 			if(m_Rect.IsInside(X, Y))
 			{
-				ShowHint(CModAPI_AssetsEditorGui_Timeline::s_CursorToolHints[m_CursorTool]);
+				ShowHint(CAssetsEditorGui_Timeline::s_CursorToolHints[m_CursorTool]);
 			}
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
-	class CFirstFrameButton : public CModAPI_ClientGui_IconButton
+	class CFirstFrameButton : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditor* m_pAssetsEditor;
+		CAssetsEditor* m_pAssetsEditor;
 		
 		virtual void MouseClickAction()
 		{
@@ -54,8 +57,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CFirstFrameButton(CModAPI_AssetsEditor* pAssetsEditor) :
-			CModAPI_ClientGui_IconButton(pAssetsEditor->m_pGuiConfig, MODAPI_ASSETSEDITOR_ICON_FIRST_FRAME),
+		CFirstFrameButton(CAssetsEditor* pAssetsEditor) :
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_FIRST_FRAME),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -66,14 +69,14 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 			if(m_Rect.IsInside(X, Y))
 				ShowHint("Move time to zero");
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
-	class CLastFrameButton : public CModAPI_ClientGui_IconButton
+	class CLastFrameButton : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditor* m_pAssetsEditor;
+		CAssetsEditor* m_pAssetsEditor;
 		
 		virtual void MouseClickAction()
 		{
@@ -81,8 +84,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CLastFrameButton(CModAPI_AssetsEditor* pAssetsEditor) :
-			CModAPI_ClientGui_IconButton(pAssetsEditor->m_pGuiConfig, MODAPI_ASSETSEDITOR_ICON_LAST_FRAME),
+		CLastFrameButton(CAssetsEditor* pAssetsEditor) :
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_LAST_FRAME),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -93,14 +96,14 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 			if(m_Rect.IsInside(X, Y))
 				ShowHint("Move time to the last keyframe");
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
-	class CPrevFrameButton : public CModAPI_ClientGui_IconButton
+	class CPrevFrameButton : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditor* m_pAssetsEditor;
+		CAssetsEditor* m_pAssetsEditor;
 		
 		virtual void MouseClickAction()
 		{
@@ -108,8 +111,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CPrevFrameButton(CModAPI_AssetsEditor* pAssetsEditor) :
-			CModAPI_ClientGui_IconButton(pAssetsEditor->m_pGuiConfig, MODAPI_ASSETSEDITOR_ICON_PREV_FRAME),
+		CPrevFrameButton(CAssetsEditor* pAssetsEditor) :
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_PREV_FRAME),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -120,14 +123,14 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 			if(m_Rect.IsInside(X, Y))
 				ShowHint("Move time to the previous keyframe");
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
-	class CNextFrameButton : public CModAPI_ClientGui_IconButton
+	class CNextFrameButton : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditor* m_pAssetsEditor;
+		CAssetsEditor* m_pAssetsEditor;
 		
 		virtual void MouseClickAction()
 		{
@@ -135,8 +138,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CNextFrameButton(CModAPI_AssetsEditor* pAssetsEditor) :
-			CModAPI_ClientGui_IconButton(pAssetsEditor->m_pGuiConfig, MODAPI_ASSETSEDITOR_ICON_NEXT_FRAME),
+		CNextFrameButton(CAssetsEditor* pAssetsEditor) :
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_NEXT_FRAME),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -147,14 +150,14 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 			if(m_Rect.IsInside(X, Y))
 				ShowHint("Move time to the next keyframe");
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
-	class CPlayPauseButton : public CModAPI_ClientGui_IconButton
+	class CPlayPauseButton : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditor* m_pAssetsEditor;
+		CAssetsEditor* m_pAssetsEditor;
 		
 		virtual void MouseClickAction()
 		{
@@ -162,8 +165,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CPlayPauseButton(CModAPI_AssetsEditor* pAssetsEditor) :
-			CModAPI_ClientGui_IconButton(pAssetsEditor->m_pGuiConfig, (pAssetsEditor->IsPaused() ? MODAPI_ASSETSEDITOR_ICON_PLAY : MODAPI_ASSETSEDITOR_ICON_PAUSE)),
+		CPlayPauseButton(CAssetsEditor* pAssetsEditor) :
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, (pAssetsEditor->IsPaused() ? CAssetsEditor::ICON_PLAY : CAssetsEditor::ICON_PAUSE)),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -172,11 +175,11 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		virtual void Render()
 		{
 			if(m_pAssetsEditor->IsPaused())
-				SetIcon(MODAPI_ASSETSEDITOR_ICON_PLAY);
+				SetIcon(CAssetsEditor::ICON_PLAY);
 			else
-				SetIcon(MODAPI_ASSETSEDITOR_ICON_PAUSE);
+				SetIcon(CAssetsEditor::ICON_PAUSE);
 			
-			CModAPI_ClientGui_IconButton::Render();
+			gui::CIconButton::Render();
 		}
 		
 		virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
@@ -184,14 +187,14 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 			if(m_Rect.IsInside(X, Y))
 				ShowHint("Play/Pause");
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
-	class CTimeScaleSlider : public CModAPI_ClientGui_HSlider
+	class CTimeScaleSlider : public gui::CHSlider
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Timeline* m_pTimeline;
+		CAssetsEditorGui_Timeline* m_pTimeline;
 		
 	protected:
 		virtual void OnNewPosition(float Pos)
@@ -200,8 +203,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CTimeScaleSlider(CModAPI_AssetsEditorGui_Timeline* pTimeline) :
-			CModAPI_ClientGui_HSlider(pTimeline->m_pConfig),
+		CTimeScaleSlider(CAssetsEditorGui_Timeline* pTimeline) :
+			gui::CHSlider(pTimeline->m_pConfig),
 			m_pTimeline(pTimeline)
 		{
 			m_Rect.w = 150;
@@ -209,10 +212,10 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 	};
 	
-	class CTimeSlider : public CModAPI_ClientGui_HSlider
+	class CTimeSlider : public gui::CHSlider
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Timeline* m_pTimeline;
+		CAssetsEditorGui_Timeline* m_pTimeline;
 		
 	protected:
 		virtual void OnNewPosition(float Pos)
@@ -221,18 +224,18 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CTimeSlider(CModAPI_AssetsEditorGui_Timeline* pTimeline) :
-			CModAPI_ClientGui_HSlider(pTimeline->m_pConfig),
+		CTimeSlider(CAssetsEditorGui_Timeline* pTimeline) :
+			gui::CHSlider(pTimeline->m_pConfig),
 			m_pTimeline(pTimeline)
 		{
 			
 		}
 	};
 	
-	class CValueSlider : public CModAPI_ClientGui_VSlider
+	class CValueSlider : public gui::CVSlider
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Timeline* m_pTimeline;
+		CAssetsEditorGui_Timeline* m_pTimeline;
 		
 	protected:
 		virtual void OnNewPosition(float Pos)
@@ -241,8 +244,8 @@ class CModAPI_AssetsEditorGui_Timeline : public CModAPI_ClientGui_Widget
 		}
 		
 	public:
-		CValueSlider(CModAPI_AssetsEditorGui_Timeline* pTimeline) :
-			CModAPI_ClientGui_VSlider(pTimeline->m_pConfig),
+		CValueSlider(CAssetsEditorGui_Timeline* pTimeline) :
+			gui::CVSlider(pTimeline->m_pConfig),
 			m_pTimeline(pTimeline)
 		{
 			m_Pos = 0.5;
@@ -263,7 +266,7 @@ public:
 	static const char* s_CursorToolHints[];
 
 protected:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
+	CAssetsEditor* m_pAssetsEditor;
 	int m_Margin;
 	int m_ToolbarHeight;
 	int m_TimelineTop;
@@ -283,14 +286,14 @@ protected:
 	int m_CursorX;
 	int m_CursorY;
 	int m_Drag;
-	CModAPI_Asset_SkeletonAnimation::CSubPath m_DragedElement;
+	CAsset_SkeletonAnimation::CSubPath m_DragedElement;
 	CCursorToolButton* m_CursorToolButtons[NUM_CURSORTOOLS];
 	
-	CModAPI_ClientGui_Rect m_TimelineRect;
-	CModAPI_ClientGui_Rect m_ListRect;
+	gui::CRect m_TimelineRect;
+	gui::CRect m_ListRect;
 	CTimeSlider* m_pTimeSlider;
 	CValueSlider* m_pValueSlider;
-	CModAPI_ClientGui_HListLayout* m_pToolbar;
+	gui::CHListLayout* m_pToolbar;
 	
 protected:
 	void SetPause(bool Paused);
@@ -302,8 +305,8 @@ protected:
 	float TimelineToTime(int Time);
 	
 public:
-	CModAPI_AssetsEditorGui_Timeline(CModAPI_AssetsEditor* pAssetsEditor);
-	virtual ~CModAPI_AssetsEditorGui_Timeline();
+	CAssetsEditorGui_Timeline(CAssetsEditor* pAssetsEditor);
+	virtual ~CAssetsEditorGui_Timeline();
 	
 	void OnEditedAssetChange();
 	void OnEditedAssetFrameChange();
@@ -311,9 +314,9 @@ public:
 	int GetCursorTool() { return m_CursorTool; }
 	void SetCursorTool(int CursorTool) { m_CursorTool = CursorTool; }
 	
-	CModAPI_Asset_SkeletonAnimation::CSubPath KeyFramePicking(int X, int Y);
-	CModAPI_Asset_Skeleton::CBonePath BonePicking(int X, int Y);
-	CModAPI_Asset_Skeleton::CBonePath LayerPicking(int X, int Y);
+	CAsset_SkeletonAnimation::CSubPath KeyFramePicking(int X, int Y);
+	CAsset_Skeleton::CBonePath BonePicking(int X, int Y);
+	CAsset_Skeleton::CBonePath LayerPicking(int X, int Y);
 	
 	virtual void Update();
 	virtual void Render();
@@ -323,5 +326,6 @@ public:
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
 };
 
+}
 
 #endif

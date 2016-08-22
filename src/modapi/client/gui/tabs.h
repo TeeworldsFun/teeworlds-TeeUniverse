@@ -1,29 +1,35 @@
-#ifndef MODAPI_CLIENT_GUI_TABS_H
-#define MODAPI_CLIENT_GUI_TABS_H
+#ifndef TU_CLIENT_GUI_TABS_H
+#define TU_CLIENT_GUI_TABS_H
 
 #include <base/tl/array.h>
 
 #include "widget.h"
 
-class CModAPI_ClientGui_Tabs : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CTabs : public CWidget
 {
 public:
 	struct CTab
 	{
 		int m_IconId;
 		char m_aHint[128];
-		CModAPI_ClientGui_Widget* m_pWidget;
-		CModAPI_ClientGui_Rect m_Rect;
+		CWidget* m_pWidget;
+		CRect m_Rect;
 	};
 	
 protected:
-	CModAPI_ClientGui_Rect m_ContentRect;
+	CRect m_ContentRect;
 	array<CTab> m_Tabs;
 	int m_SelectedTab;
 	
 public:
-	CModAPI_ClientGui_Tabs(class CModAPI_ClientGui_Config *pConfig);
-	virtual ~CModAPI_ClientGui_Tabs();
+	CTabs(class CConfig *pConfig);
+	virtual ~CTabs();
 	
 	virtual void Update();
 	virtual void Render();
@@ -33,8 +39,12 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnInputEvent();
 	
-	void AddTab(CModAPI_ClientGui_Widget* pWidget, int IconId, const char* pHint);
+	void AddTab(CWidget* pWidget, int IconId, const char* pHint);
 	void Clear();
 };
+
+}
+
+}
 
 #endif

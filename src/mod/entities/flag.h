@@ -5,7 +5,7 @@
 
 #include <modapi/server/entity.h>
 
-class CFlag : public CModAPI_Entity
+class CFlag : public tu::CEntity_TW
 {
 private:
 	/* Identity */

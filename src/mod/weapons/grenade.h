@@ -4,7 +4,7 @@
 #include <base/vmath.h>
 #include <modapi/server/weapon.h>
 
-class CMod_Weapon_Grenade : public CModAPI_Weapon_GenericGun07
+class CMod_Weapon_Grenade : public tu::CWeapon_GenericGun07
 {
 public:
 	CMod_Weapon_Grenade(class CCharacter* pCharacter, int Ammo);

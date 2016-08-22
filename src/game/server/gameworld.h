@@ -7,7 +7,7 @@
 
 #include <mod/defines.h>
 
-class CEntity;
+class CEntityCore;
 class CCharacter;
 
 /*
@@ -21,8 +21,8 @@ private:
 	void Reset();
 	void RemoveEntities();
 
-	CEntity *m_pNextTraverseEntity;
-	CEntity *m_apFirstEntityTypes[MOD_NUM_ENTTYPES];
+	CEntityCore *m_pNextTraverseEntity;
+	CEntityCore *m_apFirstEntityTypes[MOD_NUM_ENTTYPES];
 
 	class CGameContext *m_pGameServer;
 	class IServer *m_pServer;
@@ -42,7 +42,7 @@ public:
 
 	void SetGameServer(CGameContext *pGameServer);
 
-	CEntity *FindFirst(int Type);
+	CEntityCore *FindFirst(int Type);
 
 	/*
 		Function: find_entities
@@ -59,7 +59,7 @@ public:
 		Returns:
 			Number of entities found and added to the ents array.
 	*/
-	int FindEntities(vec2 Pos, float Radius, CEntity **ppEnts, int Max, int Type);
+	int FindEntities(vec2 Pos, float Radius, CEntityCore **ppEnts, int Max, int Type);
 
 	/*
 		Function: interserct_CCharacter
@@ -75,7 +75,7 @@ public:
 		Returns:
 			Returns a pointer to the closest hit or NULL of there is no intersection.
 	*/
-	class CCharacter *IntersectCharacter(vec2 Pos0, vec2 Pos1, float Radius, vec2 &NewPos, class CEntity *pNotThis = 0);
+	class CCharacter *IntersectCharacter(vec2 Pos0, vec2 Pos1, float Radius, vec2 &NewPos, class CEntityCore *pNotThis = 0);
 
 	/*
 		Function: closest_CCharacter
@@ -89,7 +89,7 @@ public:
 		Returns:
 			Returns a pointer to the closest CCharacter or NULL if no CCharacter is close enough.
 	*/
-	class CCharacter *ClosestCharacter(vec2 Pos, float Radius, CEntity *ppNotThis);
+	class CCharacter *ClosestCharacter(vec2 Pos, float Radius, CEntityCore *ppNotThis);
 
 	/*
 		Function: insert_entity
@@ -98,7 +98,7 @@ public:
 		Arguments:
 			entity - Entity to add
 	*/
-	void InsertEntity(CEntity *pEntity);
+	void InsertEntity(CEntityCore *pEntity);
 
 	/*
 		Function: remove_entity
@@ -107,7 +107,7 @@ public:
 		Arguments:
 			entity - Entity to remove
 	*/
-	void RemoveEntity(CEntity *pEntity);
+	void RemoveEntity(CEntityCore *pEntity);
 
 	/*
 		Function: destroy_entity
@@ -116,7 +116,7 @@ public:
 		Arguments:
 			entity - Entity to destroy
 	*/
-	void DestroyEntity(CEntity *pEntity);
+	void DestroyEntity(CEntityCore *pEntity);
 
 	/*
 		Function: snap
@@ -127,9 +127,9 @@ public:
 			snapping_client - ID of the client which snapshot
 			is being created.
 	*/
-	void Snap06(int Snapshot, int SnappingClient);
-	void Snap07(int Snapshot, int SnappingClient);
-	void Snap07ModAPI(int Snapshot, int SnappingClient);
+	void Snap_TW06(int Snapshot, int SnappingClient);
+	void Snap_TW07(int Snapshot, int SnappingClient);
+	void Snap_TU07(int Snapshot, int SnappingClient);
 	
 	void PostSnap();
 

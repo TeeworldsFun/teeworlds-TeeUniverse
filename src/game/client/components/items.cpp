@@ -202,7 +202,7 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
 	float Time = (float)(Client()->GameTick() - pCurrent->m_StartTick) + Client()->IntraGameTick();
 	Time = (Time/static_cast<float>(SERVER_TICK_SPEED));
 	
-	//ModAPIGraphics()->DrawLine(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_LINESTYLE, MODAPI_LINESTYLE_LASER), From, Pos, 1.0f, Time);
+	//ModAPIGraphics()->DrawLine(tu::CAssetPath::Internal(tu::CAssetPath::TYPE_LINESTYLE, MODAPI_LINESTYLE_LASER), From, Pos, 1.0f, Time);
 }
 
 void CItems::OnRender()

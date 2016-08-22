@@ -1,10 +1,16 @@
-#ifndef MODAPI_CLIENT_GUI_FLOATEDIT_H
-#define MODAPI_CLIENT_GUI_FLOATEDIT_H
+#ifndef TU_CLIENT_GUI_FLOATEDIT_H
+#define TU_CLIENT_GUI_FLOATEDIT_H
 
 #include "widget.h"
 #include "button.h"
 
-class CModAPI_ClientGui_AbstractFloatEdit : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CAbstractFloatEdit : public CWidget
 {
 protected:
 	bool RefreshText;
@@ -22,14 +28,14 @@ protected:
 	virtual void ApplyFormat();
 	
 public:
-	CModAPI_ClientGui_AbstractFloatEdit(class CModAPI_ClientGui_Config *pConfig);
+	CAbstractFloatEdit(class CConfig *pConfig);
 	virtual void Render();
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
 	virtual void OnButtonClick(int X, int Y, int Button);
 	virtual void OnInputEvent();
 };
 
-class CModAPI_ClientGui_FloatEdit : public CModAPI_ClientGui_AbstractFloatEdit
+class CFloatEdit : public CAbstractFloatEdit
 {
 protected:
 	float m_Value;
@@ -38,10 +44,10 @@ protected:
 	virtual float GetValue();
 	
 public:
-	CModAPI_ClientGui_FloatEdit(class CModAPI_ClientGui_Config *pConfig, float DefaultValue);
+	CFloatEdit(class CConfig *pConfig, float DefaultValue);
 };
 
-class CModAPI_ClientGui_ExternalFloatEdit : public CModAPI_ClientGui_AbstractFloatEdit
+class CExternalFloatEdit : public CAbstractFloatEdit
 {
 protected:
 	float* m_Memory;
@@ -50,7 +56,11 @@ protected:
 	virtual float GetValue();
 	
 public:
-	CModAPI_ClientGui_ExternalFloatEdit(class CModAPI_ClientGui_Config *pConfig, float* m_Memory);
+	CExternalFloatEdit(class CConfig *pConfig, float* m_Memory);
 };
+
+}
+
+}
 
 #endif

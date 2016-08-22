@@ -40,7 +40,7 @@
 #include <mastersrv/mastersrv.h>
 #include <versionsrv/versionsrv.h>
 
-//ModAPI
+//TU
 #include <modapi/compatibility.h>
 #include <modapi/shared/assetsfile.h>
 #include <modapi/client/assetseditor/assetseditor.h>
@@ -275,7 +275,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_WindowMustRefocus = 0;
 	m_SnapCrcErrors = 0;
 	m_AutoScreenshotRecycle = false;
-	m_ClientMode = MODAPI_CLIENTMODE_GAME;
+	m_ClientMode = TU_CLIENTMODE_GAME;
 
 	m_AckGameTick = -1;
 	m_CurrentRecvTick = 0;
@@ -294,11 +294,11 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	//
 	m_aCmdConnect[0] = 0;
-	m_CmdConnectProtocol = MODAPI_SERVERPROTOCOL_TW07;
+	m_CmdConnectProtocol = tu::SERVERPROTOCOL_TW07;
 	
 	m_ModDownloadFinished = false;
 	m_MapDownloadFinished = false;
-	m_ModAPIServer = false;
+	m_TUServer = false;
 
 	// map download
 	m_aMapdownloadFilename[0] = 0;
@@ -309,7 +309,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_MapdownloadAmount = -1;
 	m_MapdownloadTotalsize = -1;
 
-	// ModAPI, mod download
+	// TU, mod download
 	m_aCurrentMod[0] = 0;
 	m_CurrentModCrc = 0;
 	m_aModdownloadFilename[0] = 0;
@@ -331,8 +331,8 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
 	
-	//ModAPI
-	m_pModAPIGraphics = 0;
+	//TU
+	m_pTUGraphics = 0;
 }
 
 // ----- send functions -----
@@ -348,7 +348,7 @@ int CClient::SendMsg(int Dst, CMsgPacker *pMsg, int Flags)
 	Packet.m_pData = pMsg->Data();
 	Packet.m_DataSize = pMsg->Size();
 
-	if(Dst == CModAPI_MetaNetClient::DST_MASTER06)
+	if(Dst == tu::CMetaNetClient::DST_MASTER06)
 	{
 		if(Flags&MSGFLAG_VITAL)
 			Packet.m_Flags |= TW06_NETSENDFLAG_VITAL;
@@ -377,23 +377,23 @@ int CClient::SendMsg(int Dst, CMsgPacker *pMsg, int Flags)
 void CClient::SendInfo()
 {
 	CMsgPacker Msg(NETMSG_INFO, true);
-	Msg.AddString(MODAPI_NETVERSION_TW07, 128);
+	Msg.AddString(TU_NETVERSION_TW07, 128);
 	Msg.AddString(g_Config.m_Password, 128);
 	Msg.AddString(GameClient()->NetVersion(), 128);
-	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 
 void CClient::SendEnterGame()
 {
 	CMsgPacker Msg(NETMSG_ENTERGAME, true);
-	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 void CClient::SendReady()
 {					
 	CMsgPacker Msg(NETMSG_READY, true);
-	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
 
 void CClient::RconAuth(const char *pName, const char *pPassword)
@@ -403,19 +403,19 @@ void CClient::RconAuth(const char *pName, const char *pPassword)
 
 	CMsgPacker Msg(NETMSG_RCON_AUTH, true);
 	Msg.AddString(pPassword, 32);
-	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL);
+	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL);
 }
 
 void CClient::Rcon(const char *pCmd)
 {
 	CMsgPacker Msg(NETMSG_RCON_CMD, true);
 	Msg.AddString(pCmd, 256);
-	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL);
+	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL);
 }
 
 bool CClient::ConnectionProblems() const
 {
-	return m_NetClient.GotProblems(CModAPI_MetaNetClient::DST_SERVER) != 0;
+	return m_NetClient.GotProblems(tu::CMetaNetClient::DST_SERVER) != 0;
 }
 
 void CClient::DirectInput(int *pInput, int Size)
@@ -428,7 +428,7 @@ void CClient::DirectInput(int *pInput, int Size)
 	for(int i = 0; i < Size/4; i++)
 		Msg.AddInt(pInput[i]);
 
-	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
+	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, 0);
 }
 
 
@@ -462,7 +462,7 @@ void CClient::SendInput()
 	m_CurrentInput++;
 	m_CurrentInput%=200;
 
-	SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_FLUSH);
+	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_FLUSH);
 }
 
 const char *CClient::LatestVersion() const
@@ -545,17 +545,17 @@ void CClient::Connect(const char *pAddress, int Protocol)
 
 	str_copy(m_aServerAddressStr, pAddress, sizeof(m_aServerAddressStr));
 
-	str_format(aBuf, sizeof(aBuf), "connecting to '%s' (proto %s)", m_aServerAddressStr, (Protocol == MODAPI_SERVERPROTOCOL_TW06 ? "tw06" : "tw07"));
+	str_format(aBuf, sizeof(aBuf), "connecting to '%s' (proto %s)", m_aServerAddressStr, (Protocol == tu::SERVERPROTOCOL_TW06 ? "tw06" : "tw07"));
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
 
 	mem_zero(&m_CurrentServerInfo, sizeof(m_CurrentServerInfo));
 
-	if(net_addr_from_str(&m_ServerAddress, m_aServerAddressStr) != 0 && net_host_lookup(m_aServerAddressStr, &m_ServerAddress, m_NetClient.NetType(CModAPI_MetaNetClient::DST_SERVER)) != 0)
+	if(net_addr_from_str(&m_ServerAddress, m_aServerAddressStr) != 0 && net_host_lookup(m_aServerAddressStr, &m_ServerAddress, m_NetClient.NetType(tu::CMetaNetClient::DST_SERVER)) != 0)
 	{
 		char aBufMsg[256];
 		str_format(aBufMsg, sizeof(aBufMsg), "could not find the address of %s, connecting to localhost", aBuf);
 		m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBufMsg);
-		net_host_lookup("localhost", &m_ServerAddress, m_NetClient.NetType(CModAPI_MetaNetClient::DST_SERVER));
+		net_host_lookup("localhost", &m_ServerAddress, m_NetClient.NetType(tu::CMetaNetClient::DST_SERVER));
 	}
 
 	m_RconAuthed = 0;
@@ -563,10 +563,10 @@ void CClient::Connect(const char *pAddress, int Protocol)
 		m_ServerAddress.port = Port;
 	
 	bool ConnectionRes;
-	if(Protocol == MODAPI_SERVERPROTOCOL_TW06)
-		ConnectionRes = m_NetClient.Connect(CModAPI_MetaNetClient::DST_SERVER06, &m_ServerAddress);
+	if(Protocol == tu::SERVERPROTOCOL_TW06)
+		ConnectionRes = m_NetClient.Connect(tu::CMetaNetClient::DST_SERVER06, &m_ServerAddress);
 	else
-		ConnectionRes = m_NetClient.Connect(CModAPI_MetaNetClient::DST_SERVER07, &m_ServerAddress);
+		ConnectionRes = m_NetClient.Connect(tu::CMetaNetClient::DST_SERVER07, &m_ServerAddress);
 	
 	if(ConnectionRes)
 	{
@@ -600,16 +600,16 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_RconAuthed = 0;
 	m_UseTempRconCommands = 0;
 	m_pConsole->DeregisterTempAll();
-	m_NetClient.Disconnect(CModAPI_MetaNetClient::DST_SERVER, pReason);
+	m_NetClient.Disconnect(tu::CMetaNetClient::DST_SERVER, pReason);
 	SetState(IClient::STATE_OFFLINE);
 	
 	m_ModDownloadFinished = false;
 	m_MapDownloadFinished = false;
-	m_ModAPIServer = false;
+	m_TUServer = false;
 	
 	m_pMap->Unload();
 	
-	//ModAPI unload mod graphics
+	//TU unload mod graphics
 	if(AssetManager())
 	{
 		AssetManager()->OnAssetsFileUnloaded();
@@ -624,7 +624,7 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_MapdownloadTotalsize = -1;
 	m_MapdownloadAmount = 0;
 	
-	//ModAPI unload the mod and disable all downloads
+	//TU unload the mod and disable all downloads
 	m_pAssetsFile->Unload();
 
 	m_ModdownloadChunk = 0;
@@ -827,15 +827,15 @@ void CClient::DebugRender()
 
 void CClient::Quit()
 {
-	delete m_pModAPIGraphics;
-	m_pModAPIGraphics = 0;
+	delete m_pTUGraphics;
+	m_pTUGraphics = 0;
 	
 	SetState(IClient::STATE_QUITING);
 }
 
 const char *CClient::ErrorString() const
 {
-	return m_NetClient.ErrorString(CModAPI_MetaNetClient::DST_SERVER);
+	return m_NetClient.ErrorString(tu::CMetaNetClient::DST_SERVER);
 }
 
 void CClient::Render()
@@ -1049,7 +1049,7 @@ void CClient::ProcessConnlessPacket_TW07(CNetChunk *pPacket)
 			Packet.m_pData = VERSIONSRV_GETMAPLIST;
 			Packet.m_DataSize = sizeof(VERSIONSRV_GETMAPLIST);
 			Packet.m_Flags = NETSENDFLAG_CONNLESS;
-			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER07, &Packet);
+			m_NetClient.Send(tu::CMetaNetClient::DST_MASTER07, &Packet);
 		}
 
 		// map version list
@@ -1109,7 +1109,7 @@ void CClient::ProcessConnlessPacket_TW07(CNetChunk *pPacket)
 			}
 			Addr.port = (pAddrs[i].m_aPort[0]<<8) | pAddrs[i].m_aPort[1];
 
-			m_ServerBrowser.Set(Addr, CServerBrowser::SET_MASTER_ADD, -1, 0x0, MODAPI_SERVERPROTOCOL_TW07);
+			m_ServerBrowser.Set(Addr, CServerBrowser::SET_MASTER_ADD, -1, 0x0, tu::SERVERPROTOCOL_TW07);
 		}
 	}
 
@@ -1124,7 +1124,7 @@ void CClient::ProcessConnlessPacket_TW07(CNetChunk *pPacket)
 		if(!UnpackServerInfo_TW07(&Up, &Info, &Token) && !Up.Error())
 		{
 			qsort(Info.m_aClients, Info.m_NumClients, sizeof(*Info.m_aClients), PlayerScoreComp);
-			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info, MODAPI_SERVERPROTOCOL_TW07);
+			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info, tu::SERVERPROTOCOL_TW07);
 		}
 	}
 }
@@ -1184,7 +1184,7 @@ void CClient::ProcessConnlessPacket_TW06(CNetChunk *pPacket)
 			}
 			Addr.port = (pAddrs[i].m_aPort[0]<<8) | pAddrs[i].m_aPort[1];
 
-			m_ServerBrowser.Set(Addr, CServerBrowser::SET_MASTER_ADD, -1, 0x0, MODAPI_SERVERPROTOCOL_TW06);
+			m_ServerBrowser.Set(Addr, CServerBrowser::SET_MASTER_ADD, -1, 0x0, tu::SERVERPROTOCOL_TW06);
 		}
 	}
 
@@ -1199,7 +1199,7 @@ void CClient::ProcessConnlessPacket_TW06(CNetChunk *pPacket)
 		if(!UnpackServerInfo_TW06(&Up, &Info, &Token) && !Up.Error())
 		{
 			qsort(Info.m_aClients, Info.m_NumClients, sizeof(*Info.m_aClients), PlayerScoreComp);
-			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info, MODAPI_SERVERPROTOCOL_TW06);
+			m_ServerBrowser.Set(pPacket->m_Address, CServerBrowser::SET_TOKEN, Token, &Info, tu::SERVERPROTOCOL_TW06);
 		}
 	}
 }
@@ -1226,7 +1226,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 	if(Sys)
 	{
 		// system message
-		//ModAPI
+		//TU
 		if(Msg == NETMSG_MAP_CHANGE)
 		{
 			const char *pMap = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
@@ -1283,7 +1283,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 
 					//~ CMsgPacker Msg(TW06_NETMSG_REQUEST_MAP_DATA);
 					//~ Msg.AddInt(m_MapdownloadChunk);
-					//~ SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+					//~ SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 					//~ if(g_Config.m_Debug)
 						//~ m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested first chunk package");
 				}
@@ -1325,7 +1325,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 				if(!pError)
 				{
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
-					if(m_ModDownloadFinished || !m_ModAPIServer)
+					if(m_ModDownloadFinished || !m_TUServer)
 					{
 						SendReady();
 					}
@@ -1337,14 +1337,14 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 			{
 				// request next chunk package of map data
 				CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA, true);
-				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+				SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 
 				if(g_Config.m_Debug)
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
 			}
 		}
-		//ModAPI
-		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MODAPI_MOD_DATA)
+		//TU
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_TU_MOD_DATA)
 		{			
 			if(!m_ModdownloadFile)
 				return;
@@ -1389,8 +1389,8 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 			else if(m_ModdownloadChunk%m_ModdownloadChunkNum == 0)
 			{
 				// request next chunk package of mod data
-				CMsgPacker Msg(NETMSG_MODAPI_REQUEST_MOD_DATA, true);
-				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+				CMsgPacker Msg(NETMSG_TU_REQUEST_MOD_DATA, true);
+				SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 
 				if(g_Config.m_Debug)
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
@@ -1414,7 +1414,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 		else if(Msg == NETMSG_PING)
 		{
 			CMsgPacker Msg(NETMSG_PING_REPLY, true);
-			SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
+			SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, 0);
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_CMD_ADD)
 		{
@@ -1704,8 +1704,8 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 		bool SimulateMapChangeMsg = false;
 		
 		// system message
-		//ModAPI
-		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MODAPI_INITDATA)
+		//TU
+		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_TU_INITDATA)
 		{
 			SimulateMapChangeMsg = true;
 			
@@ -1733,7 +1733,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 				DisconnectWithReason(pError);
 			else
 			{
-				m_ModAPIServer = true;
+				m_TUServer = true;
 				
 				pError = LoadModSearch(pMod, ModCrc);
 
@@ -1763,8 +1763,8 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 					m_ModdownloadAmount = 0;
 
 					// request first chunk package of mod data
-					CMsgPacker Msg(NETMSG_MODAPI_REQUEST_MOD_DATA, true);
-					SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+					CMsgPacker Msg(NETMSG_TU_REQUEST_MOD_DATA, true);
+					SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 					
 					m_ModDownloadFinished = false;
 
@@ -1809,7 +1809,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 				{
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
 					m_MapDownloadFinished = true;
-					if(m_ModDownloadFinished || !m_ModAPIServer)
+					if(m_ModDownloadFinished || !m_TUServer)
 					{
 						SendReady();
 					}
@@ -1837,7 +1837,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 					// request first chunk package of map data
 					SetState(IClient::STATE_LOADING);
 					CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA, true);
-					SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+					SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 					if(g_Config.m_Debug)
 						m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested first chunk package");
 						
@@ -1877,7 +1877,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 				if(!pError)
 				{
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
-					if(m_ModDownloadFinished || !m_ModAPIServer)
+					if(m_ModDownloadFinished || !m_TUServer)
 					{
 						SendReady();
 					}
@@ -1889,14 +1889,14 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 			{
 				// request next chunk package of map data
 				CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA, true);
-				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+				SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 
 				if(g_Config.m_Debug)
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
 			}
 		}
-		//ModAPI
-		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_MODAPI_MOD_DATA)
+		//TU
+		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_TU_MOD_DATA)
 		{			
 			if(!m_ModdownloadFile)
 				return;
@@ -1941,8 +1941,8 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 			else if(m_ModdownloadChunk%m_ModdownloadChunkNum == 0)
 			{
 				// request next chunk package of mod data
-				CMsgPacker Msg(NETMSG_MODAPI_REQUEST_MOD_DATA, true);
-				SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+				CMsgPacker Msg(NETMSG_TU_REQUEST_MOD_DATA, true);
+				SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 
 				if(g_Config.m_Debug)
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested next chunk package");
@@ -1966,7 +1966,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 		else if(Msg == NETMSG_PING)
 		{
 			CMsgPacker Msg(NETMSG_PING_REPLY, true);
-			SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
+			SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, 0);
 		}
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_RCON_CMD_ADD)
 		{
@@ -2239,17 +2239,17 @@ void CClient::PumpNetwork()
 	if(State() != IClient::STATE_DEMOPLAYBACK)
 	{
 		// check for errors
-		if(State() != IClient::STATE_OFFLINE && State() != IClient::STATE_QUITING && m_NetClient.State(CModAPI_MetaNetClient::DST_SERVER) == NETSTATE_OFFLINE)
+		if(State() != IClient::STATE_OFFLINE && State() != IClient::STATE_QUITING && m_NetClient.State(tu::CMetaNetClient::DST_SERVER) == NETSTATE_OFFLINE)
 		{
 			SetState(IClient::STATE_OFFLINE);
 			Disconnect();
 			char aBuf[256];
-			str_format(aBuf, sizeof(aBuf), "offline error='%s'", m_NetClient.ErrorString(CModAPI_MetaNetClient::DST_SERVER));
+			str_format(aBuf, sizeof(aBuf), "offline error='%s'", m_NetClient.ErrorString(tu::CMetaNetClient::DST_SERVER));
 			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
 		}
 
 		//
-		if(State() == IClient::STATE_CONNECTING && m_NetClient.State(CModAPI_MetaNetClient::DST_SERVER) == NETSTATE_ONLINE)
+		if(State() == IClient::STATE_CONNECTING && m_NetClient.State(tu::CMetaNetClient::DST_SERVER) == NETSTATE_ONLINE)
 		{
 			// we switched to online
 			m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", "connected, sending info");
@@ -2434,7 +2434,7 @@ void CClient::Update()
 			if(Now > ActionTaken+time_freq()*2)
 			{
 				m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "stress", "reconnecting!");
-				Connect(g_Config.m_DbgStressServer, MODAPI_CLIENTPROTOCOL_TW07);
+				Connect(g_Config.m_DbgStressServer, tu::CLIENTPROTOCOL_TW07);
 				ActionTaken = Now;
 			}
 		}
@@ -2460,7 +2460,7 @@ void CClient::Update()
 	m_ResortServerBrowser = false;
 
 	// update gameclient
-	if(m_ClientMode == MODAPI_CLIENTMODE_GAME)
+	if(m_ClientMode == TU_CLIENTMODE_GAME)
 		GameClient()->OnUpdate();
 }
 
@@ -2468,7 +2468,7 @@ void CClient::VersionUpdate()
 {
 	if(m_VersionInfo.m_State == CVersionInfo::STATE_INIT)
 	{
-		Engine()->HostLookup(&m_VersionInfo.m_VersionServeraddr, g_Config.m_ClVersionServer, m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER07));
+		Engine()->HostLookup(&m_VersionInfo.m_VersionServeraddr, g_Config.m_ClVersionServer, m_NetClient.NetType(tu::CMetaNetClient::DST_MASTER07));
 		m_VersionInfo.m_State = CVersionInfo::STATE_START;
 	}
 	else if(m_VersionInfo.m_State == CVersionInfo::STATE_START)
@@ -2487,7 +2487,7 @@ void CClient::VersionUpdate()
 			Packet.m_DataSize = sizeof(VERSIONSRV_GETVERSION);
 			Packet.m_Flags = NETSENDFLAG_CONNLESS;
 
-			m_NetClient.Send(CModAPI_MetaNetClient::DST_MASTER07, &Packet);
+			m_NetClient.Send(tu::CMetaNetClient::DST_MASTER07, &Packet);
 			m_VersionInfo.m_State = CVersionInfo::STATE_READY;
 		}
 	}
@@ -2506,13 +2506,13 @@ void CClient::InitInterfaces()
 	// fetch interfaces
 	m_pEngine = Kernel()->RequestInterface<IEngine>();
 	m_pEditor = Kernel()->RequestInterface<IEditor>();
-	m_pAssetsEditor = Kernel()->RequestInterface<IModAPI_AssetsEditor>();
+	m_pAssetsEditor = Kernel()->RequestInterface<tu::IAssetsEditor>();
 	//m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pSound = Kernel()->RequestInterface<IEngineSound>();
 	m_pGameClient = Kernel()->RequestInterface<IGameClient>();
 	m_pInput = Kernel()->RequestInterface<IEngineInput>();
 	m_pMap = Kernel()->RequestInterface<IEngineMap>();
-	m_pAssetsFile = Kernel()->RequestInterface<IModAPI_AssetsFileEngine>();
+	m_pAssetsFile = Kernel()->RequestInterface<tu::IAssetsFileEngine>();
 	m_pMasterServer = Kernel()->RequestInterface<IEngineMasterServer>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
@@ -2553,8 +2553,8 @@ void CClient::Run()
 			return;
 		}
 		
-		m_pAssetManager = new CModAPI_AssetManager(Graphics(), Storage());
-		m_pModAPIGraphics = new CModAPI_Client_Graphics(Graphics(), AssetManager());
+		m_pAssetManager = new tu::CAssetManager(Graphics(), Storage());
+		m_pTUGraphics = new tu::CClient_Graphics(Graphics(), AssetManager());
 	}
 
 	// init sound, allowed to fail
@@ -2579,8 +2579,8 @@ void CClient::Run()
 		}
 		
 		{
-			CModAPI_NetClient_TW07* pNetClient = new CModAPI_NetClient_TW07(&m_NetClient, ProcessServerPacketCallback_TW07, 0);
-			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_SERVER07, pNetClient, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
+			tu::CNetClient_TW07* pNetClient = new tu::CNetClient_TW07(&m_NetClient, ProcessServerPacketCallback_TW07, 0);
+			if(!m_NetClient.OpenNetClient(tu::CMetaNetClient::DST_SERVER07, pNetClient, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
 			{
 				dbg_msg("server", "couldn't open socket(net)");
 				delete pNetClient;
@@ -2588,8 +2588,8 @@ void CClient::Run()
 			}
 		}
 		{
-			CModAPI_NetClient_TW06* pNetClient = new CModAPI_NetClient_TW06(&m_NetClient, ProcessServerPacketCallback_TW06, 0);
-			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_SERVER06, pNetClient, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
+			tu::CNetClient_TW06* pNetClient = new tu::CNetClient_TW06(&m_NetClient, ProcessServerPacketCallback_TW06, 0);
+			if(!m_NetClient.OpenNetClient(tu::CMetaNetClient::DST_SERVER06, pNetClient, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
 			{
 				dbg_msg("server", "couldn't open socket(net)");
 				delete pNetClient;
@@ -2600,8 +2600,8 @@ void CClient::Run()
 		BindAddr.port = 0;
 		
 		{
-			CModAPI_NetClient_TW07* pNetClient = new CModAPI_NetClient_TW07(&m_NetClient, 0, ProcessConnlessPacketCallback_TW07);
-			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_MASTER07, pNetClient, BindAddr, 0x0))
+			tu::CNetClient_TW07* pNetClient = new tu::CNetClient_TW07(&m_NetClient, 0, ProcessConnlessPacketCallback_TW07);
+			if(!m_NetClient.OpenNetClient(tu::CMetaNetClient::DST_MASTER07, pNetClient, BindAddr, 0x0))
 			{
 				dbg_msg("server", "couldn't open socket(contact)");
 				delete pNetClient;
@@ -2609,8 +2609,8 @@ void CClient::Run()
 			}
 		}
 		{
-			CModAPI_NetClient_TW06* pNetClient = new CModAPI_NetClient_TW06(&m_NetClient, 0, ProcessConnlessPacketCallback_TW06);
-			if(!m_NetClient.OpenNetClient(CModAPI_MetaNetClient::DST_MASTER06, pNetClient, BindAddr, 0x0))
+			tu::CNetClient_TW06* pNetClient = new tu::CNetClient_TW06(&m_NetClient, 0, ProcessConnlessPacketCallback_TW06);
+			if(!m_NetClient.OpenNetClient(tu::CMetaNetClient::DST_MASTER06, pNetClient, BindAddr, 0x0))
 			{
 				dbg_msg("server", "couldn't open socket(contact)");
 				delete pNetClient;
@@ -2626,7 +2626,7 @@ void CClient::Run()
 	Input()->Init();
 
 	// start refreshing addresses while we load
-	MasterServer()->RefreshAddresses(m_NetClient.NetType(CModAPI_MetaNetClient::DST_MASTER07));
+	MasterServer()->RefreshAddresses(m_NetClient.NetType(tu::CMetaNetClient::DST_MASTER07));
 
 	// init the editor
 	m_pEditor->Init();
@@ -2639,7 +2639,7 @@ void CClient::Run()
 	GameClient()->OnInit();
 	
 	m_pAssetManager->Init(Storage());
-	m_pAssetsEditor->Init(m_pAssetManager, m_pModAPIGraphics);
+	m_pAssetsEditor->Init(m_pAssetManager, m_pTUGraphics);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "version %s", GameClient()->NetVersion());
@@ -2656,7 +2656,7 @@ void CClient::Run()
 	m_FpsGraph.Init(0.0f, 120.0f);
 
 	// never start with the editor
-	g_Config.m_ClMode = MODAPI_CLIENTMODE_GAME;
+	g_Config.m_ClMode = TU_CLIENTMODE_GAME;
 
 	// process pending commands
 	m_pConsole->StoreCommands(false);
@@ -2672,7 +2672,7 @@ void CClient::Run()
 			str_copy(g_Config.m_UiServerAddress, m_aCmdConnect, sizeof(g_Config.m_UiServerAddress));
 			Connect(m_aCmdConnect, m_CmdConnectProtocol);
 			m_aCmdConnect[0] = 0;
-			m_CmdConnectProtocol = MODAPI_SERVERPROTOCOL_TW07;
+			m_CmdConnectProtocol = tu::SERVERPROTOCOL_TW07;
 		}
 
 		// update input
@@ -2731,10 +2731,10 @@ void CClient::Run()
 
 		if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_E, true))
 		{
-			if(g_Config.m_ClMode == MODAPI_CLIENTMODE_MAPEDITOR)
-				g_Config.m_ClMode = MODAPI_CLIENTMODE_GAME;
+			if(g_Config.m_ClMode == TU_CLIENTMODE_MAPEDITOR)
+				g_Config.m_ClMode = TU_CLIENTMODE_GAME;
 			else
-				g_Config.m_ClMode = MODAPI_CLIENTMODE_MAPEDITOR;
+				g_Config.m_ClMode = TU_CLIENTMODE_MAPEDITOR;
 			Input()->MouseModeRelative();
 		}
 
@@ -2742,7 +2742,7 @@ void CClient::Run()
 		{
 			if(g_Config.m_ClMode != m_ClientMode)
 			{
-				if(m_ClientMode == MODAPI_CLIENTMODE_GAME)
+				if(m_ClientMode == TU_CLIENTMODE_GAME)
 				{
 					GameClient()->OnActivateEditor();
 				}
@@ -2772,15 +2772,15 @@ void CClient::Run()
 				{
 					switch(m_ClientMode)
 					{
-						case MODAPI_CLIENTMODE_MAPEDITOR:
+						case TU_CLIENTMODE_MAPEDITOR:
 							m_pEditor->UpdateAndRender();
 							DebugRender();
 							break;
-						case MODAPI_CLIENTMODE_ASSETSEDITOR:
+						case TU_CLIENTMODE_ASSETSEDITOR:
 							GameClient()->DrawBackground();
 							m_pAssetsEditor->UpdateAndRender();
 							break;
-						case MODAPI_CLIENTMODE_GAME:
+						case TU_CLIENTMODE_GAME:
 						default:
 							Render();
 					}
@@ -2858,7 +2858,7 @@ void CClient::Con_Connect(IConsole::IResult *pResult, void *pUserData)
 {
 	CClient *pSelf = (CClient *)pUserData;
 	str_copy(pSelf->m_aCmdConnect, pResult->GetString(0), sizeof(pSelf->m_aCmdConnect));
-	pSelf->m_CmdConnectProtocol = MODAPI_SERVERPROTOCOL_TW07;
+	pSelf->m_CmdConnectProtocol = tu::SERVERPROTOCOL_TW07;
 }
 
 void CClient::Con_Disconnect(IConsole::IResult *pResult, void *pUserData)
@@ -2884,7 +2884,7 @@ void CClient::Con_Ping(IConsole::IResult *pResult, void *pUserData)
 	CClient *pSelf = (CClient *)pUserData;
 
 	CMsgPacker Msg(NETMSG_PING, true);
-	pSelf->SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Msg, 0);
+	pSelf->SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, 0);
 	pSelf->m_PingStartTime = time_get();
 }
 
@@ -2934,7 +2934,7 @@ const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 	int Crc;
 	
 	Disconnect();
-	m_NetClient.ResetErrorString(CModAPI_MetaNetClient::DST_SERVER07);
+	m_NetClient.ResetErrorString(tu::CMetaNetClient::DST_SERVER07);
 
 	// try to start playback
 	m_DemoPlayer.SetListner(this);
@@ -3240,7 +3240,7 @@ int main(int argc, const char **argv) // ignore_convention
 	IEngineInput *pEngineInput = CreateEngineInput();
 	IEngineTextRender *pEngineTextRender = CreateEngineTextRender();
 	IEngineMap *pEngineMap = CreateEngineMap();
-	IModAPI_AssetsFileEngine *pEngineAssetsFile = CreateAssetsFileEngine();
+	tu::IAssetsFileEngine *pEngineAssetsFile = tu::CreateAssetsFileEngine();
 	IEngineMasterServer *pEngineMasterServer = CreateEngineMasterServer();
 
 	{
@@ -3262,14 +3262,14 @@ int main(int argc, const char **argv) // ignore_convention
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMap*>(pEngineMap)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMap*>(pEngineMap));
 
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IModAPI_AssetsFileEngine*>(pEngineAssetsFile)); // register as both
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IModAPI_AssetsFile*>(pEngineAssetsFile));
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFileEngine*>(pEngineAssetsFile)); // register as both
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFile*>(pEngineAssetsFile));
 
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMasterServer*>(pEngineMasterServer)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMasterServer*>(pEngineMasterServer));
 
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateEditor());
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateAssetsEditor());
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(tu::CreateAssetsEditor());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateGameClient());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);
 
@@ -3332,10 +3332,11 @@ int main(int argc, const char **argv) // ignore_convention
 	return 0;
 }
 
-//ModAPI
+//TU
 
 void CClient::LoadAssetsFile(const char* pFileName)
 {
+	//.map or .assets detection
 	if(m_pAssetsFile->Load(pFileName))
 	{
 		DemoRecorder_Stop();

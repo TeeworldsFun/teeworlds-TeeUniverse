@@ -5,7 +5,7 @@
 #include "gamecontext.h"
 #include "player.h"
 
-CEntity::CEntity(CGameWorld *pGameWorld, int ObjType, vec2 Pos, int ProximityRadius)
+CEntityCore::CEntityCore(CGameWorld *pGameWorld, int ObjType, vec2 Pos, int ProximityRadius)
 {
 	m_pGameWorld = pGameWorld;
 
@@ -20,17 +20,17 @@ CEntity::CEntity(CGameWorld *pGameWorld, int ObjType, vec2 Pos, int ProximityRad
 	m_Pos = Pos;
 }
 
-CEntity::~CEntity()
+CEntityCore::~CEntityCore()
 {
 	GameWorld()->RemoveEntity(this);
 }
 
-int CEntity::NetworkClipped(int SnappingClient)
+int CEntityCore::NetworkClipped(int SnappingClient)
 {
 	return NetworkClipped(SnappingClient, m_Pos);
 }
 
-int CEntity::NetworkClipped(int SnappingClient, vec2 CheckPos)
+int CEntityCore::NetworkClipped(int SnappingClient, vec2 CheckPos)
 {
 	if(SnappingClient == -1)
 		return 0;
@@ -46,7 +46,7 @@ int CEntity::NetworkClipped(int SnappingClient, vec2 CheckPos)
 	return 0;
 }
 
-bool CEntity::GameLayerClipped(vec2 CheckPos)
+bool CEntityCore::GameLayerClipped(vec2 CheckPos)
 {
 	int rx = round_to_int(CheckPos.x) / 32;
 	int ry = round_to_int(CheckPos.y) / 32;

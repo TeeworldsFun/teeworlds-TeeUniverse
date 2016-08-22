@@ -1,4 +1,4 @@
-ModAPI for Teeworlds
+TeeUniverses
 
 A new protocol and a set functionalities to make great mods in TeeWorlds.
 
@@ -6,6 +6,3 @@ A new protocol and a set functionalities to make great mods in TeeWorlds.
 * necropotame
 * Henningstone
 * killa
-
-## Credits
-* The GUI part of ModAPI is based on NetGUI, by Henningstone

@@ -3,7 +3,10 @@
 #include <engine/shared/datafile.h>
 #include <modapi/client/assetsmanager.h>
 
-void CModAPI_Asset_Image::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager, IModAPI_AssetsFile* pAssetsFile, const CModAPI_Asset_Image::CStorageType* pItem)
+namespace tu
+{
+
+void CAsset_Image::InitFromAssetsFile(CAssetManager* pAssetManager, tu::IAssetsFile* pAssetsFile, const CAsset_Image::CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -19,7 +22,7 @@ void CModAPI_Asset_Image::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager
 	
 	// copy image data
 	void *pData = pAssetsFile->GetData(pItem->m_ImageData);
-	m_pData = mem_alloc(ImageSize, 1);
+	m_pData = (unsigned char*) mem_alloc(ImageSize, 1);
 	mem_copy(m_pData, pData, ImageSize);
 	
 	m_Texture = pAssetManager->Graphics()->LoadTextureRaw(m_Width, m_Height, m_Format, m_pData, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_MULTI_DIMENSION);
@@ -28,9 +31,9 @@ void CModAPI_Asset_Image::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager
 	pAssetsFile->UnloadData(pItem->m_ImageData);
 }
 
-void CModAPI_Asset_Image::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
+void CAsset_Image::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
-	CModAPI_Asset_Image::CStorageType Item;
+	CAsset_Image::CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 	Item.m_Width = m_Width; // ignore_convention
 	Item.m_Height = m_Height; // ignore_convention
@@ -42,21 +45,69 @@ void CModAPI_Asset_Image::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Pos
 	int ImageSize = m_Width * m_Height * PixelSize;
 	
 	Item.m_ImageData = pFileWriter->AddData(ImageSize, m_pData);
-	pFileWriter->AddItem(CModAPI_AssetPath::TypeToStoredType(CModAPI_Asset_Image::TypeId), Position, sizeof(CModAPI_Asset_Image::CStorageType), &Item);
+	pFileWriter->AddItem(CAssetPath::TypeToStoredType(CAsset_Image::TypeId), Position, sizeof(CAsset_Image::CStorageType), &Item);
 }
 
-void CModAPI_Asset_Image::Unload(class CModAPI_AssetManager* pAssetManager)
+int CAsset_Image::GetDataSize() const
+{
+	int PixelSize;
+	switch(m_Format)
+	{
+		case FORMAT_ALPHA:
+			PixelSize = 1;
+			break;
+		case FORMAT_RGB:
+			PixelSize = 3;
+			break;
+		case FORMAT_RGBA:
+			PixelSize = 4;
+			break;
+	}
+	
+	return m_Width*m_Height*PixelSize;
+}
+
+void CAsset_Image::SetData(int Width, int Height, int Format, unsigned char* pData)
+{
+	if(m_pData)
+		delete[] m_pData;
+	
+	m_Width = Width;
+	m_Height = Height;
+	m_Format = Format;
+	
+	int PixelSize;
+	switch(m_Format)
+	{
+		case FORMAT_ALPHA:
+			PixelSize = 1;
+			break;
+		case FORMAT_RGB:
+			PixelSize = 3;
+			break;
+		case FORMAT_RGBA:
+			PixelSize = 4;
+			break;
+	}
+	
+	int DataSize = GetDataSize();
+	m_pData = new unsigned char[DataSize];
+	
+	mem_copy(m_pData, pData, DataSize*sizeof(unsigned char));
+}
+
+void CAsset_Image::Unload(class CAssetManager* pAssetManager)
 {
 	pAssetManager->Graphics()->UnloadTexture(&m_Texture);
 	if(m_pData)
 	{
-		mem_free(m_pData);
+		delete[] m_pData;
 		m_pData = 0;
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Image::SetValue<int>(int ValueType, int Path, int Value)
+bool CAsset_Image::SetValue<int>(int ValueType, int Path, int Value)
 {
 	switch(ValueType)
 	{
@@ -68,11 +119,11 @@ bool CModAPI_Asset_Image::SetValue<int>(int ValueType, int Path, int Value)
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue<int>(ValueType, Path, Value);
 }
 
 template<>
-int CModAPI_Asset_Image::GetValue(int ValueType, int Path, int DefaultValue)
+int CAsset_Image::GetValue(int ValueType, int Path, int DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -85,6 +136,8 @@ int CModAPI_Asset_Image::GetValue(int ValueType, int Path, int DefaultValue)
 		case HEIGHT:
 			return m_Height;
 		default:
-			return CModAPI_Asset::GetValue<int>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<int>(ValueType, Path, DefaultValue);
 	}
+}
+
 }

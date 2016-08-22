@@ -1,14 +1,19 @@
-#ifndef MODAPI_CLIENT_ASSETS_SKELETON_H
-#define MODAPI_CLIENT_ASSETS_SKELETON_H
+#ifndef TU_CLIENT_ASSETS_SKELETON_H
+#define TU_CLIENT_ASSETS_SKELETON_H
 
 #include <modapi/client/assets.h>
 
-class CModAPI_Asset_Skeleton : public CModAPI_Asset
+class CDataFileWriter;
+
+namespace tu
+{
+
+class CAsset_Skeleton : public CAsset
 {
 public:
-	static const int TypeId = CModAPI_AssetPath::TYPE_SKELETON;
+	static const int TypeId = CAssetPath::TYPE_SKELETON;
 
-	struct CStorageType : public CModAPI_Asset::CStorageType
+	struct CStorageType : public CAsset::CStorageType
 	{
 		struct CBone
 		{
@@ -40,12 +45,12 @@ public:
 		int m_LayersData;
 	};
 	
-	void InitFromAssetsFile(class CModAPI_AssetManager* pAssetManager, class IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem);
-	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
-	void Unload(class CModAPI_AssetManager* pAssetManager);
+	void InitFromAssetsFile(class CAssetManager* pAssetManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
+	void Unload(class CAssetManager* pAssetManager);
 
 public:
-	class CSubPath : public CModAPI_GenericPath<2, 0, 0>
+	class CSubPath : public CGenericPath<2, 0, 0>
 	{
 	public:
 		enum
@@ -56,16 +61,16 @@ public:
 		};
 
 	public:
-		CSubPath() : CModAPI_GenericPath() { }
-		CSubPath(int PathInt) : CModAPI_GenericPath(PathInt) { }
-		CSubPath(int Type, int Id) : CModAPI_GenericPath(Type, 0, 0x0, Id) { }
+		CSubPath() : CGenericPath() { }
+		CSubPath(int PathInt) : CGenericPath(PathInt) { }
+		CSubPath(int Type, int Id) : CGenericPath(Type, 0, 0x0, Id) { }
 		
-		static inline CSubPath Null() { return CSubPath(CModAPI_GenericPath::UNDEFINED); }
+		static inline CSubPath Null() { return CSubPath(CGenericPath::UNDEFINED); }
 		static inline CSubPath Bone(int Id) { return CSubPath(TYPE_BONE, Id); }
 		static inline CSubPath Layer(int Id) { return CSubPath(TYPE_LAYER, Id); }
 	};
 	
-	class CBonePath : public CModAPI_GenericPath<0, 2, 0>
+	class CBonePath : public CGenericPath<0, 2, 0>
 	{
 	public:
 		enum
@@ -76,11 +81,11 @@ public:
 		};
 
 	public:
-		CBonePath() : CModAPI_GenericPath() { }
-		CBonePath(int PathInt) : CModAPI_GenericPath(PathInt) { }
-		CBonePath(int Source, int Id) : CModAPI_GenericPath(0, Source, 0x0, Id) { }
+		CBonePath() : CGenericPath() { }
+		CBonePath(int PathInt) : CGenericPath(PathInt) { }
+		CBonePath(int Source, int Id) : CGenericPath(0, Source, 0x0, Id) { }
 		
-		static inline CBonePath Null() { return CBonePath(CModAPI_GenericPath::UNDEFINED); }
+		static inline CBonePath Null() { return CBonePath(CGenericPath::UNDEFINED); }
 		static inline CBonePath Local(int Id) { return CBonePath(SRC_LOCAL, Id); }
 		static inline CBonePath Parent(int Id) { return CBonePath(SRC_PARENT, Id); }
 	};
@@ -89,7 +94,7 @@ public:
 	{
 	public:
 		//Hierarchy
-		CModAPI_Asset_Skeleton::CBonePath m_ParentPath;
+		CAsset_Skeleton::CBonePath m_ParentPath;
 		
 		//Physics
 		float m_Length;
@@ -104,7 +109,7 @@ public:
 		
 	public:
 		CBone() :
-			m_ParentPath(CModAPI_Asset_Skeleton::CBonePath::Null()),
+			m_ParentPath(CAsset_Skeleton::CBonePath::Null()),
 			m_Length(64.0f),
 			m_Anchor(1.0f),
 			m_Translation(vec2(0.0f, 0.0f)),
@@ -115,7 +120,7 @@ public:
 			
 		}
 		
-		inline CBone& Parent(CModAPI_Asset_Skeleton::CBonePath v)
+		inline CBone& Parent(CAsset_Skeleton::CBonePath v)
 		{
 			m_ParentPath = v;
 			return *this;
@@ -177,14 +182,14 @@ public:
 	};
 
 public:
-	CModAPI_AssetPath m_ParentPath;
-	CModAPI_AssetPath m_DefaultSkinPath;
+	CAssetPath m_ParentPath;
+	CAssetPath m_DefaultSkinPath;
 	array<CBone> m_Bones;
 	array<CLayer> m_Layers;
 
 public:
-	CModAPI_Asset_Skeleton() :
-		m_ParentPath(CModAPI_AssetPath::Null())
+	CAsset_Skeleton() :
+		m_ParentPath(CAssetPath::Null())
 	{
 		
 	}
@@ -203,7 +208,7 @@ public:
 
 	enum
 	{
-		PARENTPATH = CModAPI_Asset::NUM_MEMBERS, //Path
+		PARENTPATH = CAsset::NUM_MEMBERS, //Path
 		SKINPATH, //Path
 		BONE_PARENT, //Int
 		BONE_LENGTH, //Float
@@ -231,16 +236,16 @@ public:
 	template<typename T>
 	T GetValue(int ValueType, int Path, T DefaultValue)
 	{
-		return CModAPI_Asset::GetValue<T>(ValueType, Path, DefaultValue);
+		return CAsset::GetValue<T>(ValueType, Path, DefaultValue);
 	}
 	
 	template<typename T>
 	bool SetValue(int ValueType, int Path, T Value)
 	{
-		return CModAPI_Asset::SetValue<T>(ValueType, Path, Value);
+		return CAsset::SetValue<T>(ValueType, Path, Value);
 	}
 	
-	inline void OnAssetDeleted(const CModAPI_AssetPath& Path)
+	inline void OnAssetDeleted(const CAssetPath& Path)
 	{
 		m_ParentPath.OnIdDeleted(Path);
 		m_DefaultSkinPath.OnIdDeleted(Path);
@@ -286,9 +291,9 @@ public:
 		return false;
 	}
 	
-	inline void OnSubItemDeleted(const CModAPI_AssetPath& Path, int SubItemPath)
+	inline void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath)
 	{
-		if(Path.GetType() == CModAPI_AssetPath::TYPE_SKELETON)
+		if(Path.GetType() == CAssetPath::TYPE_SKELETON)
 		{
 			if(!(Path == m_ParentPath))
 				return;
@@ -312,5 +317,7 @@ public:
 		}
 	}
 };
+
+}
 
 #endif

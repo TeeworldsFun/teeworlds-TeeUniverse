@@ -4,8 +4,14 @@
 
 #include "popup.h"
 
-CModAPI_ClientGui_Popup::CModAPI_ClientGui_Popup(CModAPI_ClientGui_Config *pConfig, const CModAPI_ClientGui_Rect& CreatorRect, int Width, int Height, int Alignment) :
-	CModAPI_ClientGui_Widget(pConfig),
+namespace tu
+{
+	
+namespace gui
+{
+
+CPopup::CPopup(CConfig *pConfig, const CRect& CreatorRect, int Width, int Height, int Alignment) :
+	CWidget(pConfig),
 	m_Child(0),
 	m_IsClosed(false)
 {
@@ -15,7 +21,7 @@ CModAPI_ClientGui_Popup::CModAPI_ClientGui_Popup(CModAPI_ClientGui_Config *pConf
 	switch(Alignment)
 	{
 		case ALIGNMENT_LEFT:
-			SetRect(CModAPI_ClientGui_Rect(
+			SetRect(CRect(
 				CreatorRect.x - Width - m_pConfig->m_LayoutSpacing,
 				min(CreatorRect.y, ScreenHeight - Height - m_pConfig->m_LayoutSpacing),
 				Width,
@@ -24,7 +30,7 @@ CModAPI_ClientGui_Popup::CModAPI_ClientGui_Popup(CModAPI_ClientGui_Config *pConf
 			break;
 		case ALIGNMENT_RIGHT:
 		default:
-			SetRect(CModAPI_ClientGui_Rect(
+			SetRect(CRect(
 				CreatorRect.x + CreatorRect.w + m_pConfig->m_LayoutSpacing,
 				min(CreatorRect.y, ScreenHeight - Height - m_pConfig->m_LayoutSpacing),
 				Width,
@@ -33,13 +39,13 @@ CModAPI_ClientGui_Popup::CModAPI_ClientGui_Popup(CModAPI_ClientGui_Config *pConf
 	}
 }
 
-CModAPI_ClientGui_Popup::~CModAPI_ClientGui_Popup()
+CPopup::~CPopup()
 {
 	if(m_Child)
 		delete m_Child;
 }
 
-void CModAPI_ClientGui_Popup::Clear()
+void CPopup::Clear()
 {
 	if(m_Child)
 	{
@@ -50,11 +56,11 @@ void CModAPI_ClientGui_Popup::Clear()
 	}
 }
 
-void CModAPI_ClientGui_Popup::Update()
+void CPopup::Update()
 {
 	if(m_Child)
 	{
-		m_Child->SetRect(CModAPI_ClientGui_Rect(
+		m_Child->SetRect(CRect(
 			m_Rect.x + m_pConfig->m_LayoutMargin,
 			m_Rect.y + m_pConfig->m_LayoutMargin,
 			m_Rect.w - m_pConfig->m_LayoutMargin*2,
@@ -64,7 +70,7 @@ void CModAPI_ClientGui_Popup::Update()
 	}
 }
 	
-void CModAPI_ClientGui_Popup::Render()
+void CPopup::Render()
 {
 	if(!m_Child)
 		return;
@@ -82,13 +88,13 @@ void CModAPI_ClientGui_Popup::Render()
 	m_Child->Render();
 }
 
-void CModAPI_ClientGui_Popup::Add(CModAPI_ClientGui_Widget* pWidget)
+void CPopup::Add(CWidget* pWidget)
 {
 	if(m_Child) delete m_Child;
 	m_Child = pWidget;
 }
 
-void CModAPI_ClientGui_Popup::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CPopup::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_Child)
 	{
@@ -96,7 +102,7 @@ void CModAPI_ClientGui_Popup::OnMouseOver(int X, int Y, int RelX, int RelY, int 
 	}
 }
 
-void CModAPI_ClientGui_Popup::OnButtonClick(int X, int Y, int Button)
+void CPopup::OnButtonClick(int X, int Y, int Button)
 {
 	if(m_Rect.IsInside(X, Y))
 	{
@@ -111,7 +117,7 @@ void CModAPI_ClientGui_Popup::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_Popup::OnButtonRelease(int Button)
+void CPopup::OnButtonRelease(int Button)
 {
 	if(m_Child)
 	{
@@ -119,7 +125,7 @@ void CModAPI_ClientGui_Popup::OnButtonRelease(int Button)
 	}
 }
 
-void CModAPI_ClientGui_Popup::OnInputEvent()
+void CPopup::OnInputEvent()
 {
 	if(m_Child)
 	{
@@ -127,12 +133,16 @@ void CModAPI_ClientGui_Popup::OnInputEvent()
 	}
 }
 
-void CModAPI_ClientGui_Popup::Close()
+void CPopup::Close()
 {
 	m_IsClosed = true;
 }
 
-bool CModAPI_ClientGui_Popup::IsClosed()
+bool CPopup::IsClosed()
 {
 	return m_IsClosed;
+}
+
+}
+
 }

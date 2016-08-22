@@ -4,19 +4,22 @@
 #include <modapi/client/graphics.h>
 #include <modapi/client/assets/character.h>
 
+namespace tu
+{
+
 /* IO *****************************************************************/
 
-void CModAPI_Asset_CharacterPart::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager, IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_CharacterPart::InitFromAssetsFile(CAssetManager* pAssetManager, tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// load name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
 	
-	m_CharacterPath = CModAPI_AssetPath(pItem->m_CharacterPath);
-	m_CharacterPart = CModAPI_Asset_Character::CSubPath(pItem->m_CharacterPart);
-	m_SkeletonSkinPath = CModAPI_AssetPath(pItem->m_SkeletonSkinPath);
+	m_CharacterPath = CAssetPath(pItem->m_CharacterPath);
+	m_CharacterPart = CAsset_Character::CSubPath(pItem->m_CharacterPart);
+	m_SkeletonSkinPath = CAssetPath(pItem->m_SkeletonSkinPath);
 }
 
-void CModAPI_Asset_CharacterPart::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
+void CAsset_CharacterPart::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
@@ -25,10 +28,10 @@ void CModAPI_Asset_CharacterPart::SaveInAssetsFile(CDataFileWriter* pFileWriter,
 	Item.m_CharacterPart = m_CharacterPart.ConvertToInteger();
 	Item.m_SkeletonSkinPath = m_SkeletonSkinPath.ConvertToInteger();
 	
-	pFileWriter->AddItem(CModAPI_AssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
+	pFileWriter->AddItem(CAssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
 }
 
-void CModAPI_Asset_CharacterPart::Unload(class CModAPI_AssetManager* pAssetManager)
+void CAsset_CharacterPart::Unload(class CAssetManager* pAssetManager)
 {
 	
 }
@@ -36,19 +39,19 @@ void CModAPI_Asset_CharacterPart::Unload(class CModAPI_AssetManager* pAssetManag
 /* VALUE INT **********************************************************/
 
 template<>
-int CModAPI_Asset_CharacterPart::GetValue(int ValueType, int Path, int DefaultValue)
+int CAsset_CharacterPart::GetValue(int ValueType, int Path, int DefaultValue)
 {
 	switch(ValueType)
 	{
 		case CHARACTERPART:
 			return m_CharacterPart.ConvertToInteger();
 		default:
-			return CModAPI_Asset::GetValue<int>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<int>(ValueType, Path, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_CharacterPart::SetValue<int>(int ValueType, int Path, int Value)
+bool CAsset_CharacterPart::SetValue<int>(int ValueType, int Path, int Value)
 {
 	switch(ValueType)
 	{
@@ -57,13 +60,13 @@ bool CModAPI_Asset_CharacterPart::SetValue<int>(int ValueType, int Path, int Val
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue<int>(ValueType, Path, Value);
 }
 
 /* VALUE ASSETPATH *******************************************************/
 
 template<>
-CModAPI_AssetPath CModAPI_Asset_CharacterPart::GetValue(int ValueType, int Path, CModAPI_AssetPath DefaultValue)
+CAssetPath CAsset_CharacterPart::GetValue(int ValueType, int Path, CAssetPath DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -72,12 +75,12 @@ CModAPI_AssetPath CModAPI_Asset_CharacterPart::GetValue(int ValueType, int Path,
 		case SKELETONSKINPATH:
 			return m_SkeletonSkinPath;
 		default:
-			return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_CharacterPart::SetValue<CModAPI_AssetPath>(int ValueType, int Path, CModAPI_AssetPath Value)
+bool CAsset_CharacterPart::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -89,5 +92,7 @@ bool CModAPI_Asset_CharacterPart::SetValue<CModAPI_AssetPath>(int ValueType, int
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+}
+
 }

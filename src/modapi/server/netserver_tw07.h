@@ -1,9 +1,12 @@
-#ifndef MODAPI_SERVER_NETSERVER_TW07_H
-#define MODAPI_SERVER_NETSERVER_TW07_H
+#ifndef TU_SERVER_NETSERVER_TW07_H
+#define TU_SERVER_NETSERVER_TW07_H
 
 #include <modapi/server/metanetserver.h>
 
-class CModAPI_NetServer_TW07 : public CModAPI_MetaNetServer::CNetServer
+namespace tu
+{
+
+class CNetServer_TW07 : public CMetaNetServer::CNetServer
 {
 private:
 	//NetServer
@@ -58,7 +61,7 @@ private:
 	void RegisterGotCount(struct CNetChunk *pChunk);
 
 public:
-	CModAPI_NetServer_TW07(CModAPI_MetaNetServer* MetaNetServer, CModAPI_MetaNetServer::FProcessClientPacket fProcessClientPacket, CModAPI_MetaNetServer::FGenerateServerInfo fGenerateServerInfo);
+	CNetServer_TW07(CMetaNetServer* MetaNetServer, CMetaNetServer::FProcessClientPacket fProcessClientPacket, CMetaNetServer::FGenerateServerInfo fGenerateServerInfo);
 	
 	//NetServer
 	virtual bool Open(int NetServerID, NETADDR BindAddr, int Flags);
@@ -76,5 +79,7 @@ public:
 	virtual void RegisterUpdate();
 	virtual int RegisterProcessPacket(struct CNetChunk *pPacket, TOKEN Token);
 };
+
+}
 
 #endif

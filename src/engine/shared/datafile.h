@@ -3,10 +3,17 @@
 #ifndef ENGINE_SHARED_DATAFILE_H
 #define ENGINE_SHARED_DATAFILE_H
 
+enum
+{
+	DATAFILE_TYPE_DATA=0,
+	DATAFILE_TYPE_ASSET,
+};
+
 // raw datafile access
 class CDataFileReader
 {
 	struct CDatafile *m_pDataFile;
+	int m_Type;
 	void *GetDataImpl(int Index, int Swap);
 public:
 	CDataFileReader() : m_pDataFile(0) {}
@@ -28,6 +35,8 @@ public:
 	int NumItems() const;
 	int NumData() const;
 	void Unload();
+	
+	int GetDataFileType() const;
 
 	unsigned Crc() const;
 };
@@ -81,7 +90,7 @@ public:
 	int AddData(int Size, void *pData);
 	int AddDataSwapped(int Size, void *pData);
 	int AddItem(int Type, int ID, int Size, void *pData);
-	int Finish();
+	int Finish(int Type = DATAFILE_TYPE_DATA);
 };
 
 

@@ -3,12 +3,15 @@
 #include <engine/storage.h>
 #include <engine/shared/datafile.h>
 
-class CModAPI_AssetsFile : public IModAPI_AssetsFileEngine
+namespace tu
+{
+
+class CAssetsFile : public IAssetsFileEngine
 {
 	CDataFileReader m_DataFile;
 	
 public:
-	CModAPI_AssetsFile() {}
+	CAssetsFile() {}
 
 	virtual void *GetData(int Index) { return m_DataFile.GetData(Index); }
 	virtual void *GetDataSwapped(int Index) { return m_DataFile.GetDataSwapped(Index); }
@@ -18,6 +21,8 @@ public:
 	virtual void *FindItem(int Type, int ID) { return m_DataFile.FindItem(Type, ID); }
 	virtual int NumItems() { return m_DataFile.NumItems(); }
 
+	virtual int GetDataFileType() const { return m_DataFile.GetDataFileType(); }
+	
 	virtual void Unload()
 	{
 		m_DataFile.Close();
@@ -46,4 +51,6 @@ public:
 	}
 };
 
-extern IModAPI_AssetsFileEngine *CreateAssetsFileEngine() { return new CModAPI_AssetsFile; }
+extern IAssetsFileEngine *CreateAssetsFileEngine() { return new CAssetsFile; }
+
+}

@@ -7,11 +7,11 @@
 
 #include <game/gamecore.h>
 #include <modapi/server/entity.h>
+#include <modapi/server/weapon.h>
 
 #include <mod/defines.h>
 
-
-class CCharacter : public CModAPI_Entity
+class CCharacter : public tu::CEntity_TW
 {
 	MACRO_ALLOC_POOL_ID()
 
@@ -26,8 +26,8 @@ public:
 	virtual void Tick();
 	virtual void TickDefered();
 	virtual void TickPaused();
-	virtual void Snap06(int Snapshot, int SnappingClient);
-	virtual void Snap07(int Snapshot, int SnappingClient);
+	virtual void Snap_TW06(int Snapshot, int SnappingClient);
+	virtual void Snap_TW07(int Snapshot, int SnappingClient);
 	virtual void PostSnap();
 
 	bool IsGrounded();
@@ -76,13 +76,13 @@ private:
 
 	int m_AttackTick;
 	
-	// ModAPI
+	// TU
 private:
-	class CModAPI_Weapon* m_aWeapons[MOD_NUM_WEAPONS];
+	tu::CWeapon* m_aWeapons[MOD_NUM_WEAPONS];
 
 public:
 	bool HasWeapon(int WID);
-	void GiveWeapon(CModAPI_Weapon* pWeapon);
+	void GiveWeapon(tu::CWeapon* pWeapon);
 	bool GiveAmmo(int WIP, int Ammo);
 
 private:

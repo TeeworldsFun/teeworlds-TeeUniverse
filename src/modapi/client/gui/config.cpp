@@ -5,26 +5,32 @@
 
 #include "config.h"
 
-CModAPI_ClientGui_Config::CModAPI_ClientGui_Config(IGraphics *pGraphics, CRenderTools *pRenderTools, ITextRender *pTextRender, IInput *pInput, IGraphics::CTextureHandle Texture) :
+namespace tu
+{
+	
+namespace gui
+{
+
+CConfig::CConfig(IGraphics *pGraphics, CRenderTools *pRenderTools, ITextRender *pTextRender, IInput *pInput, IGraphics::CTextureHandle Texture) :
 	m_pGraphics(pGraphics),
 	m_pRenderTools(pRenderTools),
 	m_pTextRender(pTextRender),
 	m_pInput(pInput),
 	m_Texture(Texture)
 {
-	m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL] = 12.0f;
-	m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	m_TextSize[TEXTSTYLE_NORMAL] = 12.0f;
+	m_TextColor[TEXTSTYLE_NORMAL] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	
-	m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_HEADER] = 16.0f;
-	m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_HEADER] = vec4(1.0f, 1.0f, 0.5f, 1.0f);
+	m_TextSize[TEXTSTYLE_HEADER] = 16.0f;
+	m_TextColor[TEXTSTYLE_HEADER] = vec4(1.0f, 1.0f, 0.5f, 1.0f);
 	
-	m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_HEADER2] = 14.0f;
-	m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_HEADER2] = vec4(1.0f, 1.0f, 0.5f, 1.0f);
+	m_TextSize[TEXTSTYLE_HEADER2] = 14.0f;
+	m_TextColor[TEXTSTYLE_HEADER2] = vec4(1.0f, 1.0f, 0.5f, 1.0f);
 	
-	m_ButtonColor[MODAPI_CLIENTGUI_BUTTONSTYLE_NONE] = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-	m_ButtonColor[MODAPI_CLIENTGUI_BUTTONSTYLE_NORMAL] = vec4(0.0f, 0.0f, 0.0f, 0.25f);
-	m_ButtonColor[MODAPI_CLIENTGUI_BUTTONSTYLE_HIGHLIGHT] = vec4(1.0f, 1.0f, 1.0f, 0.5f);
-	m_ButtonColor[MODAPI_CLIENTGUI_BUTTONSTYLE_MOUSEOVER] = vec4(1.0f, 1.0f, 1.0f, 0.25f);
+	m_ButtonColor[BUTTONSTYLE_NONE] = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_ButtonColor[BUTTONSTYLE_NORMAL] = vec4(0.0f, 0.0f, 0.0f, 0.25f);
+	m_ButtonColor[BUTTONSTYLE_HIGHLIGHT] = vec4(1.0f, 1.0f, 1.0f, 0.5f);
+	m_ButtonColor[BUTTONSTYLE_MOUSEOVER] = vec4(1.0f, 1.0f, 1.0f, 0.25f);
 	
 	m_IconSize = 16;
 	m_LabelMargin = 4;
@@ -38,4 +44,8 @@ CModAPI_ClientGui_Config::CModAPI_ClientGui_Config(IGraphics *pGraphics, CRender
 	
 	m_fShowHint = 0;
 	m_pShowHintData = 0;
+}
+
+}
+
 }

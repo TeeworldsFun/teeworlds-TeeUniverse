@@ -124,7 +124,7 @@ void CPlayer::PostTick()
 		m_ViewPos = GameServer()->m_apPlayers[m_SpectatorID]->m_ViewPos;
 }
 
-void CPlayer::Snap06(int Snapshot, int SnappingClient)
+void CPlayer::Snap_TW06(int Snapshot, int SnappingClient)
 {
 	if(!IsDummy() && !Server()->ClientIngame(m_ClientID))
 		return;
@@ -166,7 +166,7 @@ void CPlayer::Snap06(int Snapshot, int SnappingClient)
 	}
 }
 
-void CPlayer::Snap07(int Snapshot, int SnappingClient)
+void CPlayer::Snap_TW07(int Snapshot, int SnappingClient)
 {
 	if(!IsDummy() && !Server()->ClientIngame(m_ClientID))
 		return;
@@ -218,6 +218,11 @@ void CPlayer::Snap07(int Snapshot, int SnappingClient)
 			pClientInfo->m_aSkinPartColors[p] = m_TeeInfos.m_aSkinPartColors[p];
 		}
 	}
+}
+
+void CPlayer::Snap_TU07(int Snapshot, int SnappingClient)
+{
+	Snap_TW07(Snapshot, SnappingClient);
 }
 
 void CPlayer::OnDisconnect()
@@ -418,7 +423,7 @@ void CPlayer::TryRespawn()
 	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World[m_WorldID]);
 	m_pCharacter->Spawn(this, SpawnPos);
 	
-	CModAPI_Event_SpawnEffect(GameServer()).World(m_WorldID).Send(SpawnPos);
+	tu::CEvent_SpawnEffect(GameServer()).World(m_WorldID).Send(SpawnPos);
 }
 
 int CPlayer::GetWorldID() const

@@ -1,5 +1,5 @@
-#ifndef MODAPI_ASSETSEDITOR_POPUP_H
-#define MODAPI_ASSETSEDITOR_POPUP_H
+#ifndef TU_ASSETSEDITOR_POPUP_H
+#define TU_ASSETSEDITOR_POPUP_H
 
 #include <modapi/client/gui/popup.h>
 #include <modapi/client/gui/button.h>
@@ -10,20 +10,23 @@
 
 #include "assetseditor.h"
 
+namespace tu
+{
+
 /* POPUP ADD IMAGE ****************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_AddImage : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_AddImage : public gui::CPopup
 {
 protected:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
-	CModAPI_ClientGui_VListLayout* m_Layout;
+	CAssetsEditor* m_pAssetsEditor;
+	gui::CVListLayout* m_Layout;
 	
 protected:
-	class CItem : public CModAPI_ClientGui_TextButton
+	class CItem : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_AddImage* m_pPopup;
-		CModAPI_AssetsEditor* m_pAssetsEditor;
+		CAssetsEditorGui_Popup_AddImage* m_pPopup;
+		CAssetsEditor* m_pAssetsEditor;
 		char m_aFilename[128];
 		int m_StorageType;
 		int m_IsDirectory;
@@ -33,7 +36,7 @@ protected:
 		{
 			if(!m_IsDirectory)
 			{
-				CModAPI_AssetPath Path = m_pAssetsEditor->AssetManager()->AddImage(m_StorageType, m_aFilename, CModAPI_AssetPath::SRC_EXTERNAL);
+				CAssetPath Path = m_pAssetsEditor->AssetManager()->AddImage(m_StorageType, m_aFilename, CAssetPath::SRC_EXTERNAL);
 				if(!Path.IsNull())
 				{
 					m_pAssetsEditor->NewAsset(Path);
@@ -43,8 +46,8 @@ protected:
 		}
 		
 	public:
-		CItem(CModAPI_AssetsEditorGui_Popup_AddImage* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, MODAPI_ASSETSEDITOR_ICON_IMAGE),
+		CItem(CAssetsEditorGui_Popup_AddImage* pPopup, const char* pFilename, int StorageType, int IsDir) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_IMAGE),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -57,11 +60,11 @@ protected:
 	};
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_AddImage(CModAPI_AssetsEditor* pAssetsEditor, const CModAPI_ClientGui_Rect& CreatorRect, int Alignment) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
+	CAssetsEditorGui_Popup_AddImage(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment) :
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor)
 	{		
-		m_Layout = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		Add(m_Layout);
 		
 		Update();
@@ -69,7 +72,7 @@ public:
 	
 	static int FileListFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser)
 	{
-		CModAPI_AssetsEditorGui_Popup_AddImage* pAddImageView = static_cast<CModAPI_AssetsEditorGui_Popup_AddImage*>(pUser);
+		CAssetsEditorGui_Popup_AddImage* pAddImageView = static_cast<CAssetsEditorGui_Popup_AddImage*>(pUser);
 		
 		int Length = str_length(pName);
 		if(pName[0] == '.' && (pName[1] == 0))
@@ -78,7 +81,7 @@ public:
 		if(Length < 4 || str_comp(pName+Length-4, ".png"))
 			return 0;
 
-		CModAPI_AssetsEditorGui_Popup_AddImage::CItem* pItem = new CModAPI_AssetsEditorGui_Popup_AddImage::CItem(pAddImageView, pName, StorageType, IsDir);
+		CAssetsEditorGui_Popup_AddImage::CItem* pItem = new CAssetsEditorGui_Popup_AddImage::CItem(pAddImageView, pName, StorageType, IsDir);
 		pAddImageView->m_Layout->Add(pItem);
 
 		return 0;
@@ -88,38 +91,38 @@ public:
 	{
 		m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, ".", FileListFetchCallback, this);
 		
-		CModAPI_ClientGui_Popup::Update();
+		gui::CPopup::Update();
 	}
 };
 
 /* POPUP ASSET EDIT ***************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_AssetEdit : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_AssetEdit : public gui::CPopup
 {
 public:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
+	CAssetsEditor* m_pAssetsEditor;
 	
 protected:
-	class CItem : public CModAPI_ClientGui_TextButton
+	class CItem : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_AssetEdit* m_pPopup;
-		CModAPI_AssetsEditor* m_pAssetsEditor;
-		CModAPI_AssetPath m_ParentAssetPath;
+		CAssetsEditorGui_Popup_AssetEdit* m_pPopup;
+		CAssetsEditor* m_pAssetsEditor;
+		CAssetPath m_ParentAssetPath;
 		int m_ParentAssetMember;
 		int m_ParentAssetSubId;
-		CModAPI_AssetPath m_FieldAssetPath;
+		CAssetPath m_FieldAssetPath;
 		
 	protected:
 		virtual void MouseClickAction()
 		{
-			m_pAssetsEditor->AssetManager()->SetAssetValue<CModAPI_AssetPath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, m_FieldAssetPath);
+			m_pAssetsEditor->AssetManager()->SetAssetValue<CAssetPath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, m_FieldAssetPath);
 			m_pAssetsEditor->RefreshAssetEditor();
 		}
 		
 	public:
-		CItem(CModAPI_AssetsEditorGui_Popup_AssetEdit* pPopup, CModAPI_AssetPath ParentAssetPath, int ParentAssetMember, int ParentAssetSubId, int FieldAssetType, CModAPI_AssetPath FieldAssetPath) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
+		CItem(CAssetsEditorGui_Popup_AssetEdit* pPopup, CAssetPath ParentAssetPath, int ParentAssetMember, int ParentAssetSubId, int FieldAssetType, CAssetPath FieldAssetPath) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor),
 			m_ParentAssetPath(ParentAssetPath),
@@ -138,30 +141,30 @@ protected:
 				int IconId = -1;
 				switch(FieldAssetPath.GetType())
 				{
-					case CModAPI_AssetPath::TYPE_IMAGE:
-						IconId = MODAPI_ASSETSEDITOR_ICON_IMAGE;
+					case CAssetPath::TYPE_IMAGE:
+						IconId = CAssetsEditor::ICON_IMAGE;
 						break;
-					case CModAPI_AssetPath::TYPE_SPRITE:
-						IconId = MODAPI_ASSETSEDITOR_ICON_SPRITE;
+					case CAssetPath::TYPE_SPRITE:
+						IconId = CAssetsEditor::ICON_SPRITE;
 						break;
-					case CModAPI_AssetPath::TYPE_SKELETON:
-						IconId = MODAPI_ASSETSEDITOR_ICON_SKELETON;
+					case CAssetPath::TYPE_SKELETON:
+						IconId = CAssetsEditor::ICON_SKELETON;
 						break;
-					case CModAPI_AssetPath::TYPE_SKELETONSKIN:
-						IconId = MODAPI_ASSETSEDITOR_ICON_SKELETONSKIN;
+					case CAssetPath::TYPE_SKELETONSKIN:
+						IconId = CAssetsEditor::ICON_SKELETONSKIN;
 						break;
-					case CModAPI_AssetPath::TYPE_SKELETONANIMATION:
-						IconId = MODAPI_ASSETSEDITOR_ICON_SKELETONANIMATION;
+					case CAssetPath::TYPE_SKELETONANIMATION:
+						IconId = CAssetsEditor::ICON_SKELETONANIMATION;
 						break;
-					case CModAPI_AssetPath::TYPE_CHARACTER:
-						IconId = MODAPI_ASSETSEDITOR_ICON_CHARACTER;
+					case CAssetPath::TYPE_CHARACTER:
+						IconId = CAssetsEditor::ICON_CHARACTER;
 						break;
-					case CModAPI_AssetPath::TYPE_CHARACTERPART:
-						IconId = MODAPI_ASSETSEDITOR_ICON_CHARACTERPART;
+					case CAssetPath::TYPE_CHARACTERPART:
+						IconId = CAssetsEditor::ICON_CHARACTERPART;
 						break;
 				}
 				
-				char* pName = m_pAssetsEditor->AssetManager()->GetAssetValue<char*>(m_FieldAssetPath, CModAPI_Asset::NAME, -1, 0);
+				char* pName = m_pAssetsEditor->AssetManager()->GetAssetValue<char*>(m_FieldAssetPath, CAsset::NAME, -1, 0);
 				SetText(pName);
 				SetIcon(IconId);
 			}
@@ -169,16 +172,16 @@ protected:
 	};
 
 protected:
-	CModAPI_ClientGui_VListLayout* m_Layout;
+	gui::CVListLayout* m_Layout;
 	
 protected:
-	CModAPI_AssetPath m_ParentAssetPath;
+	CAssetPath m_ParentAssetPath;
 	int m_ParentAssetMember;
 	int m_ParentAssetSubId;
 	int m_FieldAssetType;
 	
 protected:
-	void AddListElement(CModAPI_AssetPath Path)
+	void AddListElement(CAssetPath Path)
 	{	
 		CItem* pItem = new CItem(
 			this,
@@ -192,23 +195,23 @@ protected:
 	}
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_AssetEdit(
-		CModAPI_AssetsEditor* pAssetsEditor,
-		const CModAPI_ClientGui_Rect& CreatorRect,
+	CAssetsEditorGui_Popup_AssetEdit(
+		CAssetsEditor* pAssetsEditor,
+		const gui::CRect& CreatorRect,
 		int Alignment,
-		CModAPI_AssetPath ParentAssetPath,
+		CAssetPath ParentAssetPath,
 		int ParentAssetMember,
 		int ParentAssetSubId,
 		int FieldAssetType
 	) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor),
 		m_ParentAssetPath(ParentAssetPath),
 		m_ParentAssetMember(ParentAssetMember),
 		m_ParentAssetSubId(ParentAssetSubId),
 		m_FieldAssetType(FieldAssetType)
 	{
-		m_Layout = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		Add(m_Layout);
 		
 		Update();
@@ -217,55 +220,58 @@ public:
 	virtual void Update()
 	{
 		#define POPUP_ASSET_EDIT_LIST(TypeName, TypeHeader) case TypeName::TypeId:\
-			m_Layout->Add(new CModAPI_ClientGui_Label(m_pConfig, "Internal "TypeHeader, MODAPI_CLIENTGUI_TEXTSTYLE_HEADER));\
-			for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<TypeName>(CModAPI_AssetPath::SRC_INTERNAL); i++)\
-				AddListElement(CModAPI_AssetPath::Internal(TypeName::TypeId, i));\
+			m_Layout->Add(new gui::CLabel(m_pConfig, "Internal "TypeHeader, gui::TEXTSTYLE_HEADER));\
+			for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<TypeName>(CAssetPath::SRC_INTERNAL); i++)\
+				AddListElement(CAssetPath::Internal(TypeName::TypeId, i));\
 			m_Layout->AddSeparator();\
-			m_Layout->Add(new CModAPI_ClientGui_Label(m_pConfig, "External "TypeHeader, MODAPI_CLIENTGUI_TEXTSTYLE_HEADER));\
-			for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<TypeName>(CModAPI_AssetPath::SRC_EXTERNAL); i++)\
-				AddListElement(CModAPI_AssetPath::External(TypeName::TypeId, i));\
+			m_Layout->Add(new gui::CLabel(m_pConfig, "External "TypeHeader, gui::TEXTSTYLE_HEADER));\
+			for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<TypeName>(CAssetPath::SRC_EXTERNAL); i++)\
+				AddListElement(CAssetPath::External(TypeName::TypeId, i));\
 			break;
 		
-		AddListElement(CModAPI_AssetPath::Null());
+		AddListElement(CAssetPath::Null());
 		switch(m_FieldAssetType)
 		{
 			//Search Tag: TAG_NEW_ASSET
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Image, "Images")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Sprite, "Sprites")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Skeleton, "Skeletons")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_SkeletonSkin, "Skeleton Skins")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_SkeletonAnimation, "Skeleton Animations")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Character, "Characters")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_CharacterPart, "Character Parts")
-			POPUP_ASSET_EDIT_LIST(CModAPI_Asset_Weapon, "Weapons")
+			POPUP_ASSET_EDIT_LIST(CAsset_Image, "Images")
+			POPUP_ASSET_EDIT_LIST(CAsset_Sprite, "Sprites")
+			POPUP_ASSET_EDIT_LIST(CAsset_Skeleton, "Skeletons")
+			POPUP_ASSET_EDIT_LIST(CAsset_SkeletonSkin, "Skeleton Skins")
+			POPUP_ASSET_EDIT_LIST(CAsset_SkeletonAnimation, "Skeleton Animations")
+			POPUP_ASSET_EDIT_LIST(CAsset_Character, "Characters")
+			POPUP_ASSET_EDIT_LIST(CAsset_CharacterPart, "Character Parts")
+			POPUP_ASSET_EDIT_LIST(CAsset_Weapon, "Weapons")
+			POPUP_ASSET_EDIT_LIST(CAsset_MapGroup, "Groups")
+			POPUP_ASSET_EDIT_LIST(CAsset_MapLayerTiles, "Tile Layers")
+			POPUP_ASSET_EDIT_LIST(CAsset_MapLayerQuads, "Quad Layers")
 		}
 		
-		CModAPI_ClientGui_Popup::Update();
+		gui::CPopup::Update();
 	}
 };
 
 /* POPUP BONE EDIT ****************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_BoneEdit : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_BoneEdit : public gui::CPopup
 {
 public:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
-	CModAPI_AssetPath m_AssetPath;
+	CAssetsEditor* m_pAssetsEditor;
+	CAssetPath m_AssetPath;
 	int m_AssetMember;
 	int m_AssetSubPath;
-	CModAPI_AssetPath m_SkeletonPath;
+	CAssetPath m_SkeletonPath;
 	
 protected:
-	class CItem : public CModAPI_ClientGui_TextButton
+	class CItem : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_BoneEdit* m_pPopup;
-		CModAPI_Asset_Skeleton::CBonePath m_BonePath;
+		CAssetsEditorGui_Popup_BoneEdit* m_pPopup;
+		CAsset_Skeleton::CBonePath m_BonePath;
 		
 	protected:
 		virtual void MouseClickAction()
 		{
-			m_pPopup->m_pAssetsEditor->AssetManager()->SetAssetValue<CModAPI_Asset_Skeleton::CBonePath>(
+			m_pPopup->m_pAssetsEditor->AssetManager()->SetAssetValue<CAsset_Skeleton::CBonePath>(
 				m_pPopup->m_AssetPath,
 				m_pPopup->m_AssetMember,
 				m_pPopup->m_AssetSubPath,
@@ -274,8 +280,8 @@ protected:
 		}
 		
 	public:
-		CItem(CModAPI_AssetsEditorGui_Popup_BoneEdit* pPopup, CModAPI_Asset_Skeleton::CBonePath BonePath) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
+		CItem(CAssetsEditorGui_Popup_BoneEdit* pPopup, CAsset_Skeleton::CBonePath BonePath) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
 			m_pPopup(pPopup),
 			m_BonePath(BonePath)
 		{
@@ -287,28 +293,28 @@ protected:
 			}
 			else
 			{
-				if(m_BonePath.GetSource() == CModAPI_Asset_Skeleton::CBonePath::SRC_LOCAL)
+				if(m_BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
 				{
 					char* pName = pPopup->m_pAssetsEditor->AssetManager()->GetAssetValue<char*>(
 						pPopup->m_SkeletonPath,
-						CModAPI_Asset_Skeleton::BONE_NAME,
-						CModAPI_Asset_Skeleton::CSubPath::Bone(m_BonePath.GetId()).ConvertToInteger(),
+						CAsset_Skeleton::BONE_NAME,
+						CAsset_Skeleton::CSubPath::Bone(m_BonePath.GetId()).ConvertToInteger(),
 						0);
 					SetText(pName);
-					SetIcon(MODAPI_ASSETSEDITOR_ICON_BONE);
+					SetIcon(CAssetsEditor::ICON_BONE);
 				}
 				else
 				{
-					CModAPI_Asset_Skeleton* pSkeleton = pPopup->m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pPopup->m_SkeletonPath);
+					CAsset_Skeleton* pSkeleton = pPopup->m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pPopup->m_SkeletonPath);
 					if(pSkeleton && !pSkeleton->m_ParentPath.IsNull())
 					{
 						char* pName = pPopup->m_pAssetsEditor->AssetManager()->GetAssetValue<char*>(
 							pSkeleton->m_ParentPath,
-							CModAPI_Asset_Skeleton::BONE_NAME,
-							CModAPI_Asset_Skeleton::CSubPath::Bone(m_BonePath.GetId()).ConvertToInteger(),
+							CAsset_Skeleton::BONE_NAME,
+							CAsset_Skeleton::CSubPath::Bone(m_BonePath.GetId()).ConvertToInteger(),
 							0);
 						SetText(pName);
-						SetIcon(MODAPI_ASSETSEDITOR_ICON_BONE);
+						SetIcon(CAssetsEditor::ICON_BONE);
 					}					
 				}
 			}
@@ -316,26 +322,26 @@ protected:
 	};
 
 protected:
-	CModAPI_ClientGui_VListLayout* m_Layout;
+	gui::CVListLayout* m_Layout;
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_BoneEdit(
-		CModAPI_AssetsEditor* pAssetsEditor,
-		const CModAPI_ClientGui_Rect& CreatorRect,
+	CAssetsEditorGui_Popup_BoneEdit(
+		CAssetsEditor* pAssetsEditor,
+		const gui::CRect& CreatorRect,
 		int Alignment,
-		CModAPI_AssetPath AssetPath,
+		CAssetPath AssetPath,
 		int AssetMember,
 		int AssetSubPath,
-		CModAPI_AssetPath SkeletonPath
+		CAssetPath SkeletonPath
 	) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor),
 		m_AssetPath(AssetPath),
 		m_AssetMember(AssetMember),
 		m_AssetSubPath(AssetSubPath),
 		m_SkeletonPath(SkeletonPath)
 	{		
-		m_Layout = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		Add(m_Layout);
 		
 		Update();
@@ -345,57 +351,57 @@ public:
 	{
 		m_Layout->Clear();
 		
-		CModAPI_Asset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(m_SkeletonPath);
+		CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(m_SkeletonPath);
 		if(pSkeleton)
 		{
-			m_Layout->Add(new CModAPI_ClientGui_Label(m_pConfig, "Local bones", MODAPI_CLIENTGUI_TEXTSTYLE_HEADER));\
+			m_Layout->Add(new gui::CLabel(m_pConfig, "Local bones", gui::TEXTSTYLE_HEADER));\
 			for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 			{
-				CItem* pItem = new CItem(this, CModAPI_Asset_Skeleton::CBonePath::Local(i));
+				CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Local(i));
 				m_Layout->Add(pItem);
 			}
 			
 			if(!pSkeleton->m_ParentPath.IsNull())
 			{
-				CModAPI_Asset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pSkeleton->m_ParentPath);
+				CAsset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pSkeleton->m_ParentPath);
 				if(pParentSkeleton)
 				{
-					m_Layout->Add(new CModAPI_ClientGui_Label(m_pConfig, "Parent bones", MODAPI_CLIENTGUI_TEXTSTYLE_HEADER));\
+					m_Layout->Add(new gui::CLabel(m_pConfig, "Parent bones", gui::TEXTSTYLE_HEADER));\
 					for(int i=0; i<pParentSkeleton->m_Bones.size(); i++)
 					{
-						CItem* pItem = new CItem(this, CModAPI_Asset_Skeleton::CBonePath::Parent(i));
+						CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Parent(i));
 						m_Layout->Add(pItem);
 					}
 				}
 			}
 		}
 		
-		CModAPI_ClientGui_Popup::Update();
+		gui::CPopup::Update();
 	}
 };
 
 /* POPUP LAYER EDIT ****************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_LayerEdit : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_LayerEdit : public gui::CPopup
 {
 public:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
-	CModAPI_AssetPath m_AssetPath;
+	CAssetsEditor* m_pAssetsEditor;
+	CAssetPath m_AssetPath;
 	int m_AssetMember;
 	int m_AssetSubPath;
-	CModAPI_AssetPath m_SkeletonPath;
+	CAssetPath m_SkeletonPath;
 	
 protected:
-	class CItem : public CModAPI_ClientGui_TextButton
+	class CItem : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_LayerEdit* m_pPopup;
-		CModAPI_Asset_Skeleton::CBonePath m_LayerPath;
+		CAssetsEditorGui_Popup_LayerEdit* m_pPopup;
+		CAsset_Skeleton::CBonePath m_LayerPath;
 		
 	protected:
 		virtual void MouseClickAction()
 		{
-			m_pPopup->m_pAssetsEditor->AssetManager()->SetAssetValue<CModAPI_Asset_Skeleton::CBonePath>(
+			m_pPopup->m_pAssetsEditor->AssetManager()->SetAssetValue<CAsset_Skeleton::CBonePath>(
 				m_pPopup->m_AssetPath,
 				m_pPopup->m_AssetMember,
 				m_pPopup->m_AssetSubPath,
@@ -404,8 +410,8 @@ protected:
 		}
 		
 	public:
-		CItem(CModAPI_AssetsEditorGui_Popup_LayerEdit* pPopup, CModAPI_Asset_Skeleton::CBonePath LayerPath) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
+		CItem(CAssetsEditorGui_Popup_LayerEdit* pPopup, CAsset_Skeleton::CBonePath LayerPath) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
 			m_pPopup(pPopup),
 			m_LayerPath(LayerPath)
 		{
@@ -417,28 +423,28 @@ protected:
 			}
 			else
 			{
-				if(m_LayerPath.GetSource() == CModAPI_Asset_Skeleton::CBonePath::SRC_LOCAL)
+				if(m_LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
 				{
 					char* pName = pPopup->m_pAssetsEditor->AssetManager()->GetAssetValue<char*>(
 						pPopup->m_SkeletonPath,
-						CModAPI_Asset_Skeleton::LAYER_NAME,
-						CModAPI_Asset_Skeleton::CSubPath::Layer(m_LayerPath.GetId()).ConvertToInteger(),
+						CAsset_Skeleton::LAYER_NAME,
+						CAsset_Skeleton::CSubPath::Layer(m_LayerPath.GetId()).ConvertToInteger(),
 						0);
 					SetText(pName);
-					SetIcon(MODAPI_ASSETSEDITOR_ICON_BONE);
+					SetIcon(CAssetsEditor::ICON_BONE);
 				}
 				else
 				{
-					CModAPI_Asset_Skeleton* pSkeleton = pPopup->m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pPopup->m_SkeletonPath);
+					CAsset_Skeleton* pSkeleton = pPopup->m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pPopup->m_SkeletonPath);
 					if(pSkeleton && !pSkeleton->m_ParentPath.IsNull())
 					{
 						char* pName = pPopup->m_pAssetsEditor->AssetManager()->GetAssetValue<char*>(
 							pSkeleton->m_ParentPath,
-							CModAPI_Asset_Skeleton::LAYER_NAME,
-							CModAPI_Asset_Skeleton::CSubPath::Layer(m_LayerPath.GetId()).ConvertToInteger(),
+							CAsset_Skeleton::LAYER_NAME,
+							CAsset_Skeleton::CSubPath::Layer(m_LayerPath.GetId()).ConvertToInteger(),
 							0);
 						SetText(pName);
-						SetIcon(MODAPI_ASSETSEDITOR_ICON_BONE);
+						SetIcon(CAssetsEditor::ICON_BONE);
 					}					
 				}
 			}
@@ -446,26 +452,26 @@ protected:
 	};
 
 protected:
-	CModAPI_ClientGui_VListLayout* m_Layout;
+	gui::CVListLayout* m_Layout;
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_LayerEdit(
-		CModAPI_AssetsEditor* pAssetsEditor,
-		const CModAPI_ClientGui_Rect& CreatorRect,
+	CAssetsEditorGui_Popup_LayerEdit(
+		CAssetsEditor* pAssetsEditor,
+		const gui::CRect& CreatorRect,
 		int Alignment,
-		CModAPI_AssetPath AssetPath,
+		CAssetPath AssetPath,
 		int AssetMember,
 		int AssetSubPath,
-		CModAPI_AssetPath SkeletonPath
+		CAssetPath SkeletonPath
 	) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor),
 		m_AssetPath(AssetPath),
 		m_AssetMember(AssetMember),
 		m_AssetSubPath(AssetSubPath),
 		m_SkeletonPath(SkeletonPath)
 	{		
-		m_Layout = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		Add(m_Layout);
 		
 		Update();
@@ -475,52 +481,52 @@ public:
 	{
 		m_Layout->Clear();
 		
-		CModAPI_Asset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(m_SkeletonPath);
+		CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(m_SkeletonPath);
 		if(pSkeleton)
 		{
-			m_Layout->Add(new CModAPI_ClientGui_Label(m_pConfig, "Local layers", MODAPI_CLIENTGUI_TEXTSTYLE_HEADER));\
+			m_Layout->Add(new gui::CLabel(m_pConfig, "Local layers", gui::TEXTSTYLE_HEADER));\
 			for(int i=0; i<pSkeleton->m_Layers.size(); i++)
 			{
-				CItem* pItem = new CItem(this, CModAPI_Asset_Skeleton::CBonePath::Local(i));
+				CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Local(i));
 				m_Layout->Add(pItem);
 			}
 			
 			if(!pSkeleton->m_ParentPath.IsNull())
 			{
-				CModAPI_Asset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pSkeleton->m_ParentPath);
+				CAsset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pSkeleton->m_ParentPath);
 				if(pParentSkeleton)
 				{
-					m_Layout->Add(new CModAPI_ClientGui_Label(m_pConfig, "Parent layers", MODAPI_CLIENTGUI_TEXTSTYLE_HEADER));\
+					m_Layout->Add(new gui::CLabel(m_pConfig, "Parent layers", gui::TEXTSTYLE_HEADER));\
 					for(int i=0; i<pParentSkeleton->m_Layers.size(); i++)
 					{
-						CItem* pItem = new CItem(this, CModAPI_Asset_Skeleton::CBonePath::Parent(i));
+						CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Parent(i));
 						m_Layout->Add(pItem);
 					}
 				}
 			}
 		}
 		
-		CModAPI_ClientGui_Popup::Update();
+		gui::CPopup::Update();
 	}
 };
 
 /* POPUP SUBPATH EDIT *************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_CharacterPartEdit : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_CharacterPartEdit : public gui::CPopup
 {
 public:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
-	CModAPI_AssetPath m_AssetPath;
+	CAssetsEditor* m_pAssetsEditor;
+	CAssetPath m_AssetPath;
 	int m_AssetMember;
 	int m_AssetSubPath;
-	CModAPI_AssetPath m_CharacterPath;
+	CAssetPath m_CharacterPath;
 	
 protected:
-	class CItem : public CModAPI_ClientGui_TextButton
+	class CItem : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_CharacterPartEdit* m_pPopup;
-		CModAPI_Asset_Character::CSubPath m_SubPath;
+		CAssetsEditorGui_Popup_CharacterPartEdit* m_pPopup;
+		CAsset_Character::CSubPath m_SubPath;
 		
 	protected:
 		virtual void MouseClickAction()
@@ -534,8 +540,8 @@ protected:
 		}
 		
 	public:
-		CItem(CModAPI_AssetsEditorGui_Popup_CharacterPartEdit* pPopup, CModAPI_Asset_Character::CSubPath SubPath) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
+		CItem(CAssetsEditorGui_Popup_CharacterPartEdit* pPopup, CAsset_Character::CSubPath SubPath) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
 			m_pPopup(pPopup),
 			m_SubPath(SubPath)
 		{
@@ -549,36 +555,36 @@ protected:
 			{
 				char* pName = pPopup->m_pAssetsEditor->AssetManager()->GetAssetValue<char*>(
 					pPopup->m_CharacterPath,
-					CModAPI_Asset_Character::PART_NAME,
+					CAsset_Character::PART_NAME,
 					m_SubPath.ConvertToInteger(),
 					0);
 				SetText(pName);
-				SetIcon(MODAPI_ASSETSEDITOR_ICON_CHARACTERPART);
+				SetIcon(CAssetsEditor::ICON_CHARACTERPART);
 			}
 		}
 	};
 
 protected:
-	CModAPI_ClientGui_VListLayout* m_Layout;
+	gui::CVListLayout* m_Layout;
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_CharacterPartEdit(
-		CModAPI_AssetsEditor* pAssetsEditor,
-		const CModAPI_ClientGui_Rect& CreatorRect,
+	CAssetsEditorGui_Popup_CharacterPartEdit(
+		CAssetsEditor* pAssetsEditor,
+		const gui::CRect& CreatorRect,
 		int Alignment,
-		CModAPI_AssetPath AssetPath,
+		CAssetPath AssetPath,
 		int AssetMember,
 		int AssetSubPath,
-		CModAPI_AssetPath CharacterPath
+		CAssetPath CharacterPath
 	) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor),
 		m_AssetPath(AssetPath),
 		m_AssetMember(AssetMember),
 		m_AssetSubPath(AssetSubPath),
 		m_CharacterPath(CharacterPath)
 	{		
-		m_Layout = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		Add(m_Layout);
 		
 		Update();
@@ -588,34 +594,34 @@ public:
 	{
 		m_Layout->Clear();
 		
-		CModAPI_Asset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Character>(m_CharacterPath);
+		CAsset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Character>(m_CharacterPath);
 		if(pCharacter)
 		{
 			for(int i=0; i<pCharacter->m_Parts.size(); i++)
 			{
-				CItem* pItem = new CItem(this, CModAPI_Asset_Character::CSubPath::Part(i));
+				CItem* pItem = new CItem(this, CAsset_Character::CSubPath::Part(i));
 				m_Layout->Add(pItem);
 			}
 		}
 		
-		CModAPI_ClientGui_Popup::Update();
+		gui::CPopup::Update();
 	}
 };
 
 /* POPUP COLOR EDIT ***************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_ColorEdit : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_ColorEdit : public gui::CPopup
 {
 public:
-	class CColorSliderEdit : public CModAPI_ClientGui_Widget
+	class CColorSliderEdit : public gui::CWidget
 	{	
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;		
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;		
 		bool m_Clicked;
 		
 	public:
-		CColorSliderEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_Widget(pPopup->m_pAssetsEditor->m_pGuiConfig),
+		CColorSliderEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CWidget(pPopup->m_pAssetsEditor->m_pGuiConfig),
 			m_pPopup(pPopup),
 			m_Clicked(false)
 		{
@@ -677,7 +683,7 @@ public:
 	class CRGBSliderEdit : public CColorSliderEdit
 	{
 	public:
-		CRGBSliderEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
+		CRGBSliderEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
 			CColorSliderEdit(pPopup)
 		{
 			
@@ -720,7 +726,7 @@ public:
 	class CAlphaSliderEdit : public CRGBSliderEdit<3>
 	{		
 	public:
-		CAlphaSliderEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
+		CAlphaSliderEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
 			CRGBSliderEdit<3>(pPopup)
 		{
 			
@@ -771,7 +777,7 @@ public:
 	class CHSVSliderEdit : public CColorSliderEdit
 	{
 	public:
-		CHSVSliderEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
+		CHSVSliderEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
 			CColorSliderEdit(pPopup)
 		{
 			
@@ -824,15 +830,15 @@ public:
 		}
 	};
 	
-	class CHueVSliderEdit : public CModAPI_ClientGui_Widget
+	class CHueVSliderEdit : public gui::CWidget
 	{	
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;		
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;		
 		bool m_Clicked;
 		
 	public:
-		CHueVSliderEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_Widget(pPopup->m_pAssetsEditor->m_pGuiConfig),
+		CHueVSliderEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CWidget(pPopup->m_pAssetsEditor->m_pGuiConfig),
 			m_pPopup(pPopup),
 			m_Clicked(false)
 		{
@@ -928,15 +934,15 @@ public:
 		}
 	};
 	
-	class CSquarePicker : public CModAPI_ClientGui_Widget
+	class CSquarePicker : public gui::CWidget
 	{	
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;		
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;		
 		bool m_Clicked;
 		
 	public:
-		CSquarePicker(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_Widget(pPopup->m_pAssetsEditor->m_pGuiConfig),
+		CSquarePicker(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CWidget(pPopup->m_pAssetsEditor->m_pGuiConfig),
 			m_pPopup(pPopup),
 			m_Clicked(false)
 		{
@@ -1037,15 +1043,15 @@ public:
 		}
 	};
 	
-	class CWheelPicker : public CModAPI_ClientGui_Widget
+	class CWheelPicker : public gui::CWidget
 	{	
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;		
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;		
 		int m_Clicked;
 		
 	public:
-		CWheelPicker(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_Widget(pPopup->m_pAssetsEditor->m_pGuiConfig),
+		CWheelPicker(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CWidget(pPopup->m_pAssetsEditor->m_pGuiConfig),
 			m_pPopup(pPopup),
 			m_Clicked(0)
 		{
@@ -1256,10 +1262,10 @@ public:
 	};
 
 	template<int C>
-	class CRGBIntegerEdit : public CModAPI_ClientGui_AbstractFloatEdit
+	class CRGBIntegerEdit : public gui::CAbstractFloatEdit
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;
 		
 		virtual void SetValue(float Value)
 		{
@@ -1281,8 +1287,8 @@ public:
 		}
 		
 	public:
-		CRGBIntegerEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_AbstractFloatEdit(pPopup->m_pConfig),
+		CRGBIntegerEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CAbstractFloatEdit(pPopup->m_pConfig),
 			m_pPopup(pPopup)
 		{
 			
@@ -1290,10 +1296,10 @@ public:
 	};
 
 	template<int C>
-	class CRGBFloatEdit : public CModAPI_ClientGui_AbstractFloatEdit
+	class CRGBFloatEdit : public gui::CAbstractFloatEdit
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;
 		
 		virtual void SetValue(float Value)
 		{
@@ -1315,8 +1321,8 @@ public:
 		}
 		
 	public:
-		CRGBFloatEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_AbstractFloatEdit(pPopup->m_pConfig),
+		CRGBFloatEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CAbstractFloatEdit(pPopup->m_pConfig),
 			m_pPopup(pPopup)
 		{
 			
@@ -1324,10 +1330,10 @@ public:
 	};
 
 	template<int C>
-	class CHSVIntegerEdit : public CModAPI_ClientGui_AbstractFloatEdit
+	class CHSVIntegerEdit : public gui::CAbstractFloatEdit
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;
 		
 		virtual void SetValue(float Value)
 		{
@@ -1352,8 +1358,8 @@ public:
 		}
 		
 	public:
-		CHSVIntegerEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_AbstractFloatEdit(pPopup->m_pConfig),
+		CHSVIntegerEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CAbstractFloatEdit(pPopup->m_pConfig),
 			m_pPopup(pPopup)
 		{
 			
@@ -1361,10 +1367,10 @@ public:
 	};
 
 	template<int C>
-	class CHSVFloatEdit : public CModAPI_ClientGui_AbstractFloatEdit
+	class CHSVFloatEdit : public gui::CAbstractFloatEdit
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_ColorEdit* m_pPopup;
+		CAssetsEditorGui_Popup_ColorEdit* m_pPopup;
 		
 		virtual void SetValue(float Value)
 		{
@@ -1389,8 +1395,8 @@ public:
 		}
 		
 	public:
-		CHSVFloatEdit(CModAPI_AssetsEditorGui_Popup_ColorEdit* pPopup) :
-			CModAPI_ClientGui_AbstractFloatEdit(pPopup->m_pConfig),
+		CHSVFloatEdit(CAssetsEditorGui_Popup_ColorEdit* pPopup) :
+			gui::CAbstractFloatEdit(pPopup->m_pConfig),
 			m_pPopup(pPopup)
 		{
 			
@@ -1398,47 +1404,47 @@ public:
 	};
 	
 public:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
-	CModAPI_AssetPath m_AssetPath;
+	CAssetsEditor* m_pAssetsEditor;
+	CAssetPath m_AssetPath;
 	int m_AssetMember;
 	int m_AssetSubPath;
 	
 protected:
-	CModAPI_ClientGui_Tabs* m_Tabs;
-	CModAPI_ClientGui_VListLayout* m_TabRGB;
-	CModAPI_ClientGui_VListLayout* m_TabHSV;
-	CModAPI_ClientGui_VListLayout* m_TabSquare;
-	CModAPI_ClientGui_VListLayout* m_TabWheel;
+	gui::CTabs* m_Tabs;
+	gui::CVListLayout* m_TabRGB;
+	gui::CVListLayout* m_TabHSV;
+	gui::CVListLayout* m_TabSquare;
+	gui::CVListLayout* m_TabWheel;
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_ColorEdit(
-		CModAPI_AssetsEditor* pAssetsEditor,
-		const CModAPI_ClientGui_Rect& CreatorRect,
+	CAssetsEditorGui_Popup_ColorEdit(
+		CAssetsEditor* pAssetsEditor,
+		const gui::CRect& CreatorRect,
 		int Alignment,
-		CModAPI_AssetPath AssetPath,
+		CAssetPath AssetPath,
 		int AssetMember,
 		int AssetSubPath
 	) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 300, 380, Alignment),
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 300, 380, Alignment),
 		m_pAssetsEditor(pAssetsEditor),
 		m_AssetPath(AssetPath),
 		m_AssetMember(AssetMember),
 		m_AssetSubPath(AssetSubPath)
 	{		
-		m_Tabs = new CModAPI_ClientGui_Tabs(pAssetsEditor->m_pGuiConfig);
+		m_Tabs = new gui::CTabs(pAssetsEditor->m_pGuiConfig);
 		Add(m_Tabs);
 		
 		Update();
 		
-		m_TabRGB = new CModAPI_ClientGui_VListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabRGB, MODAPI_ASSETSEDITOR_ICON_COLORPICKER_RGB, "RGB Color Chooser");
+		m_TabRGB = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
+		m_Tabs->AddTab(m_TabRGB, CAssetsEditor::ICON_COLORPICKER_RGB, "RGB Color Chooser");
 		
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabRGB->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Red:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Red:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CRGBFloatEdit<0>(this));
 			pLayout->Add(new CRGBIntegerEdit<0>(this));
@@ -1446,11 +1452,11 @@ public:
 			m_TabRGB->Add(new CRGBSliderEdit<0>(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabRGB->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Green:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Green:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CRGBFloatEdit<1>(this));
 			pLayout->Add(new CRGBIntegerEdit<1>(this));
@@ -1458,11 +1464,11 @@ public:
 			m_TabRGB->Add(new CRGBSliderEdit<1>(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabRGB->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Blue:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Blue:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CRGBFloatEdit<2>(this));
 			pLayout->Add(new CRGBIntegerEdit<2>(this));
@@ -1470,11 +1476,11 @@ public:
 			m_TabRGB->Add(new CRGBSliderEdit<2>(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabRGB->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CRGBFloatEdit<3>(this));
 			pLayout->Add(new CRGBIntegerEdit<3>(this));
@@ -1482,14 +1488,14 @@ public:
 			m_TabRGB->Add(new CAlphaSliderEdit(this));
 		}
 		
-		m_TabHSV = new CModAPI_ClientGui_VListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabHSV, MODAPI_ASSETSEDITOR_ICON_COLORPICKER_HSV, "HSV Color Chooser");
+		m_TabHSV = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
+		m_Tabs->AddTab(m_TabHSV, CAssetsEditor::ICON_COLORPICKER_HSV, "HSV Color Chooser");
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabHSV->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Hue:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Hue:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CHSVFloatEdit<0>(this));
 			pLayout->Add(new CHSVIntegerEdit<0>(this));
@@ -1497,11 +1503,11 @@ public:
 			m_TabHSV->Add(new CHSVSliderEdit<0>(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabHSV->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Saturation:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Saturation:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CHSVFloatEdit<1>(this));
 			pLayout->Add(new CHSVIntegerEdit<1>(this));
@@ -1509,11 +1515,11 @@ public:
 			m_TabHSV->Add(new CHSVSliderEdit<1>(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabHSV->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Value:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Value:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CHSVFloatEdit<2>(this));
 			pLayout->Add(new CHSVIntegerEdit<2>(this));
@@ -1521,11 +1527,11 @@ public:
 			m_TabHSV->Add(new CHSVSliderEdit<2>(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabHSV->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CRGBFloatEdit<3>(this));
 			pLayout->Add(new CRGBIntegerEdit<3>(this));
@@ -1533,10 +1539,10 @@ public:
 			m_TabHSV->Add(new CAlphaSliderEdit(this));
 		}
 		
-		m_TabSquare = new CModAPI_ClientGui_VListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabSquare, MODAPI_ASSETSEDITOR_ICON_COLORPICKER_SQUARE, "HSV Square Color Chooser");
+		m_TabSquare = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
+		m_Tabs->AddTab(m_TabSquare, CAssetsEditor::ICON_COLORPICKER_SQUARE, "HSV Square Color Chooser");
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_LAST);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_LAST);
 			pLayout->SetHeight(250);
 			m_TabSquare->Add(pLayout);
 			
@@ -1544,11 +1550,11 @@ public:
 			pLayout->Add(new CHueVSliderEdit(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabSquare->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CRGBFloatEdit<3>(this));
 			pLayout->Add(new CRGBIntegerEdit<3>(this));
@@ -1556,17 +1562,17 @@ public:
 			m_TabSquare->Add(new CAlphaSliderEdit(this));
 		}
 		
-		m_TabWheel = new CModAPI_ClientGui_VListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabWheel, MODAPI_ASSETSEDITOR_ICON_COLORPICKER_WHEEL, "HSV Wheel Color Chooser");
+		m_TabWheel = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
+		m_Tabs->AddTab(m_TabWheel, CAssetsEditor::ICON_COLORPICKER_WHEEL, "HSV Wheel Color Chooser");
 		{
 			m_TabWheel->Add(new CWheelPicker(this));
 		}
 		{
-			CModAPI_ClientGui_HListLayout* pLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_ALL);
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_TabWheel->Add(pLayout);
 			
-			CModAPI_ClientGui_Label* pLabel = new CModAPI_ClientGui_Label(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
+			gui::CLabel* pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Alpha:");
 			pLayout->Add(pLabel);
 			pLayout->Add(new CRGBFloatEdit<3>(this));
 			pLayout->Add(new CRGBIntegerEdit<3>(this));
@@ -1598,28 +1604,28 @@ public:
 
 /* SAVE ASSETS ********************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_SaveAssets : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_SaveAssets : public gui::CPopup
 {	
 protected:
-	class CSave : public CModAPI_ClientGui_TextButton
+	class CSave : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_SaveAssets* m_pPopup;
+		CAssetsEditorGui_Popup_SaveAssets* m_pPopup;
 		
 	public:
-		CSave(CModAPI_AssetsEditorGui_Popup_SaveAssets* pPopup) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pConfig, "Save"),
+		CSave(CAssetsEditorGui_Popup_SaveAssets* pPopup) :
+			gui::CTextButton(pPopup->m_pConfig, "Save"),
 			m_pPopup(pPopup)
 		{ SetWidth(120); }
 
 		virtual void MouseClickAction() { m_pPopup->Save(); }
 	};
 	
-	class CItem : public CModAPI_ClientGui_TextButton
+	class CItem : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_SaveAssets* m_pPopup;
-		CModAPI_AssetsEditor* m_pAssetsEditor;
+		CAssetsEditorGui_Popup_SaveAssets* m_pPopup;
+		CAssetsEditor* m_pAssetsEditor;
 		char m_aFilename[128];
 		int m_StorageType;
 		int m_IsDirectory;
@@ -1634,8 +1640,8 @@ protected:
 		}
 		
 	public:
-		CItem(CModAPI_AssetsEditorGui_Popup_SaveAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, MODAPI_ASSETSEDITOR_ICON_ASSET),
+		CItem(CAssetsEditorGui_Popup_SaveAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_ASSET),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -1648,44 +1654,44 @@ protected:
 	};
 	
 protected:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
-	CModAPI_ClientGui_VListLayout* m_Layout;
-	CModAPI_ClientGui_VListLayout* m_Filelist;
+	CAssetsEditor* m_pAssetsEditor;
+	gui::CVListLayout* m_Layout;
+	gui::CVListLayout* m_Filelist;
 	char m_aFilename[256];
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_SaveAssets(CModAPI_AssetsEditor* pAssetsEditor, const CModAPI_ClientGui_Rect& CreatorRect, int Alignment) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 500, 500, Alignment),
+	CAssetsEditorGui_Popup_SaveAssets(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment) :
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 500, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor)
 	{
 		str_copy(m_aFilename, "myassets.assets", sizeof(m_aFilename));
 		
-		m_Layout = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		Add(m_Layout);
 		
-		m_Filelist = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Filelist = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		m_Layout->Add(m_Filelist);
 		
 		{
-			CModAPI_ClientGui_HListLayout* pHLayout = new CModAPI_ClientGui_HListLayout(m_pAssetsEditor->m_pGuiConfig, MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE, MODAPI_CLIENTGUI_LAYOUTFILLING_FIRST);
+			gui::CHListLayout* pHLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_FIRST);
 			pHLayout->SetHeight(m_pConfig->m_ButtonHeight);
 			m_Layout->Add(pHLayout);
 			
-			CModAPI_ClientGui_ExternalTextEdit* pTextEdit = new CModAPI_ClientGui_ExternalTextEdit(m_pAssetsEditor->m_pGuiConfig, m_aFilename, sizeof(m_aFilename));
+			gui::CExternalTextEdit* pTextEdit = new gui::CExternalTextEdit(m_pAssetsEditor->m_pGuiConfig, m_aFilename, sizeof(m_aFilename));
 			pHLayout->Add(pTextEdit);
 			
 			pHLayout->Add(new CSave(this));
 		}
 			
 		
-		CModAPI_ClientGui_Popup::Update();
+		gui::CPopup::Update();
 		m_Filelist->SetHeight(m_Layout->m_Rect.h - 2*m_pConfig->m_LayoutSpacing - m_pConfig->m_ButtonHeight);
 		Update();
 	}
 	
 	static int FileListFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser)
 	{
-		CModAPI_AssetsEditorGui_Popup_SaveAssets* pPopup = static_cast<CModAPI_AssetsEditorGui_Popup_SaveAssets*>(pUser);
+		CAssetsEditorGui_Popup_SaveAssets* pPopup = static_cast<CAssetsEditorGui_Popup_SaveAssets*>(pUser);
 		
 		int Length = str_length(pName);
 		if(pName[0] == '.' && (pName[1] == 0))
@@ -1704,7 +1710,7 @@ public:
 	{
 		m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets", FileListFetchCallback, this);
 		
-		CModAPI_ClientGui_Popup::Update();
+		gui::CPopup::Update();
 	}
 	
 	void SetFilename(const char* pFilename)
@@ -1716,22 +1722,22 @@ public:
 	{
 		char aBuf[256];
 		str_format(aBuf, sizeof(aBuf), "assets/%s", m_aFilename);
-		m_pAssetsEditor->AssetManager()->SaveInAssetsFile(aBuf, CModAPI_AssetPath::SRC_EXTERNAL);
+		m_pAssetsEditor->AssetManager()->SaveInAssetsFile(aBuf, CAssetPath::SRC_EXTERNAL);
 		Close();
 	}
 };
 
 /* LOAD ASSETS ********************************************************/
 
-class CModAPI_AssetsEditorGui_Popup_LoadAssets : public CModAPI_ClientGui_Popup
+class CAssetsEditorGui_Popup_LoadAssets : public gui::CPopup
 {	
 protected:	
-	class CItem : public CModAPI_ClientGui_TextButton
+	class CItem : public gui::CTextButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_Popup_LoadAssets* m_pPopup;
-		CModAPI_AssetsEditor* m_pAssetsEditor;
-		char m_aFilename[128];
+		CAssetsEditorGui_Popup_LoadAssets* m_pPopup;
+		CAssetsEditor* m_pAssetsEditor;
+		char m_aFilename[256];
 		int m_StorageType;
 		int m_IsDirectory;
 		
@@ -1740,16 +1746,14 @@ protected:
 		{
 			if(!m_IsDirectory)
 			{
-				char aBuf[256];
-				str_format(aBuf, sizeof(aBuf), "assets/%s", m_aFilename);
-				m_pAssetsEditor->LoadAssetsFile(aBuf);
+				m_pAssetsEditor->LoadAssetsFile(m_aFilename);
 				m_pPopup->Close();
 			}
 		}
 		
 	public:
-		CItem(CModAPI_AssetsEditorGui_Popup_LoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			CModAPI_ClientGui_TextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, MODAPI_ASSETSEDITOR_ICON_ASSET),
+		CItem(CAssetsEditorGui_Popup_LoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_ASSET),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -1762,24 +1766,36 @@ protected:
 	};
 	
 protected:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
-	CModAPI_ClientGui_VListLayout* m_Layout;
-	CModAPI_ClientGui_VListLayout* m_Filelist;
+	CAssetsEditor* m_pAssetsEditor;
+	gui::CTabs* m_Tabs;
+	gui::CVListLayout* m_TabExternal;
+	gui::CVListLayout* m_TabMap;
+	gui::CVListLayout* m_Filelist;
 	
 public:
-	CModAPI_AssetsEditorGui_Popup_LoadAssets(CModAPI_AssetsEditor* pAssetsEditor, const CModAPI_ClientGui_Rect& CreatorRect, int Alignment) :
-		CModAPI_ClientGui_Popup(pAssetsEditor->m_pGuiConfig, CreatorRect, 500, 500, Alignment),
-		m_pAssetsEditor(pAssetsEditor)
+	CAssetsEditorGui_Popup_LoadAssets(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment) :
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 500, 500, Alignment),
+		m_pAssetsEditor(pAssetsEditor),
+		m_TabExternal(0),
+		m_TabMap(0)
 	{		
-		m_Layout = new CModAPI_ClientGui_VListLayout(m_pAssetsEditor->m_pGuiConfig);
-		Add(m_Layout);
+		m_Tabs = new gui::CTabs(pAssetsEditor->m_pGuiConfig);
+		Add(m_Tabs);
+		
+		Update();
+		
+		m_TabExternal = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Tabs->AddTab(m_TabExternal, CAssetsEditor::ICON_EXTERNAL_ASSET, "External assets");
+		
+		m_TabMap = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
+		m_Tabs->AddTab(m_TabMap, CAssetsEditor::ICON_MAP_ASSET, "Maps");
 		
 		Update();
 	}
 	
-	static int FileListFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser)
+	static int FileListFetchCallback_External(const char *pName, int IsDir, int StorageType, void *pUser)
 	{
-		CModAPI_AssetsEditorGui_Popup_LoadAssets* pPopup = static_cast<CModAPI_AssetsEditorGui_Popup_LoadAssets*>(pUser);
+		CAssetsEditorGui_Popup_LoadAssets* pPopup = static_cast<CAssetsEditorGui_Popup_LoadAssets*>(pUser);
 		
 		int Length = str_length(pName);
 		if(pName[0] == '.' && (pName[1] == 0))
@@ -1788,18 +1804,47 @@ public:
 		if(Length < 7 || str_comp(pName+Length-7, ".assets"))
 			return 0;
 
-		CItem* pItem = new CItem(pPopup, pName, StorageType, IsDir);
-		pPopup->m_Layout->Add(pItem);
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "assets/%s", pName);
+		
+		CItem* pItem = new CItem(pPopup, aBuf, StorageType, IsDir);
+		pPopup->m_TabExternal->Add(pItem);
+
+		return 0;
+	}
+	
+	static int FileListFetchCallback_Map(const char *pName, int IsDir, int StorageType, void *pUser)
+	{
+		CAssetsEditorGui_Popup_LoadAssets* pPopup = static_cast<CAssetsEditorGui_Popup_LoadAssets*>(pUser);
+				
+		int Length = str_length(pName);
+		if(pName[0] == '.' && (pName[1] == 0))
+			return 0;
+		
+		if(Length < 4 || str_comp(pName+Length-4, ".map"))
+			return 0;
+
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "maps/%s", pName);
+		
+		CItem* pItem = new CItem(pPopup, aBuf, StorageType, IsDir);
+		pPopup->m_TabMap->Add(pItem);
 
 		return 0;
 	}
 	
 	virtual void Update()
 	{
-		m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets", FileListFetchCallback, this);
+		if(m_TabExternal)
+			m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets", FileListFetchCallback_External, this);
 		
-		CModAPI_ClientGui_Popup::Update();
+		if(m_TabMap)
+			m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "maps", FileListFetchCallback_Map, this);
+		
+		gui::CPopup::Update();
 	}
 };
+
+}
 
 #endif

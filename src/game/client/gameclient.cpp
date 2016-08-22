@@ -81,7 +81,7 @@ static CSpectator gs_Spectator;
 static CPlayers gs_Players;
 static CNamePlates gs_NamePlates;
 static CItems gs_Items;
-static CModAPI_Component_Items gs_ModAPI_Items[MODAPI_NUM_ITEMLAYER];
+static tu::CComponent_Items gs_TU_Items[tu::NUM_ITEMLAYER];
 static CMapImages gs_MapImages;
 
 static CMapLayers gs_MapLayersBackGround(CMapLayers::TYPE_BACKGROUND);
@@ -178,10 +178,10 @@ void CGameClient::OnConsoleInit()
 	m_pVoting = &::gs_Voting;
 	m_pScoreboard = &::gs_Scoreboard;
 	m_pItems = &::gs_Items;
-	for(int i=0; i<MODAPI_NUM_ITEMLAYER; i++)
+	for(int i=0; i<tu::NUM_ITEMLAYER; i++)
 	{
-		m_pModAPI_Items[i] = &::gs_ModAPI_Items[i];
-		m_pModAPI_Items[i]->SetLayer(i);
+		m_pTU_Items[i] = &::gs_TU_Items[i];
+		m_pTU_Items[i]->SetLayer(i);
 	}
 	m_pMapLayersBackGround = &::gs_MapLayersBackGround;
 	m_pMapLayersForeGround = &::gs_MapLayersForeGround;
@@ -200,19 +200,19 @@ void CGameClient::OnConsoleInit()
 
 	m_All.Add(&gs_MapLayersBackGround); // first to render
 	m_All.Add(&m_pParticles->m_RenderTrail);
-	m_All.Add(m_pModAPI_Items[MODAPI_ITEMLAYER_UNDER_ITEM]);
+	m_All.Add(m_pTU_Items[tu::ITEMLAYER_UNDER_ITEM]);
 	m_All.Add(m_pItems);
-	m_All.Add(m_pModAPI_Items[MODAPI_ITEMLAYER_OVER_ITEM]);
+	m_All.Add(m_pTU_Items[tu::ITEMLAYER_OVER_ITEM]);
 	m_All.Add(&gs_Players);
-	m_All.Add(m_pModAPI_Items[MODAPI_ITEMLAYER_OVER_PLAYER]);
+	m_All.Add(m_pTU_Items[tu::ITEMLAYER_OVER_PLAYER]);
 	m_All.Add(&gs_MapLayersForeGround);
-	m_All.Add(m_pModAPI_Items[MODAPI_ITEMLAYER_UNDER_PARTICULES]);
+	m_All.Add(m_pTU_Items[tu::ITEMLAYER_UNDER_PARTICULES]);
 	m_All.Add(&m_pParticles->m_RenderExplosions);
-	m_All.Add(m_pModAPI_Items[MODAPI_ITEMLAYER_UNDER_NAMEPLATES]);
+	m_All.Add(m_pTU_Items[tu::ITEMLAYER_UNDER_NAMEPLATES]);
 	m_All.Add(&gs_NamePlates);
-	m_All.Add(m_pModAPI_Items[MODAPI_ITEMLAYER_OVER_NAMEPLATES]);
+	m_All.Add(m_pTU_Items[tu::ITEMLAYER_OVER_NAMEPLATES]);
 	m_All.Add(&m_pParticles->m_RenderGeneral);
-	m_All.Add(m_pModAPI_Items[MODAPI_ITEMLAYER_OVER_PARTICULES]);
+	m_All.Add(m_pTU_Items[tu::ITEMLAYER_OVER_PARTICULES]);
 	m_All.Add(m_pDamageind);
 	m_All.Add(&gs_Hud);
 	m_All.Add(&gs_Spectator);
@@ -790,7 +790,7 @@ void CGameClient::OnEnterGame() {}
 
 void CGameClient::OnGameOver()
 {
-	if(Client()->State() != IClient::STATE_DEMOPLAYBACK && g_Config.m_ClMode == MODAPI_CLIENTMODE_GAME)
+	if(Client()->State() != IClient::STATE_DEMOPLAYBACK && g_Config.m_ClMode == TU_CLIENTMODE_GAME)
 		Client()->AutoScreenshot_Start();
 }
 
@@ -849,9 +849,9 @@ void CGameClient::ProcessEvents()
 		}
 		else
 		{
-			for(int i=0; i<MODAPI_NUM_ITEMLAYER; i++)
+			for(int i=0; i<tu::NUM_ITEMLAYER; i++)
 			{
-				if(m_pModAPI_Items[i]->ProcessEvent(Item.m_Type, (CNetEvent_Common*) pData))
+				if(m_pTU_Items[i]->ProcessEvent(Item.m_Type, (CNetEvent_Common*) pData))
 					break;
 			}
 		}
@@ -1313,9 +1313,9 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
-			CModAPI_AssetPath CharacterPartPath = pGameClient->AssetManager()->FindSkinPart(
-				CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_CHARACTER, MODAPI_CHARACTER_TEE),
-				CModAPI_Asset_Character::CSubPath::Part(p),
+			tu::CAssetPath CharacterPartPath = pGameClient->AssetManager()->FindSkinPart(
+				tu::CAssetPath::Internal(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
+				tu::CAsset_Character::CSubPath::Part(p),
 				m_aaSkinPartNames[p]
 			);
 			m_SkinInfo.m_aCharacterParts[p] = CharacterPartPath;

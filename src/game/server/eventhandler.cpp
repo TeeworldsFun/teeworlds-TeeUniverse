@@ -41,7 +41,7 @@ void CEventHandler::Clear()
 	m_CurrentOffset = 0;
 }
 
-void CEventHandler::Snap06(int Snapshot, int SnappingClient)
+void CEventHandler::Snap_TW06(int Snapshot, int SnappingClient)
 {
 	for(int i = 0; i < m_NumEvents; i++)
 	{
@@ -58,7 +58,7 @@ void CEventHandler::Snap06(int Snapshot, int SnappingClient)
 	}
 }
 
-void CEventHandler::Snap07(int Snapshot, int SnappingClient)
+void CEventHandler::Snap_TW07(int Snapshot, int SnappingClient)
 {
 	for(int i = 0; i < m_NumEvents; i++)
 	{
@@ -73,4 +73,9 @@ void CEventHandler::Snap07(int Snapshot, int SnappingClient)
 			}
 		}
 	}
+}
+
+void CEventHandler::Snap_TU07(int Snapshot, int SnappingClient)
+{
+	Snap_TW07(Snapshot, SnappingClient);
 }

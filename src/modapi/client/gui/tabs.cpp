@@ -4,14 +4,20 @@
 
 #include "tabs.h"
 
-CModAPI_ClientGui_Tabs::CModAPI_ClientGui_Tabs(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_Widget(pConfig),
+namespace tu
+{
+	
+namespace gui
+{
+
+CTabs::CTabs(CConfig *pConfig) :
+	CWidget(pConfig),
 	m_SelectedTab(-1)
 {	
 
 }
 
-CModAPI_ClientGui_Tabs::~CModAPI_ClientGui_Tabs()
+CTabs::~CTabs()
 {
 	for(int i=0; i<m_Tabs.size(); i++)
 	{
@@ -19,9 +25,9 @@ CModAPI_ClientGui_Tabs::~CModAPI_ClientGui_Tabs()
 	}
 }
 
-void CModAPI_ClientGui_Tabs::Update()
+void CTabs::Update()
 {
-	m_ContentRect = CModAPI_ClientGui_Rect(
+	m_ContentRect = CRect(
 			m_Rect.x,
 			m_Rect.y + m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f,
 			m_Rect.w,
@@ -35,7 +41,7 @@ void CModAPI_ClientGui_Tabs::Update()
 	}
 }
 	
-void CModAPI_ClientGui_Tabs::Render()
+void CTabs::Render()
 {	
 	for(int i=0; i<m_Tabs.size(); i++)
 	{
@@ -46,7 +52,7 @@ void CModAPI_ClientGui_Tabs::Render()
 		rect.h = m_Tabs[i].m_Rect.h;
 	
 		if(m_SelectedTab == i)
-			RenderTools()->DrawUIRect(&rect, m_pConfig->m_ButtonColor[MODAPI_CLIENTGUI_BUTTONSTYLE_MOUSEOVER], CUI::CORNER_T, s_ButtonCornerRadius);
+			RenderTools()->DrawUIRect(&rect, m_pConfig->m_ButtonColor[BUTTONSTYLE_MOUSEOVER], CUI::CORNER_T, s_ButtonCornerRadius);
 		else
 			RenderTools()->DrawUIRect(&rect, vec4(0.0f, 0.0f, 0.0f, s_LayoutOpacity), CUI::CORNER_T, s_ButtonCornerRadius);
 			
@@ -76,7 +82,7 @@ void CModAPI_ClientGui_Tabs::Render()
 	}
 }
 
-void CModAPI_ClientGui_Tabs::AddTab(CModAPI_ClientGui_Widget* pWidget, int IconId, const char* pHint)
+void CTabs::AddTab(CWidget* pWidget, int IconId, const char* pHint)
 {
 	float TabButtonSize = m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f;
 	
@@ -94,7 +100,7 @@ void CModAPI_ClientGui_Tabs::AddTab(CModAPI_ClientGui_Widget* pWidget, int IconI
 	
 	for(int i=0; i<m_Tabs.size(); i++)
 	{
-		pWidget->SetRect(CModAPI_ClientGui_Rect(
+		pWidget->SetRect(CRect(
 			m_Rect.x,
 			m_Rect.y + m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f,
 			m_Rect.w,
@@ -106,7 +112,7 @@ void CModAPI_ClientGui_Tabs::AddTab(CModAPI_ClientGui_Widget* pWidget, int IconI
 		m_SelectedTab = TabId;
 }
 
-void CModAPI_ClientGui_Tabs::Clear()
+void CTabs::Clear()
 {
 	m_SelectedTab = -1;
 	for(int i=0; i<m_Tabs.size(); i++)
@@ -116,7 +122,7 @@ void CModAPI_ClientGui_Tabs::Clear()
 	m_Tabs.clear();
 }
 
-void CModAPI_ClientGui_Tabs::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CTabs::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	for(int i=0; i<m_Tabs.size(); i++)
 	{
@@ -133,7 +139,7 @@ void CModAPI_ClientGui_Tabs::OnMouseOver(int X, int Y, int RelX, int RelY, int K
 	}
 }
 
-void CModAPI_ClientGui_Tabs::OnButtonClick(int X, int Y, int Button)
+void CTabs::OnButtonClick(int X, int Y, int Button)
 {
 	if(Button == KEY_MOUSE_1)
 	{
@@ -153,7 +159,7 @@ void CModAPI_ClientGui_Tabs::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_Tabs::OnButtonRelease(int Button)
+void CTabs::OnButtonRelease(int Button)
 {
 	if(m_SelectedTab >= 0)
 	{
@@ -161,10 +167,14 @@ void CModAPI_ClientGui_Tabs::OnButtonRelease(int Button)
 	}
 }
 
-void CModAPI_ClientGui_Tabs::OnInputEvent()
+void CTabs::OnInputEvent()
 {
 	if(m_SelectedTab >= 0)
 	{
 		m_Tabs[m_SelectedTab].m_pWidget->OnInputEvent();
 	}
+}
+
+}
+
 }

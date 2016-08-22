@@ -27,7 +27,7 @@
 
 #include <mastersrv/mastersrv.h>
 
-//ModAPI
+//TU
 #include <modapi/shared/assetsfile.h>
 #include <modapi/compatibility.h> 
 #include <modapi/server/server.h>
@@ -282,7 +282,7 @@ void CServer::CClient::Reset()
 	m_ModChunk = 0;
 }
 
-CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta[MODAPI_SNAPSHOT_TW07MODAPI])
+CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta[tu::SNAPSHOT_TU07])
 {
 	m_TickSpeed = SERVER_TICK_SPEED;
 
@@ -294,7 +294,7 @@ CServer::CServer() : m_DemoRecorder(&m_SnapshotDelta[MODAPI_SNAPSHOT_TW07MODAPI]
 	m_pCurrentMapData = 0;
 	m_CurrentMapSize = 0;
 	
-	// ModAPI
+	// TU
 	m_pCurrentModData = 0;
 	m_CurrentModSize = 0;
 
@@ -506,7 +506,7 @@ int CServer::SendMsg(CMsgPacker *pMsg, int Flags, int ClientID, bool tw06)
 	if(!pMsg)
 		return -1;
 		
-	if(ClientID >= 0 && ClientID < MAX_CLIENTS && (GetClientProtocol(ClientID) == MODAPI_CLIENTPROTOCOL_TW06))
+	if(ClientID >= 0 && ClientID < MAX_CLIENTS && (GetClientProtocol(ClientID) == tu::CLIENTPROTOCOL_TW06))
 		tw06 = true;
 	
 	mem_zero(&Packet, sizeof(CNetChunk));
@@ -563,9 +563,9 @@ void CServer::DoSnapshot()
 		int SnapshotSize;
 
 		// build snap and possibly add some messages
-		m_SnapshotBuilder[MODAPI_SNAPSHOT_TW07MODAPI].Init();
-		GameServer()->OnSnap07ModAPI(-1);
-		SnapshotSize = m_SnapshotBuilder[MODAPI_SNAPSHOT_TW07MODAPI].Finish(aData);
+		m_SnapshotBuilder[tu::SNAPSHOT_TU07].Init();
+		GameServer()->OnSnap_TU07(-1);
+		SnapshotSize = m_SnapshotBuilder[tu::SNAPSHOT_TU07].Finish(aData);
 
 		// write snapshot
 		m_DemoRecorder.RecordSnapshot(Tick(), aData, SnapshotSize);
@@ -599,23 +599,23 @@ void CServer::DoSnapshot()
 			int DeltaTick = -1;
 			int DeltaSize;
 
-			if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW07MODAPI)
+			if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TU07)
 			{
-				m_SnapshotBuilder[MODAPI_SNAPSHOT_TW07MODAPI].Init();
-				GameServer()->OnSnap07ModAPI(i);
-				SnapshotSize = m_SnapshotBuilder[MODAPI_SNAPSHOT_TW07MODAPI].Finish(pData);
+				m_SnapshotBuilder[tu::SNAPSHOT_TU07].Init();
+				GameServer()->OnSnap_TU07(i);
+				SnapshotSize = m_SnapshotBuilder[tu::SNAPSHOT_TU07].Finish(pData);
 			}
-			else if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW07)
+			else if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TW07)
 			{
-				m_SnapshotBuilder[MODAPI_SNAPSHOT_TW07].Init();
-				GameServer()->OnSnap07(i);
-				SnapshotSize = m_SnapshotBuilder[MODAPI_SNAPSHOT_TW07].Finish(pData);
+				m_SnapshotBuilder[tu::SNAPSHOT_TW07].Init();
+				GameServer()->OnSnap_TW07(i);
+				SnapshotSize = m_SnapshotBuilder[tu::SNAPSHOT_TW07].Finish(pData);
 			}
-			else if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+			else if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TW06)
 			{
-				m_SnapshotBuilder[MODAPI_SNAPSHOT_TW06].Init();
-				GameServer()->OnSnap06(i);
-				SnapshotSize = m_SnapshotBuilder[MODAPI_SNAPSHOT_TW06].Finish(pData);
+				m_SnapshotBuilder[tu::SNAPSHOT_TW06].Init();
+				GameServer()->OnSnap_TW06(i);
+				SnapshotSize = m_SnapshotBuilder[tu::SNAPSHOT_TW06].Finish(pData);
 			}
 
 			// finish snapshot
@@ -644,17 +644,17 @@ void CServer::DoSnapshot()
 			}
 
 			// create delta
-			if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW07MODAPI)
+			if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TU07)
 			{
-				DeltaSize = m_SnapshotDelta[MODAPI_SNAPSHOT_TW07MODAPI].CreateDelta(pDeltashot, pData, aDeltaData);
+				DeltaSize = m_SnapshotDelta[tu::SNAPSHOT_TU07].CreateDelta(pDeltashot, pData, aDeltaData);
 			}
-			else if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW07)
+			else if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TW07)
 			{
-				DeltaSize = m_SnapshotDelta[MODAPI_SNAPSHOT_TW07].CreateDelta(pDeltashot, pData, aDeltaData);
+				DeltaSize = m_SnapshotDelta[tu::SNAPSHOT_TW07].CreateDelta(pDeltashot, pData, aDeltaData);
 			}
-			else if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+			else if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TW06)
 			{
-				DeltaSize = m_SnapshotDelta[MODAPI_SNAPSHOT_TW06].CreateDelta(pDeltashot, pData, aDeltaData);
+				DeltaSize = m_SnapshotDelta[tu::SNAPSHOT_TW06].CreateDelta(pDeltashot, pData, aDeltaData);
 			}
 
 			if(DeltaSize)
@@ -675,7 +675,7 @@ void CServer::DoSnapshot()
 					if(NumPackets == 1)
 					{
 						int NetMsgID = NETMSG_SNAPSINGLE;
-						if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+						if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TW06)
 							NetMsgID = TW06_NETMSG_SNAPSINGLE;
 						
 						CMsgPacker Msg(NetMsgID, true);
@@ -689,7 +689,7 @@ void CServer::DoSnapshot()
 					else
 					{
 						int NetMsgID = NETMSG_SNAP;
-						if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+						if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TW06)
 							NetMsgID = TW06_NETMSG_SNAP;
 						
 						CMsgPacker Msg(NetMsgID, true);
@@ -707,7 +707,7 @@ void CServer::DoSnapshot()
 			else
 			{
 				int NetMsgID = NETMSG_SNAP;
-				if(GetClientProtocol(i) == MODAPI_CLIENTPROTOCOL_TW06)
+				if(GetClientProtocol(i) == tu::CLIENTPROTOCOL_TW06)
 					NetMsgID = TW06_NETMSG_SNAP;
 				
 				CMsgPacker Msg(NetMsgID, true);
@@ -770,7 +770,7 @@ int CServer::DelClientCallback(int ClientID, const char *pReason, void *pUser)
 
 void CServer::SendMap(int ClientID)
 {
-	if(m_aClients[ClientID].m_Protocol == MODAPI_CLIENTPROTOCOL_TW06)
+	if(m_aClients[ClientID].m_Protocol == tu::CLIENTPROTOCOL_TW06)
 	{
 		CMsgPacker Msg(TW06_NETMSG_MAP_CHANGE, true);
 		Msg.AddString(GetMapName(), 0);
@@ -792,7 +792,7 @@ void CServer::SendMap(int ClientID)
 
 void CServer::SendConnectionReady(int ClientID)
 {
-	if(m_aClients[ClientID].m_Protocol == MODAPI_CLIENTPROTOCOL_TW06)
+	if(m_aClients[ClientID].m_Protocol == tu::CLIENTPROTOCOL_TW06)
 	{
 		CMsgPacker Msg(TW06_NETMSG_CON_READY, true);
 		SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID);
@@ -888,7 +888,7 @@ void CServer::ProcessClientPacket_TW06(CNetChunk *pPacket)
 			if(m_aClients[ClientID].m_State == CClient::STATE_AUTH)
 			{
 				const char *pVersion = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-				if(str_comp(pVersion, MODAPI_NETVERSION_TW06) != 0)
+				if(str_comp(pVersion, TU_NETVERSION_TW06) != 0)
 				{
 					// wrong version
 					char aReason[256];
@@ -897,7 +897,7 @@ void CServer::ProcessClientPacket_TW06(CNetChunk *pPacket)
 					return;
 				}
 				
-				m_aClients[ClientID].m_Protocol = MODAPI_CLIENTPROTOCOL_TW06;
+				m_aClients[ClientID].m_Protocol = tu::CLIENTPROTOCOL_TW06;
 
 				const char *pPassword = Unpacker.GetString(CUnpacker::SANITIZE_CC);
 				if(g_Config.m_Password[0] != 0)
@@ -1178,15 +1178,15 @@ void CServer::ProcessClientPacket_TW07(CNetChunk *pPacket)
 			{
 	
 				const char *pVersion = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-				if(str_comp(pVersion, MODAPI_NETVERSION_TW07) == 0)
-					m_aClients[ClientID].m_Protocol = MODAPI_CLIENTPROTOCOL_TW07;
-				else if(str_comp(pVersion, MODAPI_NETVERSION_TW06) == 0)
-					m_aClients[ClientID].m_Protocol = MODAPI_CLIENTPROTOCOL_TW06;
+				if(str_comp(pVersion, TU_NETVERSION_TW07) == 0)
+					m_aClients[ClientID].m_Protocol = tu::CLIENTPROTOCOL_TW07;
+				else if(str_comp(pVersion, TU_NETVERSION_TW06) == 0)
+					m_aClients[ClientID].m_Protocol = tu::CLIENTPROTOCOL_TW06;
 				else
 				{
 					// wrong version
 					char aReason[256];
-					str_format(aReason, sizeof(aReason), "Unsupported version. Client is running '%s', which is neither 0.6, 0.7 nor ModAPI.", pVersion);
+					str_format(aReason, sizeof(aReason), "Unsupported version. Client is running '%s', which is neither 0.6, 0.7 nor TeeUniverses.", pVersion);
 					m_NetServer.Drop(ClientID, aReason);
 					return;
 				}
@@ -1199,13 +1199,13 @@ void CServer::ProcessClientPacket_TW07(CNetChunk *pPacket)
 					return;
 				}
 
-				const char *pModAPI = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-				if(!Unpacker.Error() && str_comp(pModAPI, GameServer()->NetVersion()) == 0)
-					m_aClients[ClientID].m_Protocol = MODAPI_CLIENTPROTOCOL_TW07MODAPI;
+				const char *pTU = Unpacker.GetString(CUnpacker::SANITIZE_CC);
+				if(!Unpacker.Error() && str_comp(pTU, GameServer()->NetVersion()) == 0)
+					m_aClients[ClientID].m_Protocol = tu::CLIENTPROTOCOL_TU07;
 				
 				m_aClients[ClientID].m_State = CClient::STATE_CONNECTING;
 	
-				if(m_aClients[ClientID].m_Protocol == MODAPI_CLIENTPROTOCOL_TW07MODAPI && g_Config.m_SvModAPIAssetFile[0])
+				if(m_aClients[ClientID].m_Protocol == tu::CLIENTPROTOCOL_TU07 && g_Config.m_SvTuAssetFile[0])
 					SendInitialData(ClientID);
 				else
 					SendMap(ClientID);
@@ -1245,8 +1245,8 @@ void CServer::ProcessClientPacket_TW07(CNetChunk *pPacket)
 				}
 			}
 		}
-		//ModAPI
-		else if(Msg == NETMSG_MODAPI_REQUEST_MOD_DATA)
+		//TU
+		else if(Msg == NETMSG_TU_REQUEST_MOD_DATA)
 		{
 			if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) == 0 || m_aClients[ClientID].m_State == CClient::STATE_CONNECTING)
 			{
@@ -1267,7 +1267,7 @@ void CServer::ProcessClientPacket_TW07(CNetChunk *pPacket)
 					else
 						m_aClients[ClientID].m_ModChunk++;
 
-					CMsgPacker Msg(NETMSG_MODAPI_MOD_DATA, true);
+					CMsgPacker Msg(NETMSG_TU_MOD_DATA, true);
 					Msg.AddRaw(&m_pCurrentModData[Offset], ChunkSize);
 					SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID);
 
@@ -1496,7 +1496,7 @@ void CServer::GenerateServerInfoCallback_TW06(CPacker *pPacker, int Token, void 
 	str_format(aBuf, sizeof(aBuf), "%d", Token);
 	pPacker->AddString(aBuf, 6);
 	
-	pPacker->AddString("0.6.3 (ModAPI)", 32);
+	pPacker->AddString("0.6.3 (TU)", 32);
 	pPacker->AddString(g_Config.m_SvName, 64);
 	pPacker->AddString(pThis->GetMapName(), 32);
 
@@ -1506,7 +1506,7 @@ void CServer::GenerateServerInfoCallback_TW06(CPacker *pPacker, int Token, void 
 			str_comp_nocase(pThis->GameServer()->GameType(), "CTF") == 0 ||
 			str_comp_nocase(pThis->GameServer()->GameType(), "SUR") == 0 ||
 			str_comp_nocase(pThis->GameServer()->GameType(), "LMS") == 0)
-		str_format(aBuf, sizeof(aBuf), "%s (ModAPI)", pThis->GameServer()->GameType());
+		str_format(aBuf, sizeof(aBuf), "%s (TU)", pThis->GameServer()->GameType());
 	else
 		str_copy(aBuf, pThis->GameServer()->GameType(), sizeof(aBuf));
 	pPacker->AddString(aBuf, 16);
@@ -1572,7 +1572,7 @@ void CServer::GenerateServerInfoCallback_TW07(CPacker *pPacker, int Token, void 
 			str_comp_nocase(pThis->GameServer()->GameType(), "CTF") == 0 ||
 			str_comp_nocase(pThis->GameServer()->GameType(), "SUR") == 0 ||
 			str_comp_nocase(pThis->GameServer()->GameType(), "LMS") == 0)
-		str_format(aBuf, sizeof(aBuf), "%s (ModAPI)", pThis->GameServer()->GameType());
+		str_format(aBuf, sizeof(aBuf), "%s (TU)", pThis->GameServer()->GameType());
 	else
 		str_copy(aBuf, pThis->GameServer()->GameType(), sizeof(aBuf));
 	pPacker->AddString(aBuf, 16);
@@ -1609,7 +1609,7 @@ void CServer::SendServerInfo(int ClientID)
 	{
 		for(int i=0; i<MAX_CLIENTS; i++)
 		{
-			if(m_aClients[i].m_Protocol == MODAPI_CLIENTPROTOCOL_TW06)
+			if(m_aClients[i].m_Protocol == tu::CLIENTPROTOCOL_TW06)
 			{
 				CPacker Packer;
 				Packer.Reset();
@@ -1632,7 +1632,7 @@ void CServer::SendServerInfo(int ClientID)
 	}
 	else if(ClientID >= 0 && ClientID < MAX_CLIENTS && m_aClients[ClientID].m_State != CClient::STATE_EMPTY)
 	{
-		if(m_aClients[ClientID].m_Protocol == MODAPI_CLIENTPROTOCOL_TW06)
+		if(m_aClients[ClientID].m_Protocol == tu::CLIENTPROTOCOL_TW06)
 		{
 				CPacker Packer;
 				Packer.Reset();
@@ -1698,9 +1698,9 @@ int CServer::LoadMap(const char *pMapName)
 	m_DemoRecorder.Stop();
 
 	// reinit snapshot ids
-	m_IDPool[MODAPI_SNAPSHOT_TW06].TimeoutIDs();
-	m_IDPool[MODAPI_SNAPSHOT_TW07].TimeoutIDs();
-	m_IDPool[MODAPI_SNAPSHOT_TW07MODAPI].TimeoutIDs();
+	m_IDPool[tu::SNAPSHOT_TW06].TimeoutIDs();
+	m_IDPool[tu::SNAPSHOT_TW07].TimeoutIDs();
+	m_IDPool[tu::SNAPSHOT_TU07].TimeoutIDs();
 
 	// get the crc of the map
 	m_CurrentMapCrc = m_pMap->Crc();
@@ -1725,17 +1725,17 @@ int CServer::LoadMap(const char *pMapName)
 
 int CServer::Run()
 {
-	if(!m_pModAPIServer)
+	if(!m_pTUServer)
 		return -1;
 		
 	m_PrintCBIndex = Console()->RegisterPrintCallback(g_Config.m_ConsoleOutputLevel, SendRconLineAuthed, this);
 	
-	// ModAPI, load mod
-	if(g_Config.m_SvModAPIAssetFile[0])
+	// TU, load mod
+	if(g_Config.m_SvTuAssetFile[0])
 	{
-		if(!LoadMod(g_Config.m_SvModAPIAssetFile))
+		if(!LoadMod(g_Config.m_SvTuAssetFile))
 		{
-			dbg_msg("server", "failed to load mod. modname='%s'", g_Config.m_SvModAPIAssetFile);
+			dbg_msg("server", "failed to load mod. modname='%s'", g_Config.m_SvTuAssetFile);
 			return -1;
 		}
 		m_ModChunksPerRequest = g_Config.m_SvMapDownloadSpeed;
@@ -1768,7 +1768,7 @@ int CServer::Run()
 			BindAddr.port = g_Config.m_SvPort;
 		}
 		
-		CModAPI_NetServer_TW07* pNetServerTW07 = new CModAPI_NetServer_TW07(&m_NetServer, ProcessClientPacketCallback_TW07, GenerateServerInfoCallback_TW07);
+		tu::CNetServer_TW07* pNetServerTW07 = new tu::CNetServer_TW07(&m_NetServer, ProcessClientPacketCallback_TW07, GenerateServerInfoCallback_TW07);
 		if(!m_NetServer.OpenNetServer(pNetServerTW07, BindAddr))
 		{
 			dbg_msg("server", "couldn't open socket. port %d might already be in use", g_Config.m_SvPort);
@@ -1776,23 +1776,23 @@ int CServer::Run()
 			return -1;
 		}
 	}
-	if(g_Config.m_SvModAPIPortTW06)
+	if(g_Config.m_SvTuPortTW06)
 	{
 		NETADDR BindAddr;
 		if(g_Config.m_Bindaddr[0] && net_host_lookup(g_Config.m_Bindaddr, &BindAddr, NETTYPE_ALL) == 0)
 		{
 			// sweet!
 			BindAddr.type = NETTYPE_ALL;
-			BindAddr.port = g_Config.m_SvModAPIPortTW06;
+			BindAddr.port = g_Config.m_SvTuPortTW06;
 		}
 		else
 		{
 			mem_zero(&BindAddr, sizeof(BindAddr));
 			BindAddr.type = NETTYPE_ALL;
-			BindAddr.port = g_Config.m_SvModAPIPortTW06;
+			BindAddr.port = g_Config.m_SvTuPortTW06;
 		}
 		
-		CModAPI_NetServer_TW06* pNetServerTW06 = new CModAPI_NetServer_TW06(&m_NetServer, ProcessClientPacketCallback_TW06, GenerateServerInfoCallback_TW06);
+		tu::CNetServer_TW06* pNetServerTW06 = new tu::CNetServer_TW06(&m_NetServer, ProcessClientPacketCallback_TW06, GenerateServerInfoCallback_TW06);
 		if(!m_NetServer.OpenNetServer(pNetServerTW06, BindAddr))
 		{
 			dbg_msg("server", "couldn't open socket. port %d might already be in use", g_Config.m_SvPort);
@@ -1957,7 +1957,7 @@ int CServer::Run()
 
 	if(m_pCurrentMapData)
 		mem_free(m_pCurrentMapData);
-	//ModAPI
+	//TU
 	if(m_pCurrentModData)
 		mem_free(m_pCurrentModData);
 	return 0;
@@ -2145,7 +2145,7 @@ void CServer::RegisterCommands()
 	m_pMasterServer = Kernel()->RequestInterface<IMasterServer>();
 	m_pGameServer = Kernel()->RequestInterface<IGameServer>();
 	m_pMap = Kernel()->RequestInterface<IEngineMap>();
-	m_pAssetsFile = Kernel()->RequestInterface<IModAPI_AssetsFileEngine>();
+	m_pAssetsFile = Kernel()->RequestInterface<tu::IAssetsFileEngine>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
 	// register console commands
@@ -2192,9 +2192,9 @@ void *CServer::SnapNewItem(int Snapshot, int Type, int ID, int Size)
 
 void CServer::SnapSetStaticsize(int ItemType, int Size)
 {
-	m_SnapshotDelta[MODAPI_SNAPSHOT_TW06].SetStaticsize(ItemType, Size);
-	m_SnapshotDelta[MODAPI_SNAPSHOT_TW07].SetStaticsize(ItemType, Size);
-	m_SnapshotDelta[MODAPI_SNAPSHOT_TW07MODAPI].SetStaticsize(ItemType, Size);
+	m_SnapshotDelta[tu::SNAPSHOT_TW06].SetStaticsize(ItemType, Size);
+	m_SnapshotDelta[tu::SNAPSHOT_TW07].SetStaticsize(ItemType, Size);
+	m_SnapshotDelta[tu::SNAPSHOT_TU07].SetStaticsize(ItemType, Size);
 }
 
 static CServer *CreateServer() { return new CServer(); }
@@ -2236,7 +2236,7 @@ int main(int argc, const char **argv) // ignore_convention
 	int FlagMask = CFGFLAG_SERVER|CFGFLAG_ECON;
 	IEngine *pEngine = CreateEngine("Teeworlds");
 	IEngineMap *pEngineMap = CreateEngineMap();
-	IModAPI_AssetsFileEngine *pEngineAssetsFile = CreateAssetsFileEngine();
+	tu::IAssetsFileEngine *pEngineAssetsFile = tu::CreateAssetsFileEngine();
 	IGameServer *pGameServer = CreateGameServer();
 	IConsole *pConsole = CreateConsole(CFGFLAG_SERVER|CFGFLAG_ECON);
 	IEngineMasterServer *pEngineMasterServer = CreateEngineMasterServer();
@@ -2250,8 +2250,8 @@ int main(int argc, const char **argv) // ignore_convention
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pEngine);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMap*>(pEngineMap)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMap*>(pEngineMap));
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IModAPI_AssetsFileEngine*>(pEngineAssetsFile)); // register as both
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IModAPI_AssetsFile*>(pEngineAssetsFile));
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFileEngine*>(pEngineAssetsFile)); // register as both
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFile*>(pEngineAssetsFile));
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pGameServer);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pConsole);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);
@@ -2291,11 +2291,11 @@ int main(int argc, const char **argv) // ignore_convention
 	// run the server
 	dbg_msg("server", "starting...");
 
-	CModAPI_Server* pModAPIServer = new CMod_Server();
-	pServer->SetModAPIServer(pModAPIServer);
+	tu::CServer* pTUServer = new CMod_Server();
+	pServer->SetTUServer(pTUServer);
 	pServer->Run();
 	
-	delete pModAPIServer;
+	delete pTUServer;
 
 	// free
 	delete pServer;
@@ -2314,9 +2314,9 @@ int main(int argc, const char **argv) // ignore_convention
 
 //ModeAPI
 
-void CServer::SetModAPIServer(class CModAPI_Server* pModAPIServer)
+void CServer::SetTUServer(class tu::CServer* pTUServer)
 {
-	m_pModAPIServer = pModAPIServer;
+	m_pTUServer = pTUServer;
 }
 
 bool CServer::LoadMod(const char* pModName)
@@ -2351,10 +2351,10 @@ bool CServer::LoadMod(const char* pModName)
 	
 void CServer::SendInitialData(int ClientID)
 {	
-	CMsgPacker Msg(NETMSG_MODAPI_INITDATA, true);
+	CMsgPacker Msg(NETMSG_TU_INITDATA, true);
 	
 	//Mod
-	Msg.AddString(g_Config.m_SvModAPIAssetFile, 0);
+	Msg.AddString(g_Config.m_SvTuAssetFile, 0);
 	Msg.AddInt(m_CurrentModCrc);
 	Msg.AddInt(m_CurrentModSize);
 	Msg.AddInt(m_ModChunksPerRequest);

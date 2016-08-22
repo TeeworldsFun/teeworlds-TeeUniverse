@@ -57,13 +57,13 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	// needed interfaces
 	IEngine *m_pEngine;
 	IEditor *m_pEditor;
-	IModAPI_AssetsEditor *m_pAssetsEditor;
+	tu::IAssetsEditor *m_pAssetsEditor;
 	IEngineInput *m_pInput;
 	IEngineGraphics *m_pGraphics;
 	IEngineSound *m_pSound;
 	IGameClient *m_pGameClient;
 	IEngineMap *m_pMap;
-	IModAPI_AssetsFileEngine *m_pAssetsFile;
+	tu::IAssetsFileEngine *m_pAssetsFile;
 	IConsole *m_pConsole;
 	IStorage *m_pStorage;
 	IEngineMasterServer *m_pMasterServer;
@@ -74,7 +74,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 		PREDICTION_MARGIN=1000/50/2, // magic network prediction value
 	};
 
-	class CModAPI_MetaNetClient m_NetClient;
+	class tu::CMetaNetClient m_NetClient;
 	class CDemoPlayer m_DemoPlayer;
 	class CDemoRecorder m_DemoRecorder;
 	class CServerBrowser m_ServerBrowser;
@@ -273,7 +273,7 @@ public:
 	virtual int MapDownloadAmount() const { return m_MapdownloadAmount; }
 	virtual int MapDownloadTotalsize() const { return m_MapdownloadTotalsize; }
 	
-	//ModAPI
+	//TU
 	virtual const char *ModDownloadName() const { return m_aModdownloadName; }
 	virtual int ModDownloadAmount() const { return m_ModdownloadAmount; }
 	virtual int ModDownloadTotalsize() const { return m_ModdownloadTotalsize; }
@@ -332,9 +332,9 @@ public:
 	void ToggleWindowBordered();
 	void ToggleWindowVSync();
 	
-	//ModAPI
-	CModAPI_Client_Graphics* m_pModAPIGraphics;
-	CModAPI_AssetManager* m_pAssetManager;
+	//TU
+	tu::CClient_Graphics* m_pTUGraphics;
+	tu::CAssetManager* m_pAssetManager;
 	char m_aCurrentMod[256];
 	unsigned m_CurrentModCrc;
 
@@ -351,14 +351,14 @@ public:
 	const char *LoadMod(const char *pName, const char *pFilename, unsigned WantedCrc);
 	const char *LoadModSearch(const char *pModName, int WantedCrc);
 	
-	virtual CModAPI_Client_Graphics *ModAPIGraphics() const { return m_pModAPIGraphics; }
-	virtual CModAPI_AssetManager *AssetManager() const { return m_pAssetManager; }
+	virtual tu::CClient_Graphics *TUGraphics() const { return m_pTUGraphics; }
+	virtual tu::CAssetManager *AssetManager() const { return m_pAssetManager; }
 
 	int m_ClientMode;
 	
-	//ModAPI download both parallel
+	//TU download both parallel
 	bool m_ModDownloadFinished;
 	bool m_MapDownloadFinished;
-	bool m_ModAPIServer;
+	bool m_TUServer;
 };
 #endif

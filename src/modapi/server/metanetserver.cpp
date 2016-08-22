@@ -12,9 +12,12 @@
 #include <engine/shared/config.h>
 #include <engine/shared/netban.h>
 
+namespace tu
+{
+
 /* CNetServer *********************************************************/
 
-CModAPI_MetaNetServer::CNetServer::CNetServer(CModAPI_MetaNetServer* pMetaNetServer, FProcessClientPacket fProcessClientPacket, FGenerateServerInfo fGenerateServerInfo) :
+CMetaNetServer::CNetServer::CNetServer(CMetaNetServer* pMetaNetServer, FProcessClientPacket fProcessClientPacket, FGenerateServerInfo fGenerateServerInfo) :
 	m_pMetaNetServer(pMetaNetServer),
 	m_fProcessClientPacket(fProcessClientPacket),
 	m_fGenerateServerInfo(fGenerateServerInfo),
@@ -23,14 +26,14 @@ CModAPI_MetaNetServer::CNetServer::CNetServer(CModAPI_MetaNetServer* pMetaNetSer
 	
 }
 
-CModAPI_MetaNetServer::CNetServer::~CNetServer()
+CMetaNetServer::CNetServer::~CNetServer()
 {
 	
 }
 
-/* CModAPI_MetaNetServer **********************************************/
+/* CMetaNetServer **********************************************/
 
-CModAPI_MetaNetServer::CModAPI_MetaNetServer() :
+CMetaNetServer::CMetaNetServer() :
 	m_fNewClient(0),
 	m_fDeleteClient(0),
 	m_pData(0)
@@ -38,7 +41,7 @@ CModAPI_MetaNetServer::CModAPI_MetaNetServer() :
 	
 }
 
-CModAPI_MetaNetServer::~CModAPI_MetaNetServer()
+CMetaNetServer::~CMetaNetServer()
 {
 	for(int i=0; i<m_lpNetServer.size(); i++)
 	{
@@ -46,7 +49,7 @@ CModAPI_MetaNetServer::~CModAPI_MetaNetServer()
 	}
 }
 
-void CModAPI_MetaNetServer::Init(class CNetBan* pNetBan, int MaxClients, int MaxClientsPerIP, IMasterServer *pMasterServer, IConsole *pConsole)
+void CMetaNetServer::Init(class CNetBan* pNetBan, int MaxClients, int MaxClientsPerIP, IMasterServer *pMasterServer, IConsole *pConsole)
 {
 	// clamp clients
 	m_MaxClients = MaxClients;
@@ -66,14 +69,14 @@ void CModAPI_MetaNetServer::Init(class CNetBan* pNetBan, int MaxClients, int Max
 	}
 }
 
-void CModAPI_MetaNetServer::SetCallbacks(FNewClient fNewClient, FDeleteClient fDeleteClient, void* pData)
+void CMetaNetServer::SetCallbacks(FNewClient fNewClient, FDeleteClient fDeleteClient, void* pData)
 {
 	m_fNewClient = fNewClient;
 	m_fDeleteClient = fDeleteClient;
 	m_pData = pData;
 }
 
-bool CModAPI_MetaNetServer::OpenNetServer(CNetServer* pNetServer, NETADDR BindAddr)
+bool CMetaNetServer::OpenNetServer(CNetServer* pNetServer, NETADDR BindAddr)
 {
 	int NetServerID = m_lpNetServer.size();
 	bool res = pNetServer->Open(NetServerID, BindAddr, NETCREATE_FLAG_ALLOWSTATELESS);
@@ -84,7 +87,7 @@ bool CModAPI_MetaNetServer::OpenNetServer(CNetServer* pNetServer, NETADDR BindAd
 	return res;
 }
 
-bool CModAPI_MetaNetServer::Drop(int ClientID, const char* pReason)
+bool CMetaNetServer::Drop(int ClientID, const char* pReason)
 {
 	if(ClientID < 0 || ClientID >= NET_MAX_CLIENTS || m_aClientNetServer[ClientID] < 0)
 		return false;
@@ -97,7 +100,7 @@ bool CModAPI_MetaNetServer::Drop(int ClientID, const char* pReason)
 	return m_lpNetServer[NetServerID]->ApplyDrop(ClientID, pReason);
 }
 	
-void CModAPI_MetaNetServer::NewClient(int NetServerID, int ClientID)
+void CMetaNetServer::NewClient(int NetServerID, int ClientID)
 {
 	m_aClientNetServer[ClientID] = NetServerID;
 	
@@ -105,12 +108,12 @@ void CModAPI_MetaNetServer::NewClient(int NetServerID, int ClientID)
 		m_fNewClient(ClientID, m_pData);
 }
 
-bool CModAPI_MetaNetServer::ClientSlotFree(int ClientID)
+bool CMetaNetServer::ClientSlotFree(int ClientID)
 {
 	return m_aClientNetServer[ClientID] < 0;
 }
 
-bool CModAPI_MetaNetServer::Send(CNetChunk *pChunk, TOKEN Token)
+bool CMetaNetServer::Send(CNetChunk *pChunk, TOKEN Token)
 {
 	int ClientID = pChunk->m_ClientID;
 	if(ClientID < 0 || ClientID >= NET_MAX_CLIENTS || m_aClientNetServer[ClientID] < 0)
@@ -123,7 +126,7 @@ bool CModAPI_MetaNetServer::Send(CNetChunk *pChunk, TOKEN Token)
 	return m_lpNetServer[NetServerID]->Send(pChunk, Token);
 }
 
-bool CModAPI_MetaNetServer::Update()
+bool CMetaNetServer::Update()
 {
 	for(int i=0; i<m_lpNetServer.size(); i++)
 	{
@@ -132,7 +135,7 @@ bool CModAPI_MetaNetServer::Update()
 	return true;
 }
 
-bool CModAPI_MetaNetServer::RecvLoop()
+bool CMetaNetServer::RecvLoop()
 {
 	for(int i=0; i<m_lpNetServer.size(); i++)
 	{
@@ -142,7 +145,7 @@ bool CModAPI_MetaNetServer::RecvLoop()
 	return true;
 }
 
-const NETADDR* CModAPI_MetaNetServer::ClientAddr(int ClientID) const
+const NETADDR* CMetaNetServer::ClientAddr(int ClientID) const
 {
 	if(ClientID < 0 || ClientID >= NET_MAX_CLIENTS || m_aClientNetServer[ClientID] < 0)
 		return 0;
@@ -151,7 +154,7 @@ const NETADDR* CModAPI_MetaNetServer::ClientAddr(int ClientID) const
 	return m_lpNetServer[NetServerID]->ClientAddr(ClientID);
 }
 
-void CModAPI_MetaNetServer::RegisterUpdate()
+void CMetaNetServer::RegisterUpdate()
 {
 	if(!g_Config.m_SvRegister)
 		return;
@@ -162,4 +165,6 @@ void CModAPI_MetaNetServer::RegisterUpdate()
 	{
 		m_lpNetServer[i]->RegisterUpdate();
 	}
+}
+
 }

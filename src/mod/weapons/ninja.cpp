@@ -10,7 +10,7 @@
 #include "ninja.h"
 
 CMod_Weapon_Ninja::CMod_Weapon_Ninja(CCharacter* pCharacter) :
-	CModAPI_Weapon(MOD_WEAPON_NINJA, pCharacter)
+	tu::CWeapon(MOD_WEAPON_NINJA, pCharacter)
 {
 	m_ActivationTick = Server()->Tick();
 	m_CurrentMoveTime = -1;
@@ -39,7 +39,7 @@ bool CMod_Weapon_Ninja::OnFire(vec2 Direction)
 	m_ReloadTimer = g_pData->m_Weapons.m_aId[WEAPON_NINJA].m_Firedelay * Server()->TickSpeed() / 1000;
 	m_OldVelAmount = length(Character()->GetVelocity());
 
-	CModAPI_Event_Sound(GameServer()).World(WorldID())
+	tu::CEvent_Sound(GameServer()).World(WorldID())
 		.Send(Character()->GetPos(), SOUND_NINJA_FIRE);
 	
 	return true;
@@ -90,7 +90,7 @@ bool CMod_Weapon_Ninja::TickPreFire(bool IsActiveWeapon)
 		vec2 Dir = Character()->GetPos() - OldPos;
 		float Radius = ProximityRadius * 2.0f;
 		vec2 Center = OldPos + Dir * 0.5f;
-		int Num = GameServer()->m_World[WorldID()].FindEntities(Center, Radius, (CEntity**)aEnts, MAX_CLIENTS, MOD_ENTTYPE_CHARACTER);
+		int Num = GameServer()->m_World[WorldID()].FindEntities(Center, Radius, (CEntityCore**)aEnts, MAX_CLIENTS, MOD_ENTTYPE_CHARACTER);
 
 		for (int i = 0; i < Num; ++i)
 		{
@@ -112,7 +112,7 @@ bool CMod_Weapon_Ninja::TickPreFire(bool IsActiveWeapon)
 				continue;
 
 			// hit a player, give him damage and stuffs...
-			CModAPI_Event_Sound(GameServer()).World(WorldID())
+			tu::CEvent_Sound(GameServer()).World(WorldID())
 				.Send(aEnts[i]->GetPos(), SOUND_NINJA_HIT);
 				
 			// set his velocity to fast upward (for now)
@@ -132,19 +132,19 @@ bool CMod_Weapon_Ninja::TickPaused(bool IsActive)
 	return false;
 }
 	
-void CMod_Weapon_Ninja::Snap06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pCharNetObj)
+void CMod_Weapon_Ninja::Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_NINJA;
 	pCharNetObj->m_AmmoCount = -1;
 }
 	
-void CMod_Weapon_Ninja::Snap07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Ninja::Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_NINJA;
 	pCharNetObj->m_AmmoCount = m_ActivationTick + g_pData->m_Weapons.m_Ninja.m_Duration * Server()->TickSpeed() / 1000;
 }
 	
-void CMod_Weapon_Ninja::Snap07ModAPI(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Ninja::Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_NINJA;
 	pCharNetObj->m_AmmoCount = m_ActivationTick + g_pData->m_Weapons.m_Ninja.m_Duration * Server()->TickSpeed() / 1000;

@@ -1,32 +1,38 @@
-#ifndef MODAPI_CLIENT_GUI_LAYOUT_H
-#define MODAPI_CLIENT_GUI_LAYOUT_H
+#ifndef TU_CLIENT_GUI_LAYOUT_H
+#define TU_CLIENT_GUI_LAYOUT_H
 
 #include <base/tl/array.h>
 
 #include "widget.h"
 #include "slider.h"
 
+namespace tu
+{
+	
+namespace gui
+{
+
 enum
 {
-	MODAPI_CLIENTGUI_LAYOUTSTYLE_NONE=0,
-	MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME,
+	LAYOUTSTYLE_NONE=0,
+	LAYOUTSTYLE_FRAME,
 };
 
 enum
 {
-	MODAPI_CLIENTGUI_LAYOUTFILLING_NONE=0,
-	MODAPI_CLIENTGUI_LAYOUTFILLING_FIRST,
-	MODAPI_CLIENTGUI_LAYOUTFILLING_LAST,
-	MODAPI_CLIENTGUI_LAYOUTFILLING_ALL,
+	LAYOUTFILLING_NONE=0,
+	LAYOUTFILLING_FIRST,
+	LAYOUTFILLING_LAST,
+	LAYOUTFILLING_ALL,
 };
 
-class CModAPI_ClientGui_HListLayout : public CModAPI_ClientGui_Widget
+class CHListLayout : public CWidget
 {
 protected:
-	class CSeparator : public CModAPI_ClientGui_Widget
+	class CSeparator : public CWidget
 	{
 	public:
-		CSeparator(CModAPI_ClientGui_Config* pConfig);
+		CSeparator(CConfig* pConfig);
 		virtual void Render();
 	};
 	
@@ -34,7 +40,7 @@ protected:
 	int m_Style;
 	int m_Model;
 	
-	array<CModAPI_ClientGui_Widget*> m_Childs;
+	array<CWidget*> m_Childs;
 
 protected:
 	void Update_FillingNone();
@@ -43,11 +49,11 @@ protected:
 	void Update_FillingAll();
 
 public:
-	CModAPI_ClientGui_HListLayout(class CModAPI_ClientGui_Config *pConfig, int Style = MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME, int Model = MODAPI_CLIENTGUI_LAYOUTFILLING_NONE);
-	virtual ~CModAPI_ClientGui_HListLayout();
+	CHListLayout(class CConfig *pConfig, int Style = LAYOUTSTYLE_FRAME, int Model = LAYOUTFILLING_NONE);
+	virtual ~CHListLayout();
 	
 	virtual void Clear();
-	virtual void Add(CModAPI_ClientGui_Widget* pWidget);
+	virtual void Add(CWidget* pWidget);
 	virtual void AddSeparator();
 	
 	virtual void Update();
@@ -58,31 +64,31 @@ public:
 	virtual void OnInputEvent();
 };
 
-class CModAPI_ClientGui_VListLayout : public CModAPI_ClientGui_Widget
+class CVListLayout : public CWidget
 {
 protected:
-	class CSlider : public CModAPI_ClientGui_VSlider
+	class CSlider : public CVSlider
 	{
 	protected:
-		CModAPI_ClientGui_VListLayout* m_pLayout;
+		CVListLayout* m_pLayout;
 		
 	protected:
 		virtual void OnNewPosition(float Pos);
 		
 	public:
-		CSlider(CModAPI_ClientGui_VListLayout* pLayout);
+		CSlider(CVListLayout* pLayout);
 	};
 	
-	class CSeparator : public CModAPI_ClientGui_Widget
+	class CSeparator : public CWidget
 	{
 	public:
-		CSeparator(CModAPI_ClientGui_Config* pConfig);
+		CSeparator(CConfig* pConfig);
 		virtual void Render();
 	};
 	
 protected:	
-	CModAPI_ClientGui_VSlider* m_pSlider;
-	array<CModAPI_ClientGui_Widget*> m_Childs;
+	CVSlider* m_pSlider;
+	array<CWidget*> m_Childs;
 	int m_ChildrenHeight;
 	int m_Style;
 	
@@ -90,11 +96,11 @@ protected:
 	int m_ScrollValue;
 	
 public:
-	CModAPI_ClientGui_VListLayout(class CModAPI_ClientGui_Config *pConfig, int Style = MODAPI_CLIENTGUI_LAYOUTSTYLE_FRAME);
-	virtual ~CModAPI_ClientGui_VListLayout();
+	CVListLayout(class CConfig *pConfig, int Style = LAYOUTSTYLE_FRAME);
+	virtual ~CVListLayout();
 	
 	virtual void Clear();
-	virtual void Add(CModAPI_ClientGui_Widget* pWidget);
+	virtual void Add(CWidget* pWidget);
 	virtual void AddSeparator();
 	
 	virtual void Update();
@@ -108,5 +114,9 @@ public:
 	virtual void SetScrollPos(float Pos);
 	virtual float GetScrollPos();
 };
+
+}
+
+}
 
 #endif

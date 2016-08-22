@@ -1,14 +1,19 @@
-#ifndef MODAPI_CLIENT_ASSETS_CHARACTER_H
-#define MODAPI_CLIENT_ASSETS_CHARACTER_H
+#ifndef TU_CLIENT_ASSETS_CHARACTER_H
+#define TU_CLIENT_ASSETS_CHARACTER_H
 
 #include <modapi/client/assets.h>
 
-class CModAPI_Asset_Character : public CModAPI_Asset
+class CDataFileWriter;
+
+namespace tu
+{
+
+class CAsset_Character : public CAsset
 {
 public:
-	static const int TypeId = CModAPI_AssetPath::TYPE_CHARACTER;
+	static const int TypeId = CAssetPath::TYPE_CHARACTER;
 
-	struct CStorageType : public CModAPI_Asset::CStorageType
+	struct CStorageType : public CAsset::CStorageType
 	{
 		struct CPart
 		{
@@ -25,12 +30,12 @@ public:
 		int m_UncontrolledJumpPath;
 	};
 	
-	void InitFromAssetsFile(class CModAPI_AssetManager* pAssetManager, class IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem);
-	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
-	void Unload(class CModAPI_AssetManager* pAssetManager);
+	void InitFromAssetsFile(class CAssetManager* pAssetManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
+	void Unload(class CAssetManager* pAssetManager);
 
 public:
-	class CSubPath : public CModAPI_GenericPath<2, 0, 0>
+	class CSubPath : public CGenericPath<2, 0, 0>
 	{
 	public:
 		enum
@@ -40,11 +45,11 @@ public:
 		};
 
 	public:
-		CSubPath() : CModAPI_GenericPath() { }
-		CSubPath(int PathInt) : CModAPI_GenericPath(PathInt) { }
-		CSubPath(int Type, int Id) : CModAPI_GenericPath(Type, 0, 0x0, Id) { }
+		CSubPath() : CGenericPath() { }
+		CSubPath(int PathInt) : CGenericPath(PathInt) { }
+		CSubPath(int Type, int Id) : CGenericPath(Type, 0, 0x0, Id) { }
 		
-		static inline CSubPath Null() { return CSubPath(CModAPI_GenericPath::UNDEFINED); }
+		static inline CSubPath Null() { return CSubPath(CGenericPath::UNDEFINED); }
 		static inline CSubPath Part(int Id) { return CSubPath(TYPE_PART, Id); }
 	};
 	
@@ -52,7 +57,7 @@ public:
 	{
 	public:
 		char m_aName[128];
-		CModAPI_AssetPath m_DefaultPath;
+		CAssetPath m_DefaultPath;
 	
 	public:
 		inline CPart& Name(const char* pText)
@@ -61,7 +66,7 @@ public:
 			return *this;
 		}
 		
-		inline CPart& Default(const CModAPI_AssetPath& Path)
+		inline CPart& Default(const CAssetPath& Path)
 		{
 			m_DefaultPath = Path;
 			return *this;
@@ -70,13 +75,13 @@ public:
 	
 	array<CPart> m_Parts;
 	
-	CModAPI_AssetPath m_IdlePath;
-	CModAPI_AssetPath m_WalkPath;
-	CModAPI_AssetPath m_ControlledJumpPath;
-	CModAPI_AssetPath m_UncontrolledJumpPath;
+	CAssetPath m_IdlePath;
+	CAssetPath m_WalkPath;
+	CAssetPath m_ControlledJumpPath;
+	CAssetPath m_UncontrolledJumpPath;
 
 public:
-	CModAPI_Asset_Character()
+	CAsset_Character()
 	{
 		
 	}
@@ -87,7 +92,7 @@ public:
 public:
 	enum
 	{
-		PART_NAME = CModAPI_Asset::NUM_MEMBERS, //Int
+		PART_NAME = CAsset::NUM_MEMBERS, //Int
 		PART_DEFAULTPATH, //Path
 		IDLEPATH, //Path
 		WALKPATH, //Path
@@ -98,16 +103,16 @@ public:
 	template<typename T>
 	T GetValue(int ValueType, int Path, T DefaultValue)
 	{
-		return CModAPI_Asset::GetValue<T>(ValueType, Path, DefaultValue);
+		return CAsset::GetValue<T>(ValueType, Path, DefaultValue);
 	}
 	
 	template<typename T>
 	bool SetValue(int ValueType, int Path, T Value)
 	{
-		return CModAPI_Asset::SetValue<T>(ValueType, Path, Value);
+		return CAsset::SetValue<T>(ValueType, Path, Value);
 	}
 	
-	inline void OnAssetDeleted(const CModAPI_AssetPath& Path) { }
+	inline void OnAssetDeleted(const CAssetPath& Path) { }
 	
 	inline int AddSubItem(int SubItemType)
 	{
@@ -121,7 +126,9 @@ public:
 	
 	inline bool DeleteSubItem(int SubItemPath) { return false; }
 	
-	inline void OnSubItemDeleted(const CModAPI_AssetPath& Path, int SubItemPath) { }
+	inline void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath) { }
 };
+
+}
 
 #endif

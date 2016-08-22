@@ -46,7 +46,7 @@ MACRO_ALLOC_POOL_ID_IMPL(CCharacter, MAX_CLIENTS)
 
 // Character, "physical" player's part
 CCharacter::CCharacter(CGameWorld *pWorld)
-: CModAPI_Entity(pWorld, MOD_ENTTYPE_CHARACTER, vec2(0, 0), 0, ms_PhysSize)
+: tu::CEntity_TW(pWorld, MOD_ENTTYPE_CHARACTER, vec2(0, 0), 0, ms_PhysSize)
 {
 	m_Health = 0;
 	m_Armor = 0;
@@ -97,7 +97,7 @@ void CCharacter::SetWeapon(int W)
 	if(W == m_ActiveWeapon)
 		return;
 	
-	CModAPI_Weapon* pWeapon = m_aWeapons[m_ActiveWeapon];
+	tu::CWeapon* pWeapon = m_aWeapons[m_ActiveWeapon];
 	if(!pWeapon)
 		return;
 
@@ -105,7 +105,7 @@ void CCharacter::SetWeapon(int W)
 	m_QueuedWeapon = -1;
 	m_ActiveWeapon = W;
 	
-	CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+	tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 		.Send(m_Pos, SOUND_WEAPON_SWITCH);
 				
 	pWeapon->OnActivation();
@@ -126,7 +126,7 @@ void CCharacter::DoWeaponSwitch()
 		return;
 		
 	// make sure we can switch
-	CModAPI_Weapon* pWeapon = m_aWeapons[m_ActiveWeapon];
+	tu::CWeapon* pWeapon = m_aWeapons[m_ActiveWeapon];
 	if(pWeapon && pWeapon->IsWeaponSwitchLocked())
 		return;
 
@@ -179,7 +179,7 @@ void CCharacter::FireWeapon()
 {
 	DoWeaponSwitch();
 	
-	CModAPI_Weapon* pWeapon = m_aWeapons[m_ActiveWeapon];
+	tu::CWeapon* pWeapon = m_aWeapons[m_ActiveWeapon];
 	if(!pWeapon)
 		return;
 
@@ -232,7 +232,7 @@ bool CCharacter::HasWeapon(int WID)
 	return m_aWeapons[WID] != 0;
 }
 
-void CCharacter::GiveWeapon(CModAPI_Weapon* pWeapon)
+void CCharacter::GiveWeapon(tu::CWeapon* pWeapon)
 {
 	if(!pWeapon)
 		return;
@@ -450,7 +450,7 @@ void CCharacter::Die(int Killer, int Weapon)
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 
 	// a nice sound
-	CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+	tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 		.Send(m_Pos, SOUND_PLAYER_DIE);
 
 	// this is for auto respawn after 3 secs
@@ -459,7 +459,7 @@ void CCharacter::Die(int Killer, int Weapon)
 	GameWorld()->RemoveEntity(this);
 	GameWorld()->m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
 	
-	CModAPI_Event_DeathEffect(GameServer()).World(GameWorld()->m_WorldID)
+	tu::CEvent_DeathEffect(GameServer()).World(GameWorld()->m_WorldID)
 		.Send(m_Pos, m_pPlayer->GetCID());
 }
 
@@ -477,7 +477,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	m_DamageTaken++;
 
 	// create healthmod indicator
-	CModAPI_Event_DamageIndicator DmgIndicator(GameServer());
+	tu::CEvent_DamageIndicator DmgIndicator(GameServer());
 	DmgIndicator.World(GameWorld()->m_WorldID);
 	if(Server()->Tick() < m_DamageTakenTick+25)
 	{
@@ -528,7 +528,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 				Mask |= CmaskOne(i);
 		}
 		
-		CModAPI_Event_Sound(GameServer()).Mask(Mask)
+		tu::CEvent_Sound(GameServer()).Mask(Mask)
 			.Send(GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT);
 	}
 
@@ -551,7 +551,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 		return false;
 	}
 	
-	CModAPI_Event_Sound SoundEvent(GameServer());
+	tu::CEvent_Sound SoundEvent(GameServer());
 	SoundEvent.World(GameWorld()->m_WorldID);
 	if (Dmg > 2)
 		SoundEvent.Send(m_Pos, SOUND_PLAYER_PAIN_LONG);
@@ -564,7 +564,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	return true;
 }
 
-void CCharacter::Snap06(int Snapshot, int SnappingClient)
+void CCharacter::Snap_TW06(int Snapshot, int SnappingClient)
 {
 	if(NetworkClipped(SnappingClient))
 		return;
@@ -617,14 +617,14 @@ void CCharacter::Snap06(int Snapshot, int SnappingClient)
 			pCharacter->m_Emote = EMOTE_BLINK;
 	}
 	
-	CModAPI_Weapon* pWeapon = m_aWeapons[m_ActiveWeapon];
+	tu::CWeapon* pWeapon = m_aWeapons[m_ActiveWeapon];
 	if(pWeapon)
 	{
-		pWeapon->Snap06(Snapshot, SnappingClient, pCharacter);
+		pWeapon->Snap_TW06(Snapshot, SnappingClient, pCharacter);
 	}
 }
 
-void CCharacter::Snap07(int Snapshot, int SnappingClient)
+void CCharacter::Snap_TW07(int Snapshot, int SnappingClient)
 {
 	if(NetworkClipped(SnappingClient))
 		return;
@@ -678,10 +678,10 @@ void CCharacter::Snap07(int Snapshot, int SnappingClient)
 			pCharacter->m_Emote = EMOTE_BLINK;
 	}
 	
-	CModAPI_Weapon* pWeapon = m_aWeapons[m_ActiveWeapon];
+	tu::CWeapon* pWeapon = m_aWeapons[m_ActiveWeapon];
 	if(pWeapon)
 	{
-		pWeapon->Snap07(Snapshot, SnappingClient, pCharacter);
+		pWeapon->Snap_TW07(Snapshot, SnappingClient, pCharacter);
 	}
 }
 

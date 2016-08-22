@@ -1,9 +1,15 @@
-#ifndef MODAPI_CLIENT_GUI_TEXTEDIT_H
-#define MODAPI_CLIENT_GUI_TEXTEDIT_H
+#ifndef TU_CLIENT_GUI_TEXTEDIT_H
+#define TU_CLIENT_GUI_TEXTEDIT_H
 
 #include "widget.h"
 
-class CModAPI_ClientGui_AbstractTextEdit : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CAbstractTextEdit : public CWidget
 {
 protected:
 	int m_TextStyle;
@@ -18,7 +24,7 @@ protected:
 	virtual char* GetTextPtr() = 0;
 
 public:
-	CModAPI_ClientGui_AbstractTextEdit(class CModAPI_ClientGui_Config *pConfig, int TextMaxChar, int Style = MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL);
+	CAbstractTextEdit(class CConfig *pConfig, int TextMaxChar, int Style = TEXTSTYLE_NORMAL);
 	
 	virtual void Render();
 	
@@ -27,7 +33,7 @@ public:
 	virtual void OnInputEvent();
 };
 
-class CModAPI_ClientGui_ExternalTextEdit : public CModAPI_ClientGui_AbstractTextEdit
+class CExternalTextEdit : public CAbstractTextEdit
 {
 protected:
 	char* m_pText;
@@ -36,7 +42,11 @@ protected:
 	virtual char* GetTextPtr();
 
 public:
-	CModAPI_ClientGui_ExternalTextEdit(class CModAPI_ClientGui_Config *pConfig, char* pText, int TextMaxChar, int Style = MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL);
+	CExternalTextEdit(class CConfig *pConfig, char* pText, int TextMaxChar, int Style = TEXTSTYLE_NORMAL);
 };
+
+}
+
+}
 
 #endif

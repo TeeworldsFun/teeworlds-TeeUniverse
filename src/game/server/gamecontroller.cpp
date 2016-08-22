@@ -277,7 +277,7 @@ bool IGameController::OnEntityPoint(int EditorResource, int EntityType, vec2 Pos
 	// don't add pickups in survival
 	if(m_GameFlags&GAMEFLAG_SURVIVAL)
 	{
-		if(EntityType < MODAPI_ENTITYPOINTTYPE_SPAWN || EntityType > MODAPI_ENTITYPOINTTYPE_SPAWN_BLUE)
+		if(EntityType < tu::ENTITYPOINTTYPE_SPAWN || EntityType > tu::ENTITYPOINTTYPE_SPAWN_BLUE)
 			return false;
 	}
 
@@ -285,31 +285,31 @@ bool IGameController::OnEntityPoint(int EditorResource, int EntityType, vec2 Pos
 
 	switch(EntityType)
 	{
-		case MODAPI_ENTITYPOINTTYPE_SPAWN:
+		case tu::ENTITYPOINTTYPE_SPAWN:
 			m_aaSpawnPoints[0].add(Pos);
 			break;
-		case MODAPI_ENTITYPOINTTYPE_SPAWN_RED:
+		case tu::ENTITYPOINTTYPE_SPAWN_RED:
 			m_aaSpawnPoints[1].add(Pos);
 			break;
-		case MODAPI_ENTITYPOINTTYPE_SPAWN_BLUE:
+		case tu::ENTITYPOINTTYPE_SPAWN_BLUE:
 			m_aaSpawnPoints[2].add(Pos);
 			break;
-		case MODAPI_ENTITYPOINTTYPE_ARMOR:
+		case tu::ENTITYPOINTTYPE_ARMOR:
 			PickupType = PICKUP_ARMOR;
 			break;
-		case MODAPI_ENTITYPOINTTYPE_HEALTH:
+		case tu::ENTITYPOINTTYPE_HEALTH:
 			PickupType = PICKUP_HEALTH;
 			break;
-		case MODAPI_ENTITYPOINTTYPE_WEAPON_SHOTGUN:
+		case tu::ENTITYPOINTTYPE_WEAPON_SHOTGUN:
 			PickupType = PICKUP_SHOTGUN;
 			break;
-		case MODAPI_ENTITYPOINTTYPE_WEAPON_GRENADE:
+		case tu::ENTITYPOINTTYPE_WEAPON_GRENADE:
 			PickupType = PICKUP_GRENADE;
 			break;
-		case MODAPI_ENTITYPOINTTYPE_WEAPON_LASER:
+		case tu::ENTITYPOINTTYPE_WEAPON_LASER:
 			PickupType = PICKUP_LASER;
 			break;
-		case MODAPI_ENTITYPOINTTYPE_WEAPON_NINJA:
+		case tu::ENTITYPOINTTYPE_WEAPON_NINJA:
 			if(g_Config.m_SvPowerups)
 				PickupType = PICKUP_NINJA;
 	}
@@ -662,7 +662,7 @@ void IGameController::StartRound()
 }
 
 // general
-void IGameController::Snap06(int Snapshot, int SnappingClient)
+void IGameController::Snap_TW06(int Snapshot, int SnappingClient)
 {
 	CTW06_NetObj_GameInfo *pGameInfoObj = (CTW06_NetObj_GameInfo *)Server()->SnapNewItem(Snapshot, TW06_NETOBJTYPE_GAMEINFO, 0, sizeof(CTW06_NetObj_GameInfo));
 	if(!pGameInfoObj)
@@ -689,7 +689,7 @@ void IGameController::Snap06(int Snapshot, int SnappingClient)
 	pGameInfoObj->m_RoundCurrent = m_RoundCount+1;
 }
 
-void IGameController::Snap07(int Snapshot, int SnappingClient)
+void IGameController::Snap_TW07(int Snapshot, int SnappingClient)
 {
 	CNetObj_GameData *pGameData = static_cast<CNetObj_GameData *>(Server()->SnapNewItem(Snapshot, NETOBJTYPE_GAMEDATA, 0, sizeof(CNetObj_GameData)));
 	if(!pGameData)
@@ -754,6 +754,11 @@ void IGameController::Snap07(int Snapshot, int SnappingClient)
 		pGameInfo->m_MatchNum = m_GameInfo.m_MatchNum;
 		pGameInfo->m_MatchCurrent = m_GameInfo.m_MatchCurrent;
 	}
+}
+
+void IGameController::Snap_TU07(int Snapshot, int SnappingClient)
+{
+	Snap_TW07(Snapshot, SnappingClient);
 }
 
 void IGameController::Tick()
@@ -891,7 +896,7 @@ void IGameController::UpdateGameInfo(int ClientID)
 		if(!GameServer()->m_apPlayers[i] || !Server()->ClientIngame(i))
 			continue;
 		
-		if(Server()->GetClientProtocol(i) != MODAPI_CLIENTPROTOCOL_TW06)
+		if(Server()->GetClientProtocol(i) != tu::CLIENTPROTOCOL_TW06)
 		{
 			CNetMsg_Sv_GameInfo GameInfoMsg;
 			GameInfoMsg.m_GameFlags = m_GameFlags;
@@ -1052,7 +1057,7 @@ void IGameController::EvaluateSpawnType(int WorldID, CSpawnEval *pEval, int Type
 	{
 		// check if the position is occupado
 		CCharacter *aEnts[MAX_CLIENTS];
-		int Num = GameServer()->m_World[WorldID].FindEntities(m_aaSpawnPoints[Type][i], 64, (CEntity**)aEnts, MAX_CLIENTS, MOD_ENTTYPE_CHARACTER);
+		int Num = GameServer()->m_World[WorldID].FindEntities(m_aaSpawnPoints[Type][i], 64, (CEntityCore**)aEnts, MAX_CLIENTS, MOD_ENTTYPE_CHARACTER);
 		vec2 Positions[5] = { vec2(0.0f, 0.0f), vec2(-32.0f, 0.0f), vec2(0.0f, -32.0f), vec2(32.0f, 0.0f), vec2(0.0f, 32.0f) };	// start, left, up, right, down
 		int Result = -1;
 		for(int Index = 0; Index < 5 && Result == -1; ++Index)

@@ -12,15 +12,18 @@
 #include <engine/shared/config.h>
 #include <engine/shared/netban.h>
 
-CModAPI_NetClient_TW07::CModAPI_NetClient_TW07(CModAPI_MetaNetClient* MetaNetClient, CModAPI_MetaNetClient::FProcessPacket fProcessServerPacket, CModAPI_MetaNetClient::FProcessPacket fProcessConnlessPacket) :
-	CModAPI_MetaNetClient::CNetClient(MetaNetClient, fProcessServerPacket, fProcessConnlessPacket)
+namespace tu
+{
+
+CNetClient_TW07::CNetClient_TW07(CMetaNetClient* MetaNetClient, CMetaNetClient::FProcessPacket fProcessServerPacket, CMetaNetClient::FProcessPacket fProcessConnlessPacket) :
+	CMetaNetClient::CNetClient(MetaNetClient, fProcessServerPacket, fProcessConnlessPacket)
 {
 	
 }
 
 //NetServer :
 
-bool CModAPI_NetClient_TW07::Open(int NetClientID, NETADDR BindAddr, int Flags)
+bool CNetClient_TW07::Open(int NetClientID, NETADDR BindAddr, int Flags)
 {
 	m_NetClientID = NetClientID;
 	m_Address = BindAddr;
@@ -48,19 +51,19 @@ bool CModAPI_NetClient_TW07::Open(int NetClientID, NETADDR BindAddr, int Flags)
 	return true;
 }
 
-bool CModAPI_NetClient_TW07::Connect(NETADDR *pAddr)
+bool CNetClient_TW07::Connect(NETADDR *pAddr)
 {
 	m_Connection.Connect(pAddr);
 	return true;
 }
 
-bool CModAPI_NetClient_TW07::Disconnect(const char* pReason)
+bool CNetClient_TW07::Disconnect(const char* pReason)
 {
 	m_Connection.Disconnect(pReason);
 	return true;
 }
 
-bool CModAPI_NetClient_TW07::Update()
+bool CNetClient_TW07::Update()
 {
 	m_Connection.Update();
 	if(m_Connection.State() == NET_CONNSTATE_ERROR)
@@ -70,7 +73,7 @@ bool CModAPI_NetClient_TW07::Update()
 	return true;
 }
 
-bool CModAPI_NetClient_TW07::Recv(CNetChunk *pChunk, TOKEN* pResponseToken)
+bool CNetClient_TW07::Recv(CNetChunk *pChunk, TOKEN* pResponseToken)
 {
 	while(1)
 	{
@@ -132,7 +135,7 @@ bool CModAPI_NetClient_TW07::Recv(CNetChunk *pChunk, TOKEN* pResponseToken)
 	return false;
 }
 
-bool CModAPI_NetClient_TW07::RecvLoop()
+bool CNetClient_TW07::RecvLoop()
 {
 	CNetChunk Packet;
 	while(Recv(&Packet))
@@ -150,7 +153,7 @@ bool CModAPI_NetClient_TW07::RecvLoop()
 	}
 }
 
-bool CModAPI_NetClient_TW07::Send(CNetChunk *pChunk, TOKEN Token)
+bool CNetClient_TW07::Send(CNetChunk *pChunk, TOKEN Token)
 {
 	if(pChunk->m_Flags&NETSENDFLAG_CONNLESS)
 	{
@@ -212,12 +215,12 @@ bool CModAPI_NetClient_TW07::Send(CNetChunk *pChunk, TOKEN Token)
 	return 0;
 }
 
-bool CModAPI_NetClient_TW07::GotProblems() const
+bool CNetClient_TW07::GotProblems() const
 {
 	return (time_get() - m_Connection.LastRecvTime() > time_freq());
 }
 
-int CModAPI_NetClient_TW07::State() const
+int CNetClient_TW07::State() const
 {
 	if(m_Connection.State() == NET_CONNSTATE_ONLINE)
 		return NETSTATE_ONLINE;
@@ -226,23 +229,24 @@ int CModAPI_NetClient_TW07::State() const
 	return NETSTATE_CONNECTING;
 }
 
-NETSOCKET CModAPI_NetClient_TW07::Socket() const
+NETSOCKET CNetClient_TW07::Socket() const
 {
 	return m_Socket;
 }
 
-int CModAPI_NetClient_TW07::NetType() const
+int CNetClient_TW07::NetType() const
 {
 	return (time_get() - m_Connection.LastRecvTime() > time_freq());
 }
 
-const char* CModAPI_NetClient_TW07::ErrorString() const
+const char* CNetClient_TW07::ErrorString() const
 {
 	return m_Connection.ErrorString();
 }
 
-void CModAPI_NetClient_TW07::ResetErrorString()
+void CNetClient_TW07::ResetErrorString()
 {
 	m_Connection.ResetErrorString();
 }
 
+}

@@ -1,40 +1,51 @@
-#ifndef MODAPI_CLIENT_GUI_CONFIG_H
-#define MODAPI_CLIENT_GUI_CONFIG_H
+#ifndef TU_CLIENT_GUI_CONFIG_H
+#define TU_CLIENT_GUI_CONFIG_H
 
 #include <engine/graphics.h>
 
+class IGraphics;
+class ITextRender;
+class CRenderTools;
+class IInput;
+
+namespace tu
+{
+	
+namespace gui
+{
+
 enum
 {
-	MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL = 0,
-	MODAPI_CLIENTGUI_TEXTSTYLE_HEADER,
-	MODAPI_CLIENTGUI_TEXTSTYLE_HEADER2,
-	MODAPI_CLIENTGUI_NUM_TEXTSTYLES,
+	TEXTSTYLE_NORMAL = 0,
+	TEXTSTYLE_HEADER,
+	TEXTSTYLE_HEADER2,
+	NUM_TEXTSTYLES,
 };
 
 enum
 {
-	MODAPI_CLIENTGUI_BUTTONSTYLE_NONE = 0,
-	MODAPI_CLIENTGUI_BUTTONSTYLE_NORMAL,
-	MODAPI_CLIENTGUI_BUTTONSTYLE_HIGHLIGHT,
-	MODAPI_CLIENTGUI_BUTTONSTYLE_MOUSEOVER,
-	MODAPI_CLIENTGUI_NUM_BUTTONSTYLES,
+	BUTTONSTYLE_NONE = 0,
+	BUTTONSTYLE_NORMAL,
+	BUTTONSTYLE_HIGHLIGHT,
+	BUTTONSTYLE_MOUSEOVER,
+	NUM_BUTTONSTYLES,
 };
 
-typedef void (*CModAPI_ClientGui_ShowHintFunc)(const char*, void*);
+typedef void (*CShowHintFunc)(const char*, void*);
 
-class CModAPI_ClientGui_Config
+class CConfig
 {
 public:
-	class IGraphics *m_pGraphics;
-	class ITextRender *m_pTextRender;
-	class CRenderTools *m_pRenderTools;
-	class IInput *m_pInput;
+	IGraphics *m_pGraphics;
+	ITextRender *m_pTextRender;
+	CRenderTools *m_pRenderTools;
+	IInput *m_pInput;
 	
 	IGraphics::CTextureHandle m_Texture;
 	
-	float m_TextSize[MODAPI_CLIENTGUI_NUM_TEXTSTYLES];
-	vec4 m_TextColor[MODAPI_CLIENTGUI_NUM_TEXTSTYLES];
-	vec4 m_ButtonColor[MODAPI_CLIENTGUI_NUM_BUTTONSTYLES];
+	float m_TextSize[NUM_TEXTSTYLES];
+	vec4 m_TextColor[NUM_TEXTSTYLES];
+	vec4 m_ButtonColor[NUM_BUTTONSTYLES];
 	
 	int m_IconSize;
 	int m_LabelMargin;
@@ -46,12 +57,16 @@ public:
 	int m_ExpandShift;
 	int m_ExpandSpacing;
 	
-	CModAPI_ClientGui_ShowHintFunc m_fShowHint;
+	CShowHintFunc m_fShowHint;
 	void* m_pShowHintData;
 	
 public:
-	CModAPI_ClientGui_Config(class IGraphics *pGraphics, class CRenderTools *pRenderTools, class ITextRender *pTextRender, class IInput *pInput, IGraphics::CTextureHandle Texture);
+	CConfig(IGraphics *pGraphics, CRenderTools *pRenderTools, ITextRender *pTextRender, IInput *pInput, IGraphics::CTextureHandle Texture);
 	void ShowHind(const char* pText);
 };
+
+}
+
+}
 
 #endif

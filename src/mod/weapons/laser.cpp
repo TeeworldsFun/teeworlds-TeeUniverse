@@ -11,7 +11,7 @@
 #include "laser.h"
 
 CMod_Weapon_Laser::CMod_Weapon_Laser(CCharacter* pCharacter, int Ammo) :
-	CModAPI_Weapon_GenericGun07(MOD_WEAPON_LASER, WEAPON_LASER, pCharacter, Ammo)
+	tu::CWeapon_GenericGun07(MOD_WEAPON_LASER, WEAPON_LASER, pCharacter, Ammo)
 {
 	
 }
@@ -20,6 +20,6 @@ void CMod_Weapon_Laser::CreateProjectile(vec2 Pos, vec2 Direction)
 {
 	new CLaser(GameWorld(), Pos, Direction, GameServer()->Tuning()->m_LaserReach, Player()->GetCID());
 	
-	CModAPI_Event_Sound(GameServer()).World(WorldID())
+	tu::CEvent_Sound(GameServer()).World(WorldID())
 		.Send(Character()->GetPos(), SOUND_LASER_FIRE);
 }

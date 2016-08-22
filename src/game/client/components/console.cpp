@@ -328,7 +328,7 @@ void CGameConsole::OnRender()
 		Progress = 1.0f;
 	}
 
-	if (m_ConsoleState == CONSOLE_OPEN && g_Config.m_ClMode != MODAPI_CLIENTMODE_GAME)
+	if (m_ConsoleState == CONSOLE_OPEN && g_Config.m_ClMode != TU_CLIENTMODE_GAME)
 		Toggle(CONSOLETYPE_LOCAL);
 
 	if (m_ConsoleState == CONSOLE_CLOSED)

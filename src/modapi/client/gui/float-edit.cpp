@@ -7,8 +7,14 @@
 
 #include "float-edit.h"
 
-CModAPI_ClientGui_AbstractFloatEdit::CModAPI_ClientGui_AbstractFloatEdit(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_Widget(pConfig),
+namespace tu
+{
+	
+namespace gui
+{
+
+CAbstractFloatEdit::CAbstractFloatEdit(CConfig *pConfig) :
+	CWidget(pConfig),
 	m_CursorCharPos(-1),
 	m_UnderMouse(false),
 	m_Clicked(false),
@@ -17,7 +23,7 @@ CModAPI_ClientGui_AbstractFloatEdit::CModAPI_ClientGui_AbstractFloatEdit(CModAPI
 	m_Rect.h = m_pConfig->m_ButtonHeight;
 }
 	
-void CModAPI_ClientGui_AbstractFloatEdit::Render()
+void CAbstractFloatEdit::Render()
 {
 	//Float
 	{
@@ -40,14 +46,14 @@ void CModAPI_ClientGui_AbstractFloatEdit::Render()
 			RefreshText = false;
 		}
 		
-		int TextSize = m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL];
+		int TextSize = m_pConfig->m_TextSize[TEXTSTYLE_NORMAL];
 		
 		int ContentX = m_Rect.x + m_Rect.w/2;
 		int ContentY = m_Rect.y + m_Rect.h/2;
 	
-		int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL], m_aFloatText, -1);
+		int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[TEXTSTYLE_NORMAL], m_aFloatText, -1);
 		int PosX = ContentX - TextWidth/2;
-		int PosY = ContentY - m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL]*0.7;
+		int PosY = ContentY - m_pConfig->m_TextSize[TEXTSTYLE_NORMAL]*0.7;
 		
 		CTextCursor Cursor;
 		TextRender()->SetCursor(&Cursor, PosX, PosY, TextSize, TEXTFLAG_RENDER);
@@ -79,12 +85,12 @@ void CModAPI_ClientGui_AbstractFloatEdit::Render()
 	}
 }
 
-void CModAPI_ClientGui_AbstractFloatEdit::ApplyFormat()
+void CAbstractFloatEdit::ApplyFormat()
 {
 	str_format(m_aFloatText, sizeof(m_aFloatText), "%.02f", GetValue());
 }
 
-void CModAPI_ClientGui_AbstractFloatEdit::OnButtonClick(int X, int Y, int Button)
+void CAbstractFloatEdit::OnButtonClick(int X, int Y, int Button)
 {
 	if(Button != KEY_MOUSE_1)
 		return;
@@ -93,7 +99,7 @@ void CModAPI_ClientGui_AbstractFloatEdit::OnButtonClick(int X, int Y, int Button
 	{
 		m_Clicked = true;
 		
-		float FontSize = m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL];
+		float FontSize = m_pConfig->m_TextSize[TEXTSTYLE_NORMAL];
 
 		int TextLength = str_length(m_aFloatText);
 		int TextWidth = TextRender()->TextWidth(0, FontSize, m_aFloatText, -1);
@@ -126,7 +132,7 @@ void CModAPI_ClientGui_AbstractFloatEdit::OnButtonClick(int X, int Y, int Button
 	}
 }
 
-void CModAPI_ClientGui_AbstractFloatEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CAbstractFloatEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_Rect.IsInside(X, Y))
 	{
@@ -138,7 +144,7 @@ void CModAPI_ClientGui_AbstractFloatEdit::OnMouseOver(int X, int Y, int RelX, in
 	}
 }
 
-void CModAPI_ClientGui_AbstractFloatEdit::ApplyTextEntry()
+void CAbstractFloatEdit::ApplyTextEntry()
 {
 	m_Clicked = false;
 	m_CursorCharPos = -1;
@@ -148,7 +154,7 @@ void CModAPI_ClientGui_AbstractFloatEdit::ApplyTextEntry()
 	RefreshText = true;
 }
 
-void CModAPI_ClientGui_AbstractFloatEdit::OnInputEvent()
+void CAbstractFloatEdit::OnInputEvent()
 {
 	if(m_CursorCharPos >= 0)
 	{
@@ -168,36 +174,40 @@ void CModAPI_ClientGui_AbstractFloatEdit::OnInputEvent()
 	}
 }
 
-CModAPI_ClientGui_FloatEdit::CModAPI_ClientGui_FloatEdit(CModAPI_ClientGui_Config *pConfig, float DefaultValue) :
-	CModAPI_ClientGui_AbstractFloatEdit(pConfig),
+CFloatEdit::CFloatEdit(CConfig *pConfig, float DefaultValue) :
+	CAbstractFloatEdit(pConfig),
 	m_Value(DefaultValue)
 {
 	
 }
 	
-void CModAPI_ClientGui_FloatEdit::SetValue(float v)
+void CFloatEdit::SetValue(float v)
 {
 	m_Value = v;
 }
 	
-float CModAPI_ClientGui_FloatEdit::GetValue()
+float CFloatEdit::GetValue()
 {
 	return m_Value;
 }
 
-CModAPI_ClientGui_ExternalFloatEdit::CModAPI_ClientGui_ExternalFloatEdit(CModAPI_ClientGui_Config *pConfig, float* Memory) :
-	CModAPI_ClientGui_AbstractFloatEdit(pConfig),
+CExternalFloatEdit::CExternalFloatEdit(CConfig *pConfig, float* Memory) :
+	CAbstractFloatEdit(pConfig),
 	m_Memory(Memory)
 {
 	
 }
 	
-void CModAPI_ClientGui_ExternalFloatEdit::SetValue(float v)
+void CExternalFloatEdit::SetValue(float v)
 {
 	*m_Memory = v;
 }
 	
-float CModAPI_ClientGui_ExternalFloatEdit::GetValue()
+float CExternalFloatEdit::GetValue()
 {
 	return *m_Memory;
+}
+
+}
+
 }

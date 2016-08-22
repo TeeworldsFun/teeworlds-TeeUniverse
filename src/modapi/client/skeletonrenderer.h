@@ -1,10 +1,15 @@
-#ifndef MODAPI_CLIENT_SKELETONRENDERER_H
-#define MODAPI_CLIENT_SKELETONRENDERER_H
+#ifndef TU_CLIENT_SKELETONRENDERER_H
+#define TU_CLIENT_SKELETONRENDERER_H
 
 #include <base/tl/array.h>
 #include <modapi/client/assetsmanager.h>
 
-class CModAPI_SkeletonRenderer
+class IGraphics;
+
+namespace tu
+{
+
+class CSkeletonRenderer
 {
 public:
 	enum
@@ -41,7 +46,7 @@ protected:
 	class CSkeletonState
 	{
 	public:
-		CModAPI_AssetPath m_Path;
+		CAssetPath m_Path;
 		int m_Parent;
 		array<CBoneState> m_Bones;
 		array<CLayerState> m_Layers;
@@ -50,13 +55,13 @@ protected:
 	class CSkinState
 	{
 	public:
-		CModAPI_AssetPath m_Path;
+		CAssetPath m_Path;
 		vec4 m_Color;
 	};
 
 protected:
-	class IGraphics* m_pGraphics;
-	CModAPI_AssetManager* m_pAssetManager;
+	IGraphics* m_pGraphics;
+	CAssetManager* m_pAssetManager;
 	
 	array<CSkeletonState> m_Skeletons;
 	array<CSkinState> m_Skins;
@@ -67,7 +72,7 @@ protected:
 	vec2 m_Hook;
 	
 public:
-	CModAPI_SkeletonRenderer(class IGraphics* pGraphics, CModAPI_AssetManager* pAssetManager) :
+	CSkeletonRenderer(IGraphics* pGraphics, CAssetManager* pAssetManager) :
 		m_pGraphics(pGraphics),
 		m_pAssetManager(pAssetManager),
 		m_NumLayers(0)
@@ -81,24 +86,26 @@ public:
 	void SetMotion(vec2 Motion) { m_Motion = Motion; }
 	void SetHook(vec2 Hook) { m_Hook = Hook; }
 	
-	void AddSkeleton(CModAPI_AssetPath SkeletonPath);
-	void AddSkeletonWithParents(CModAPI_AssetPath SkeletonPath, int AddDefaultSkins = ADDDEFAULTSKIN_NO);
-	void ApplyAnimation(CModAPI_AssetPath SkeletonAnimationPath, float Time);
-	void AddSkin(CModAPI_AssetPath SkeletonSkinPath, vec4 Color);
-	void AddSkinWithSkeleton(CModAPI_AssetPath SkeletonSkinPath, vec4 Color);
+	void AddSkeleton(CAssetPath SkeletonPath);
+	void AddSkeletonWithParents(CAssetPath SkeletonPath, int AddDefaultSkins = ADDDEFAULTSKIN_NO);
+	void ApplyAnimation(CAssetPath SkeletonAnimationPath, float Time);
+	void AddSkin(CAssetPath SkeletonSkinPath, vec4 Color);
+	void AddSkinWithSkeleton(CAssetPath SkeletonSkinPath, vec4 Color);
 	void FinalizeBone(int s, int b);
 	void Finalize();
-	void RenderBone(vec2 Position, float Size, CModAPI_AssetPath SkeletonPath, CModAPI_Asset_Skeleton::CSubPath BonePath);
-	void RenderBoneOutline(vec2 Position, float Size, CModAPI_AssetPath SkeletonPath, CModAPI_Asset_Skeleton::CSubPath BonePath);
+	void RenderBone(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath);
+	void RenderBoneOutline(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath);
 	void RenderBones(vec2 Position, float Size);
 	void RenderSkinsLayer(vec2 Position, float Size, int LayerSkeletonId, int LayerId);
 	void RenderSkins(vec2 Position, float Size);
-	bool BonePicking(vec2 Position, float Size, vec2 Point, CModAPI_AssetPath& SkeletonPath, CModAPI_Asset_Skeleton::CSubPath& BonePath);
-	bool GetLocalAxis(vec2 Position, float Size, CModAPI_AssetPath SkeletonPath, CModAPI_Asset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
-	bool GetParentAxis(vec2 Position, float Size, CModAPI_AssetPath SkeletonPath, CModAPI_Asset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
+	bool BonePicking(vec2 Position, float Size, vec2 Point, CAssetPath& SkeletonPath, CAsset_Skeleton::CSubPath& BonePath);
+	bool GetLocalAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
+	bool GetParentAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
 	
-	class IGraphics* Graphics() { return m_pGraphics; }
-	CModAPI_AssetManager* AssetManager() { return m_pAssetManager; }
+	IGraphics* Graphics() { return m_pGraphics; }
+	CAssetManager* AssetManager() { return m_pAssetManager; }
 };
+
+}
 
 #endif

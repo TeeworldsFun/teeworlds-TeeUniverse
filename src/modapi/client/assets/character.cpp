@@ -3,9 +3,12 @@
 #include <engine/shared/datafile.h>
 #include <modapi/client/graphics.h>
 
+namespace tu
+{
+
 /* IO *****************************************************************/
 
-void CModAPI_Asset_Character::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager, IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Character::InitFromAssetsFile(CAssetManager* pAssetManager, tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// load name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -19,13 +22,13 @@ void CModAPI_Asset_Character::InitFromAssetsFile(CModAPI_AssetManager* pAssetMan
 		str_copy(Part.m_aName, pParts[i].m_aName, sizeof(Part.m_aName));
 	}
 	
-	m_IdlePath = CModAPI_AssetPath(pItem->m_IdlePath);
-	m_WalkPath = CModAPI_AssetPath(pItem->m_WalkPath);
-	m_ControlledJumpPath = CModAPI_AssetPath(pItem->m_ControlledJumpPath);
-	m_UncontrolledJumpPath = CModAPI_AssetPath(pItem->m_UncontrolledJumpPath);
+	m_IdlePath = CAssetPath(pItem->m_IdlePath);
+	m_WalkPath = CAssetPath(pItem->m_WalkPath);
+	m_ControlledJumpPath = CAssetPath(pItem->m_ControlledJumpPath);
+	m_UncontrolledJumpPath = CAssetPath(pItem->m_UncontrolledJumpPath);
 }
 
-void CModAPI_Asset_Character::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
+void CAsset_Character::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
@@ -46,28 +49,28 @@ void CModAPI_Asset_Character::SaveInAssetsFile(CDataFileWriter* pFileWriter, int
 	Item.m_ControlledJumpPath = m_ControlledJumpPath.ConvertToInteger();
 	Item.m_UncontrolledJumpPath = m_UncontrolledJumpPath.ConvertToInteger();
 	
-	pFileWriter->AddItem(CModAPI_AssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
+	pFileWriter->AddItem(CAssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
 }
 
-void CModAPI_Asset_Character::Unload(class CModAPI_AssetManager* pAssetManager)
+void CAsset_Character::Unload(class CAssetManager* pAssetManager)
 {
 	
 }
 
 /* IMPLEMENTATION *****************************************************/
 
-CModAPI_Asset_Character::CPart& CModAPI_Asset_Character::AddPart()
+CAsset_Character::CPart& CAsset_Character::AddPart()
 {
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf), "part%d", m_Parts.size());
-	m_Parts.add(CModAPI_Asset_Character::CPart());
+	m_Parts.add(CAsset_Character::CPart());
 	return m_Parts[m_Parts.size()-1].Name(aBuf);
 }
 
 /* VALUE STRING *******************************************************/
 
 template<>
-char* CModAPI_Asset_Character::GetValue(int ValueType, int PathInt, char* DefaultValue)
+char* CAsset_Character::GetValue(int ValueType, int PathInt, char* DefaultValue)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -78,12 +81,12 @@ char* CModAPI_Asset_Character::GetValue(int ValueType, int PathInt, char* Defaul
 			else
 				return DefaultValue;
 		default:
-			return CModAPI_Asset::GetValue<char*>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<char*>(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Character::SetValue<const char*>(int ValueType, int PathInt, const char* pText)
+bool CAsset_Character::SetValue<const char*>(int ValueType, int PathInt, const char* pText)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -97,13 +100,13 @@ bool CModAPI_Asset_Character::SetValue<const char*>(int ValueType, int PathInt, 
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<const char*>(ValueType, PathInt, pText);
+	return CAsset::SetValue<const char*>(ValueType, PathInt, pText);
 }
 
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CModAPI_AssetPath CModAPI_Asset_Character::GetValue(int ValueType, int PathInt, CModAPI_AssetPath DefaultValue)
+CAssetPath CAsset_Character::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -122,12 +125,12 @@ CModAPI_AssetPath CModAPI_Asset_Character::GetValue(int ValueType, int PathInt, 
 			else
 				return DefaultValue;
 		default:
-			return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<CAssetPath>(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CModAPI_Asset_Character::SetValue<CModAPI_AssetPath>(int ValueType, int PathInt, CModAPI_AssetPath Value)
+bool CAsset_Character::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -153,5 +156,7 @@ bool CModAPI_Asset_Character::SetValue<CModAPI_AssetPath>(int ValueType, int Pat
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, PathInt, Value);
+	return CAsset::SetValue<CAssetPath>(ValueType, PathInt, Value);
+}
+
 }

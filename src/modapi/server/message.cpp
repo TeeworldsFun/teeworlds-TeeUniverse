@@ -5,18 +5,23 @@
 
 #include <game/server/gamecontext.h>
 
-CModAPI_Msg::CModAPI_Msg(CGameContext* pGameServer) :
+namespace tu
+{
+
+CMsg::CMsg(CGameContext* pGameServer) :
 	m_pGameServer(pGameServer)
 {
 	
 }
 
-IServer* CModAPI_Msg::Server()
+IServer* CMsg::Server()
 {
 	return m_pGameServer->Server();
 }
 
-CGameContext* CModAPI_Msg::GameServer()
+CGameContext* CMsg::GameServer()
 {
 	return m_pGameServer;
+}
+
 }

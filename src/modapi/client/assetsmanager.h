@@ -1,5 +1,5 @@
-#ifndef MODAPI_CLIENT_ASSETSMANAGER_H
-#define MODAPI_CLIENT_ASSETSMANAGER_H
+#ifndef TU_CLIENT_ASSETSMANAGER_H
+#define TU_CLIENT_ASSETSMANAGER_H
 
 	//Search Tag: TAG_NEW_ASSET
 #include <modapi/client/assets.h>
@@ -12,10 +12,16 @@
 #include <modapi/client/assets/character.h>
 #include <modapi/client/assets/characterpart.h>
 #include <modapi/client/assets/weapon.h>
+#include <modapi/client/assets/mapgroup.h>
+#include <modapi/client/assets/maplayertiles.h>
+#include <modapi/client/assets/maplayerquads.h>
 
-class IModAPI_AssetsFile;
+namespace tu
+{
 
-class CModAPI_AssetManager
+class IAssetsFile;
+
+class CAssetManager
 {
 private:
 	struct CStorageType
@@ -28,12 +34,12 @@ private:
 	IGraphics* m_pGraphics;
 	class IStorage* m_pStorage;
 	
-	#define MODAPI_MACRO_ASSETTYPE(ClassName, CatalogName) CModAPI_AssetCatalog<ClassName> CatalogName;
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CAssetCatalog<ClassName> CatalogName;
 	#include <modapi/client/assetsmacro.h>
-	#undef MODAPI_MACRO_ASSETTYPE
+	#undef TU_MACRO_ASSETTYPE
 
 public:
-	CModAPI_AssetManager(IGraphics* pGraphics, class IStorage* pStorage);
+	CAssetManager(IGraphics* pGraphics, class IStorage* pStorage);
 	void Init(IStorage* pStorage);
 	void LoadInteralAssets();
 	void LoadSkinAssets(class IStorage* pStorage);
@@ -45,26 +51,28 @@ public:
 	static int LoadSkinAssets_MarkingScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_DecorationScan(const char *pName, int IsDir, int DirType, void *pUser);
 	
-	CModAPI_AssetPath FindSkinPart(CModAPI_AssetPath CharacterPath, CModAPI_Asset_Character::CSubPath CharacterPart, const char* pName);
+	CAssetPath FindSkinPart(CAssetPath CharacterPath, CAsset_Character::CSubPath CharacterPart, const char* pName);
 	
 	class IGraphics *Graphics() { return m_pGraphics; };
 	class IStorage *Storage() { return m_pStorage; };
 	
-	CModAPI_AssetPath AddImage(int StorageType, const char* pFilename, int Source);
-	void DeleteAsset(int Type, CModAPI_AssetPath Path);
+	CAssetPath AddImage(int StorageType, const char* pFilename, int Source);
+	void DeleteAsset(int Type, CAssetPath Path);
 	
 	int SaveInAssetsFile(const char *pFileName, int Source);
-	int OnAssetsFileLoaded(IModAPI_AssetsFile* pAssetsFile);
+	int OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile);
+	int OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile);
+	int OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile);
 	int OnAssetsFileUnloaded();
 	
 	template<class ASSETTYPE>
-	CModAPI_AssetCatalog<ASSETTYPE>* GetAssetCatalog()
+	CAssetCatalog<ASSETTYPE>* GetAssetCatalog()
 	{
 		return 0;
 	}
 	
 	template<class ASSETTYPE>
-	ASSETTYPE* GetAsset(CModAPI_AssetPath AssetPath)
+	ASSETTYPE* GetAsset(CAssetPath AssetPath)
 	{
 		return GetAssetCatalog<ASSETTYPE>()->GetAsset(AssetPath);
 	}
@@ -81,15 +89,15 @@ public:
 		return GetAssetCatalog<ASSETTYPE>()->m_Lists[Source].size();
 	}
 	
-	int AddSubItem(CModAPI_AssetPath AssetPath, int SubItemType);
-	void DeleteSubItem(CModAPI_AssetPath AssetPath, int SubPath);
+	int AddSubItem(CAssetPath AssetPath, int SubItemType);
+	void DeleteSubItem(CAssetPath AssetPath, int SubPath);
 			
 	template<typename T>
-	T GetAssetValue(CModAPI_AssetPath AssetPath, int FieldType, int FieldPath, T DefaultValue)
+	T GetAssetValue(CAssetPath AssetPath, int FieldType, int FieldPath, T DefaultValue)
 	{
-		#define GET_ASSET_VALUE(TypeName) case TypeName::TypeId:\
+		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
 		{\
-			TypeName* pAsset = GetAsset<TypeName>(AssetPath);\
+			ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
 			if(pAsset)\
 				return pAsset->GetValue<T>(FieldType, FieldPath, DefaultValue);\
 			else\
@@ -98,26 +106,20 @@ public:
 	
 		switch(AssetPath.GetType())
 		{
-			//Search Tag: TAG_NEW_ASSET
-			GET_ASSET_VALUE(CModAPI_Asset_Image);
-			GET_ASSET_VALUE(CModAPI_Asset_Sprite);
-			GET_ASSET_VALUE(CModAPI_Asset_Skeleton);
-			GET_ASSET_VALUE(CModAPI_Asset_SkeletonSkin);
-			GET_ASSET_VALUE(CModAPI_Asset_SkeletonAnimation);
-			GET_ASSET_VALUE(CModAPI_Asset_Character);
-			GET_ASSET_VALUE(CModAPI_Asset_CharacterPart);
-			GET_ASSET_VALUE(CModAPI_Asset_Weapon);
+			#include <modapi/client/assetsmacro.h>
 		}
+		
+		#undef TU_MACRO_ASSETTYPE
 		
 		return DefaultValue;
 	}
 	
 	template<typename T>
-	bool SetAssetValue(CModAPI_AssetPath AssetPath, int FieldType, int FieldPath, const T& Value)
+	bool SetAssetValue(CAssetPath AssetPath, int FieldType, int FieldPath, const T& Value)
 	{
-		#define SET_ASSET_VALUE(TypeName) case TypeName::TypeId:\
+		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
 		{\
-			TypeName* pAsset = GetAsset<TypeName>(AssetPath);\
+			ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
 			if(pAsset)\
 				return pAsset->SetValue<T>(FieldType, FieldPath, Value);\
 			break;\
@@ -125,21 +127,17 @@ public:
 		
 		switch(AssetPath.GetType())
 		{
-			//Search Tag: TAG_NEW_ASSET
-			SET_ASSET_VALUE(CModAPI_Asset_Image);
-			SET_ASSET_VALUE(CModAPI_Asset_Sprite);
-			SET_ASSET_VALUE(CModAPI_Asset_Skeleton);
-			SET_ASSET_VALUE(CModAPI_Asset_SkeletonSkin);
-			SET_ASSET_VALUE(CModAPI_Asset_SkeletonAnimation);
-			SET_ASSET_VALUE(CModAPI_Asset_Character);
-			SET_ASSET_VALUE(CModAPI_Asset_CharacterPart);
-			SET_ASSET_VALUE(CModAPI_Asset_Weapon);
+			#include <modapi/client/assetsmacro.h>
 		}
+		
+		#undef TU_MACRO_ASSETTYPE
 		
 		return false;
 	}
 	
-	void DeleteAsset(const CModAPI_AssetPath& Path);
+	void DeleteAsset(const CAssetPath& Path);
 };
+
+}
 
 #endif

@@ -3,9 +3,12 @@
 #include <engine/shared/datafile.h>
 #include <modapi/client/graphics.h>
 
+namespace tu
+{
+
 /* IO *****************************************************************/
 
-void CModAPI_Asset_SkeletonAnimation::InitFromAssetsFile(CModAPI_AssetManager* pAssetManager, IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_SkeletonAnimation::InitFromAssetsFile(CAssetManager* pAssetManager, tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -63,14 +66,14 @@ void CModAPI_Asset_SkeletonAnimation::InitFromAssetsFile(CModAPI_AssetManager* p
 				
 				int KeyId = pLayerAnimations[i].m_FirstKeyFrame+j;
 				KeyFrame.m_Time = pBoneKeyFrames[KeyId].m_Time;
-				KeyFrame.m_Color = ModAPI_IntToColor(pLayerKeyFrames[KeyId].m_Color);
+				KeyFrame.m_Color = tu::IntToColor(pLayerKeyFrames[KeyId].m_Color);
 				KeyFrame.m_State = pLayerKeyFrames[KeyId].m_State;
 			}
 		}
 	}
 }
 
-void CModAPI_Asset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
+void CAsset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
@@ -145,7 +148,7 @@ void CModAPI_Asset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWri
 			for(int j=0; j<m_LayerAnimations[i].m_KeyFrames.size(); j++)
 			{
 				pKeyFrames[KeyFramesIter].m_Time = m_LayerAnimations[i].m_KeyFrames[j].m_Time;
-				pKeyFrames[KeyFramesIter].m_Color = ModAPI_ColorToInt(m_LayerAnimations[i].m_KeyFrames[j].m_Color);
+				pKeyFrames[KeyFramesIter].m_Color = ColorToInt(m_LayerAnimations[i].m_KeyFrames[j].m_Color);
 				pKeyFrames[KeyFramesIter].m_State = m_LayerAnimations[i].m_KeyFrames[j].m_State;
 				
 				KeyFramesIter++;
@@ -159,10 +162,10 @@ void CModAPI_Asset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWri
 		delete[] pAnimations;
 	}
 	
-	pFileWriter->AddItem(CModAPI_AssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
+	pFileWriter->AddItem(CAssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
 }
 
-void CModAPI_Asset_SkeletonAnimation::Unload(class CModAPI_AssetManager* pAssetManager)
+void CAsset_SkeletonAnimation::Unload(class CAssetManager* pAssetManager)
 {
 	
 }
@@ -170,14 +173,14 @@ void CModAPI_Asset_SkeletonAnimation::Unload(class CModAPI_AssetManager* pAssetM
 /* VALUE INT **********************************************************/
 
 template<>
-int CModAPI_Asset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int DefaultValue)
+int CAsset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int DefaultValue)
 {
-	CModAPI_Asset_SkeletonAnimation::CSubPath SubPath(Path);
+	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
 	switch(ValueType)
 	{
 		case BONEANIMATION_CYCLETYPE:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEANIMATION)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEANIMATION)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_BoneAnimations.size())
@@ -187,7 +190,7 @@ int CModAPI_Asset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int 
 			}
 			break;
 		case BONEKEYFRAME_TIME:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_BoneAnimations.size())
@@ -201,7 +204,7 @@ int CModAPI_Asset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int 
 			}
 			break;
 		case BONEKEYFRAME_ALIGNMENT:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_BoneAnimations.size())
@@ -215,7 +218,7 @@ int CModAPI_Asset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int 
 			}
 			break;
 		case LAYERKEYFRAME_TIME:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_LayerAnimations.size())
@@ -229,7 +232,7 @@ int CModAPI_Asset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int 
 			}
 			break;
 		case LAYERKEYFRAME_STATE:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_LayerAnimations.size())
@@ -243,21 +246,21 @@ int CModAPI_Asset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int 
 			}
 			break;
 		default:
-			return CModAPI_Asset::GetValue<int>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<int>(ValueType, Path, DefaultValue);
 	}
 	
 	return DefaultValue;
 }
 
 template<>
-bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int Value)
+bool CAsset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int Value)
 {
-	CModAPI_Asset_SkeletonAnimation::CSubPath SubPath(Path);
+	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
 	switch(ValueType)
 	{
 		case BONEANIMATION_CYCLETYPE:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEANIMATION)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEANIMATION)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_BoneAnimations.size())
@@ -269,7 +272,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int
 			}
 			else return false;
 		case BONEKEYFRAME_TIME:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId < 0 || animId >= m_BoneAnimations.size())
@@ -295,7 +298,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int
 							return false;
 					}
 					
-					CModAPI_Asset_SkeletonAnimation::CBoneAnimation::CKeyFrame KeyFrame = m_BoneAnimations[animId].m_KeyFrames[keyId];
+					CAsset_SkeletonAnimation::CBoneAnimation::CKeyFrame KeyFrame = m_BoneAnimations[animId].m_KeyFrames[keyId];
 					KeyFrame.m_Time = Value;
 					m_BoneAnimations[animId].m_KeyFrames.remove_index(keyId);
 					
@@ -314,7 +317,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int
 			}
 			else return false;
 		case BONEKEYFRAME_ALIGNMENT:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
 			{
 				if(Value >= NUM_BONEALIGNS)
 					return false;
@@ -331,7 +334,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int
 			}
 			else return false;
 		case LAYERKEYFRAME_TIME:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId < 0 || animId >= m_LayerAnimations.size())
@@ -357,7 +360,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int
 							return false;
 					}
 					
-					CModAPI_Asset_SkeletonAnimation::CLayerAnimation::CKeyFrame KeyFrame = m_LayerAnimations[animId].m_KeyFrames[keyId];
+					CAsset_SkeletonAnimation::CLayerAnimation::CKeyFrame KeyFrame = m_LayerAnimations[animId].m_KeyFrames[keyId];
 					KeyFrame.m_Time = Value;
 					m_LayerAnimations[animId].m_KeyFrames.remove_index(keyId);
 					
@@ -376,7 +379,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int
 			}
 			else return false;
 		case LAYERKEYFRAME_STATE:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 			{
 				if(Value >= NUM_LAYERSTATES)
 					return false;
@@ -394,15 +397,15 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue<int>(ValueType, Path, Value);
 }
 
 /* VALUE FLOAT ********************************************************/
 
 template<>
-float CModAPI_Asset_SkeletonAnimation::GetValue<float>(int ValueType, int Path, float DefaultValue)
+float CAsset_SkeletonAnimation::GetValue<float>(int ValueType, int Path, float DefaultValue)
 {
-	CModAPI_Asset_SkeletonAnimation::CSubPath SubPath(Path);
+	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
 	switch(ValueType)
 	{
@@ -411,7 +414,7 @@ float CModAPI_Asset_SkeletonAnimation::GetValue<float>(int ValueType, int Path, 
 		case BONEKEYFRAME_TRANSLATION_Y:
 		case BONEKEYFRAME_SCALE_X:
 		case BONEKEYFRAME_SCALE_Y:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_BoneAnimations.size())
@@ -437,16 +440,16 @@ float CModAPI_Asset_SkeletonAnimation::GetValue<float>(int ValueType, int Path, 
 			}
 			break;
 		default:
-			return CModAPI_Asset::GetValue<float>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<float>(ValueType, Path, DefaultValue);
 	}
 	
 	return DefaultValue;
 }
 
 template<>
-bool CModAPI_Asset_SkeletonAnimation::SetValue<float>(int ValueType, int Path, float Value)
+bool CAsset_SkeletonAnimation::SetValue<float>(int ValueType, int Path, float Value)
 {
-	CModAPI_Asset_SkeletonAnimation::CSubPath SubPath(Path);
+	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
 	switch(ValueType)
 	{
@@ -455,7 +458,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<float>(int ValueType, int Path, f
 		case BONEKEYFRAME_TRANSLATION_Y:
 		case BONEKEYFRAME_SCALE_X:
 		case BONEKEYFRAME_SCALE_Y:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_BONEKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_BoneAnimations.size())
@@ -489,19 +492,19 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<float>(int ValueType, int Path, f
 			break;
 	}
 	
-	return CModAPI_Asset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue<int>(ValueType, Path, Value);
 }
 
 /* VALUE VEC4 *********************************************************/
 	
 template<>
-vec4 CModAPI_Asset_SkeletonAnimation::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue)
+vec4 CAsset_SkeletonAnimation::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue)
 {
-	CModAPI_Asset_SkeletonAnimation::CSubPath SubPath(PathInt);
+	CAsset_SkeletonAnimation::CSubPath SubPath(PathInt);
 	switch(ValueType)
 	{
 		case LAYERKEYFRAME_COLOR:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_LayerAnimations.size())
@@ -514,20 +517,20 @@ vec4 CModAPI_Asset_SkeletonAnimation::GetValue<vec4>(int ValueType, int PathInt,
 				}
 			}
 		default:
-			return CModAPI_Asset::GetValue<vec4>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<vec4>(ValueType, PathInt, DefaultValue);
 	}
 	
 	return DefaultValue;
 }
 	
 template<>
-bool CModAPI_Asset_SkeletonAnimation::SetValue<vec4>(int ValueType, int PathInt, vec4 Value)
+bool CAsset_SkeletonAnimation::SetValue<vec4>(int ValueType, int PathInt, vec4 Value)
 {
-	CModAPI_Asset_SkeletonAnimation::CSubPath SubPath(PathInt);
+	CAsset_SkeletonAnimation::CSubPath SubPath(PathInt);
 	switch(ValueType)
 	{
 		case LAYERKEYFRAME_COLOR:
-			if(SubPath.GetType() == CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
+			if(SubPath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 			{
 				int animId = SubPath.GetId();
 				if(animId >= 0 && animId < m_LayerAnimations.size())
@@ -544,13 +547,13 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<vec4>(int ValueType, int PathInt,
 			else return false;
 	}
 	
-	return CModAPI_Asset::SetValue<vec4>(ValueType, PathInt, Value);
+	return CAsset::SetValue<vec4>(ValueType, PathInt, Value);
 }
 
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CModAPI_AssetPath CModAPI_Asset_SkeletonAnimation::GetValue<CModAPI_AssetPath>(int ValueType, int Path, CModAPI_AssetPath DefaultValue)
+CAssetPath CAsset_SkeletonAnimation::GetValue<CAssetPath>(int ValueType, int Path, CAssetPath DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -558,11 +561,11 @@ CModAPI_AssetPath CModAPI_Asset_SkeletonAnimation::GetValue<CModAPI_AssetPath>(i
 			return m_SkeletonPath;
 	}
 	
-	return CModAPI_Asset::GetValue<CModAPI_AssetPath>(ValueType, Path, DefaultValue);
+	return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
 }
 
 template<>
-bool CModAPI_Asset_SkeletonAnimation::SetValue<CModAPI_AssetPath>(int ValueType, int Path, CModAPI_AssetPath Value)
+bool CAsset_SkeletonAnimation::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -571,5 +574,7 @@ bool CModAPI_Asset_SkeletonAnimation::SetValue<CModAPI_AssetPath>(int ValueType,
 			return true;
 	}
 	
-	return CModAPI_Asset::SetValue<CModAPI_AssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+}
+
 }

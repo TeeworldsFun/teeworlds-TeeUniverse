@@ -4,15 +4,21 @@
 
 #include "slider.h"
 
-CModAPI_ClientGui_AbstractSlider::CModAPI_ClientGui_AbstractSlider(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_Widget(pConfig)
+namespace tu
+{
+	
+namespace gui
+{
+
+CAbstractSlider::CAbstractSlider(CConfig *pConfig) :
+	CWidget(pConfig)
 {	
 	m_UnderMouse = false;
 	m_ButtonDown = false;
 	m_Pos = 0.0f;
 }
 	
-void CModAPI_ClientGui_AbstractSlider::Render()
+void CAbstractSlider::Render()
 {
 	CUIRect rail;
 	rail.x = m_RailRect.x;
@@ -37,7 +43,7 @@ void CModAPI_ClientGui_AbstractSlider::Render()
 	}
 }
 
-void CModAPI_ClientGui_AbstractSlider::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CAbstractSlider::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_SliderRect.IsInside(X, Y))
 	{
@@ -49,7 +55,7 @@ void CModAPI_ClientGui_AbstractSlider::OnMouseOver(int X, int Y, int RelX, int R
 	}
 }
 
-void CModAPI_ClientGui_AbstractSlider::OnButtonRelease(int Button)
+void CAbstractSlider::OnButtonRelease(int Button)
 {
 	if(Button != KEY_MOUSE_1)
 		return;
@@ -57,19 +63,19 @@ void CModAPI_ClientGui_AbstractSlider::OnButtonRelease(int Button)
 	m_ButtonDown = false;
 }
 
-float CModAPI_ClientGui_AbstractSlider::GetSliderPos()
+float CAbstractSlider::GetSliderPos()
 {
 	return m_Pos;
 }
 
-void CModAPI_ClientGui_AbstractSlider::SetSliderPos(float Pos)
+void CAbstractSlider::SetSliderPos(float Pos)
 {
 	m_Pos = Pos;
 	OnNewPosition(Pos);
 }
 
-CModAPI_ClientGui_HSlider::CModAPI_ClientGui_HSlider(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_AbstractSlider(pConfig)
+CHSlider::CHSlider(CConfig *pConfig) :
+	CAbstractSlider(pConfig)
 {
 	m_SliderRect.w = m_pConfig->m_SliderHeight;
 	m_SliderRect.h = m_pConfig->m_SliderWidth;
@@ -78,7 +84,7 @@ CModAPI_ClientGui_HSlider::CModAPI_ClientGui_HSlider(CModAPI_ClientGui_Config *p
 	m_Rect.h = m_SliderRect.h;
 }
 
-void CModAPI_ClientGui_HSlider::Update()
+void CHSlider::Update()
 {
 	m_RailRect.x = m_Rect.x;
 	m_RailRect.y = m_Rect.y + m_Rect.h/2 -m_RailRect.h/2;
@@ -88,7 +94,7 @@ void CModAPI_ClientGui_HSlider::Update()
 	m_SliderRect.y = m_Rect.y + m_Rect.h/2 -m_SliderRect.h/2;
 }
 
-void CModAPI_ClientGui_HSlider::OnButtonClick(int X, int Y, int Button)
+void CHSlider::OnButtonClick(int X, int Y, int Button)
 {
 	if(Button != KEY_MOUSE_1)
 		return;
@@ -104,9 +110,9 @@ void CModAPI_ClientGui_HSlider::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_HSlider::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CHSlider::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
-	CModAPI_ClientGui_AbstractSlider::OnMouseOver(X, Y, RelX, RelY, KeyState);
+	CAbstractSlider::OnMouseOver(X, Y, RelX, RelY, KeyState);
 	
 	if(m_ButtonDown && RelX != 0)
 	{
@@ -117,13 +123,13 @@ void CModAPI_ClientGui_HSlider::OnMouseOver(int X, int Y, int RelX, int RelY, in
 	}
 }
 	
-void CModAPI_ClientGui_HSlider::SetSliderSize(int Size)
+void CHSlider::SetSliderSize(int Size)
 {
 	m_SliderRect.w = Size;
 }
 
-CModAPI_ClientGui_VSlider::CModAPI_ClientGui_VSlider(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_AbstractSlider(pConfig)
+CVSlider::CVSlider(CConfig *pConfig) :
+	CAbstractSlider(pConfig)
 {
 	m_SliderRect.w = m_pConfig->m_SliderWidth;
 	m_SliderRect.h = m_pConfig->m_SliderHeight;
@@ -132,7 +138,7 @@ CModAPI_ClientGui_VSlider::CModAPI_ClientGui_VSlider(CModAPI_ClientGui_Config *p
 	m_Rect.w = m_SliderRect.w;
 }
 
-void CModAPI_ClientGui_VSlider::Update()
+void CVSlider::Update()
 {
 	m_RailRect.x = m_Rect.x;
 	m_RailRect.y = m_Rect.y;
@@ -142,7 +148,7 @@ void CModAPI_ClientGui_VSlider::Update()
 	m_SliderRect.y = m_Rect.y + (int)(m_Pos*static_cast<float>(m_Rect.h - m_SliderRect.h));
 }
 
-void CModAPI_ClientGui_VSlider::OnButtonClick(int X, int Y, int Button)
+void CVSlider::OnButtonClick(int X, int Y, int Button)
 {
 	if(Button != KEY_MOUSE_1)
 		return;
@@ -158,9 +164,9 @@ void CModAPI_ClientGui_VSlider::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_VSlider::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CVSlider::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
-	CModAPI_ClientGui_AbstractSlider::OnMouseOver(X, Y, RelX, RelY, KeyState);
+	CAbstractSlider::OnMouseOver(X, Y, RelX, RelY, KeyState);
 	
 	if(m_ButtonDown && RelY != 0)
 	{
@@ -171,7 +177,11 @@ void CModAPI_ClientGui_VSlider::OnMouseOver(int X, int Y, int RelX, int RelY, in
 	}
 }
 	
-void CModAPI_ClientGui_VSlider::SetSliderSize(int Size)
+void CVSlider::SetSliderSize(int Size)
 {
 	m_SliderRect.h = Size;
+}
+
+}
+
 }

@@ -68,7 +68,7 @@ public:
 	virtual void DemoRecorder_HandleAutoStart() = 0;
 	virtual bool DemoRecorder_IsRecording() = 0;
 	
-	//ModAPI
+	//TU
 	virtual bool GetClientProtocol(int ClientID) const = 0;
 };
 
@@ -83,9 +83,9 @@ public:
 
 	virtual void OnTick() = 0;
 	virtual void OnPreSnap() = 0;
-	virtual void OnSnap06(int ClientID) = 0;
-	virtual void OnSnap07(int ClientID) = 0;
-	virtual void OnSnap07ModAPI(int ClientID) = 0;
+	virtual void OnSnap_TW06(int ClientID) = 0;
+	virtual void OnSnap_TW07(int ClientID) = 0;
+	virtual void OnSnap_TU07(int ClientID) = 0;
 	virtual void OnPostSnap() = 0;
 
 	virtual void OnMessage_TW06(int MsgID, CUnpacker *pUnpacker, int ClientID) = 0;

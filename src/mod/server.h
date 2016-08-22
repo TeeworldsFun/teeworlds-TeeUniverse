@@ -3,7 +3,7 @@
 
 #include <modapi/server/server.h>
 
-class CMod_Server : public CModAPI_Server
+class CMod_Server : public tu::CServer
 {
 public:
 	CMod_Server();

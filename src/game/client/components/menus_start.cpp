@@ -21,7 +21,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_BANNER].m_Id);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1,1,1,1);
-	IGraphics::CQuadItem QuadItem(MainView.w/2-140, 60, 280, 70);
+	IGraphics::CQuadItem QuadItem(MainView.w/2-128, 16, 256, 128);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
 
@@ -73,7 +73,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	static CButtonContainer s_AssetsEditorButton;
 	if(DoButton_Menu(&s_AssetsEditorButton, Localize("Assets Editor"), 0, &Button, g_Config.m_ClShowStartMenuImages ? "assets_editor" : 0, CUI::CORNER_ALL, 10.0f, 0.5f))
 	{
-		g_Config.m_ClMode = MODAPI_CLIENTMODE_ASSETSEDITOR;
+		g_Config.m_ClMode = TU_CLIENTMODE_ASSETSEDITOR;
 		Input()->MouseModeRelative();
 	}
 
@@ -82,7 +82,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	static CButtonContainer s_MapEditorButton;
 	if(DoButton_Menu(&s_MapEditorButton, Localize("Map Editor"), 0, &Button, g_Config.m_ClShowStartMenuImages ? "editor" : 0, CUI::CORNER_ALL, 10.0f, 0.5f))
 	{
-		g_Config.m_ClMode = MODAPI_CLIENTMODE_MAPEDITOR;
+		g_Config.m_ClMode = TU_CLIENTMODE_MAPEDITOR;
 		Input()->MouseModeRelative();
 	}
 

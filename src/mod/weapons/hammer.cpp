@@ -10,7 +10,7 @@
 #include "hammer.h"
 
 CMod_Weapon_Hammer::CMod_Weapon_Hammer(CCharacter* pCharacter) :
-	CModAPI_Weapon(MOD_WEAPON_HAMMER, pCharacter)
+	tu::CWeapon(MOD_WEAPON_HAMMER, pCharacter)
 {
 	m_ReloadTimer = 0;
 }
@@ -35,12 +35,12 @@ bool CMod_Weapon_Hammer::OnFire(vec2 Direction)
 	
 	vec2 ProjStartPos = Character()->GetPos() + Direction * Character()->GetProximityRadius()*0.75f;
 	
-	CModAPI_Event_Sound(GameServer()).World(WorldID())
+	tu::CEvent_Sound(GameServer()).World(WorldID())
 		.Send(Character()->GetPos(), SOUND_HAMMER_FIRE);
 
 	CCharacter *apEnts[MAX_CLIENTS];
 	int Hits = 0;
-	int Num = GameServer()->m_World[WorldID()].FindEntities(ProjStartPos, Character()->GetProximityRadius()*0.5f, (CEntity**)apEnts,
+	int Num = GameServer()->m_World[WorldID()].FindEntities(ProjStartPos, Character()->GetProximityRadius()*0.5f, (CEntityCore**)apEnts,
 												MAX_CLIENTS, MOD_ENTTYPE_CHARACTER);
 
 	for (int i = 0; i < Num; ++i)
@@ -58,7 +58,7 @@ bool CMod_Weapon_Hammer::OnFire(vec2 Direction)
 		else
 			HammerHitPos = ProjStartPos;
 			
-		CModAPI_Event_HammerHitEffect(GameServer()).World(WorldID())
+		tu::CEvent_HammerHitEffect(GameServer()).World(WorldID())
 			.Send(HammerHitPos);
 
 		vec2 Dir;
@@ -84,19 +84,19 @@ bool CMod_Weapon_Hammer::OnFire(vec2 Direction)
 	return true;
 }
 	
-void CMod_Weapon_Hammer::Snap06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pCharNetObj)
+void CMod_Weapon_Hammer::Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_HAMMER;
 	pCharNetObj->m_AmmoCount = -1;
 }
 	
-void CMod_Weapon_Hammer::Snap07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Hammer::Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_HAMMER;
 	pCharNetObj->m_AmmoCount = -1;
 }
 	
-void CMod_Weapon_Hammer::Snap07ModAPI(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Hammer::Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_HAMMER;
 	pCharNetObj->m_AmmoCount = -1;

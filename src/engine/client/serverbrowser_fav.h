@@ -38,12 +38,12 @@ public:
 		bool m_Active;
 	} m_FavLookup;
 
-	class CModAPI_MetaNetClient *m_pNetClient;
+	class tu::CMetaNetClient *m_pNetClient;
 	class IConsole *m_pConsole;
 	class IEngine *m_pEngine;
 
 	CServerBrowserFavorites();
-	void Init(class CModAPI_MetaNetClient *pNetClient, class IConsole *pConsole, class IEngine *pEngine, class IConfig *pConfig);
+	void Init(class tu::CMetaNetClient *pNetClient, class IConsole *pConsole, class IEngine *pEngine, class IConfig *pConfig);
 	
 	bool AddFavoriteEx(const char *pHostname, const NETADDR *pAddr, bool DoCheck);
 	CFavoriteServer *FindFavoriteByAddr(const NETADDR &Addr, int *Index);

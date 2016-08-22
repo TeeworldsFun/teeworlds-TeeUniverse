@@ -1,12 +1,18 @@
-#ifndef MODAPI_CLIENT_METANETSERVER_H
-#define MODAPI_CLIENT_METANETSERVER_H
+#ifndef TU_CLIENT_METANETSERVER_H
+#define TU_CLIENT_METANETSERVER_H
 
 #include <base/tl/array.h>
 #include <engine/shared/network.h>
 #include <engine/shared/packer.h>
 #include <engine/masterserver.h>
 
-class CModAPI_MetaNetClient
+class IMasterServer;
+class IConsole;
+
+namespace tu
+{
+
+class CMetaNetClient
 {
 public:
 	typedef void (*FProcessPacket)(CNetChunk *pPacket, void *pUser);
@@ -25,7 +31,7 @@ public:
 	class CNetClient
 	{
 	protected:
-		CModAPI_MetaNetClient* m_pMetaNetClient;
+		CMetaNetClient* m_pMetaNetClient;
 		int m_NetClientID;
 		NETADDR m_Address;
 		
@@ -34,7 +40,7 @@ public:
 		FProcessPacket m_fProcessConnlessPacket;
 		
 	public:
-		CNetClient(CModAPI_MetaNetClient* pMetaNetClient, FProcessPacket fProcessServerPacket, FProcessPacket fProcessConnlessPacket);
+		CNetClient(CMetaNetClient* pMetaNetClient, FProcessPacket fProcessServerPacket, FProcessPacket fProcessConnlessPacket);
 		virtual ~CNetClient();
 		
 		//NetClient
@@ -63,10 +69,10 @@ public:
 	int m_DstServerID;
 
 public:
-	CModAPI_MetaNetClient();
-	~CModAPI_MetaNetClient();
+	CMetaNetClient();
+	~CMetaNetClient();
 	
-	void Init(class IMasterServer *pMasterServer, class IConsole *pConsole);
+	void Init(IMasterServer *pMasterServer, IConsole *pConsole);
 	void SetCallbacks(void* pData);
 	
 	bool OpenNetClient(int Dst, CNetClient* pNetClient, NETADDR BindAddr, int Flags);
@@ -84,5 +90,7 @@ public:
 	class IMasterServer* MasterServer() { return m_pMasterServer; }
 	class IConsole* Console() { return m_pConsole; }
 };
+
+}
 
 #endif

@@ -14,37 +14,40 @@
 
 #include "items.h"
 
-CModAPI_Component_Items::CModAPI_Component_Items()
+namespace tu
+{
+
+CComponent_Items::CComponent_Items()
 {
 	m_LastTime = time_get();
 }
 
-void CModAPI_Component_Items::SetLayer(int Layer)
+void CComponent_Items::SetLayer(int Layer)
 {
 	m_Layer = Layer;
 }
 
-int CModAPI_Component_Items::GetLayer() const
+int CComponent_Items::GetLayer() const
 {
 	return m_Layer;
 }
 	
-void CModAPI_Component_Items::RenderModAPISprite(const CNetObj_ModAPI_Sprite *pPrev, const CNetObj_ModAPI_Sprite *pCurrent)
+void CComponent_Items::RenderSprite(const CNetObj_TU_Sprite *pPrev, const CNetObj_TU_Sprite *pCurrent)
 {
 	if(pCurrent->m_ItemLayer != GetLayer()) return;
-	if(!ModAPIGraphics()) return;
+	if(!TUGraphics()) return;
 
 	float Angle = mix(2.0*pi*static_cast<float>(pPrev->m_Angle)/360.0f, 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f, Client()->IntraGameTick());
 	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 	
-	ModAPIGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0);
+	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0);
 }
 
-void CModAPI_Component_Items::RenderModAPISpriteCharacter(const CNetObj_ModAPI_SpriteCharacter *pPrev, const CNetObj_ModAPI_SpriteCharacter *pCurrent)
+void CComponent_Items::RenderSpriteCharacter(const CNetObj_TU_SpriteCharacter *pPrev, const CNetObj_TU_SpriteCharacter *pCurrent)
 {
 	if(pCurrent->m_ItemLayer != GetLayer()) return;
-	if(!ModAPIGraphics()||!m_pClient->m_Snap.m_aCharacters[pCurrent->m_ClientId].m_Active) return;
+	if(!TUGraphics()||!m_pClient->m_Snap.m_aCharacters[pCurrent->m_ClientId].m_Active) return;
 	
 	float Angle = mix(2.0*pi*static_cast<float>(pPrev->m_Angle)/360.0f, 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f, Client()->IntraGameTick());
 	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
@@ -61,10 +64,10 @@ void CModAPI_Component_Items::RenderModAPISpriteCharacter(const CNetObj_ModAPI_S
 		Pos = mix(vec2(PrevChar.m_X, PrevChar.m_Y), vec2(CurChar.m_X, CurChar.m_Y), Client()->IntraGameTick()) + Pos;
 	}
 	
-	ModAPIGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0);
+	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0);
 }
 
-void CModAPI_Component_Items::RenderModAPIText(const CNetObj_ModAPI_Text *pPrev, const CNetObj_ModAPI_Text *pCurrent)
+void CComponent_Items::RenderText(const CNetObj_TU_Text *pPrev, const CNetObj_TU_Text *pCurrent)
 {
 	if(pCurrent->m_ItemLayer != GetLayer()) return;
 	if(!TextRender()) return;
@@ -74,10 +77,10 @@ void CModAPI_Component_Items::RenderModAPIText(const CNetObj_ModAPI_Text *pPrev,
 	char aText[64];
 	IntsToStr(pCurrent->m_aText, 16, &aText[0]);
 	
-	ModAPIGraphics()->DrawText(TextRender(), aText, Pos, ModAPI_IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
+	TUGraphics()->DrawText(TextRender(), aText, Pos, tu::IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
 }
 
-void CModAPI_Component_Items::RenderModAPITextCharacter(const CNetObj_ModAPI_TextCharacter *pPrev, const CNetObj_ModAPI_TextCharacter *pCurrent)
+void CComponent_Items::RenderTextCharacter(const CNetObj_TU_TextCharacter *pPrev, const CNetObj_TU_TextCharacter *pCurrent)
 {
 	if(pCurrent->m_ItemLayer != GetLayer()) return;
 	if(!TextRender()||!m_pClient->m_Snap.m_aCharacters[pCurrent->m_ClientId].m_Active) return;
@@ -98,10 +101,10 @@ void CModAPI_Component_Items::RenderModAPITextCharacter(const CNetObj_ModAPI_Tex
 	char aText[64];
 	IntsToStr(pCurrent->m_aText, 16, &aText[0]);
 	
-	ModAPIGraphics()->DrawText(TextRender(), aText, Pos, ModAPI_IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
+	TUGraphics()->DrawText(TextRender(), aText, Pos, tu::IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
 }
 
-void CModAPI_Component_Items::OnRender()
+void CComponent_Items::OnRender()
 {
 	if(Client()->State() < IClient::STATE_ONLINE)
 		return;
@@ -114,35 +117,35 @@ void CModAPI_Component_Items::OnRender()
 
 		switch(Item.m_Type)
 		{
-			case NETOBJTYPE_MODAPI_SPRITE:
+			case NETOBJTYPE_TU_SPRITE:
 			{
 				const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
 				if(pPrev)
-					RenderModAPISprite((const CNetObj_ModAPI_Sprite *)pPrev, (const CNetObj_ModAPI_Sprite *)pData);
+					RenderSprite((const CNetObj_TU_Sprite *)pPrev, (const CNetObj_TU_Sprite *)pData);
 			}
 			break;
 				
-			case NETOBJTYPE_MODAPI_SPRITECHARACTER:
+			case NETOBJTYPE_TU_SPRITECHARACTER:
 			{
 				const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
 				if(pPrev)
-					RenderModAPISpriteCharacter((const CNetObj_ModAPI_SpriteCharacter *)pPrev, (const CNetObj_ModAPI_SpriteCharacter *)pData);
+					RenderSpriteCharacter((const CNetObj_TU_SpriteCharacter *)pPrev, (const CNetObj_TU_SpriteCharacter *)pData);
 			}
 			break;
 				
-			case NETOBJTYPE_MODAPI_TEXT:
+			case NETOBJTYPE_TU_TEXT:
 			{
 				const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
 				if(pPrev)
-					RenderModAPIText((const CNetObj_ModAPI_Text *)pPrev, (const CNetObj_ModAPI_Text *)pData);
+					RenderText((const CNetObj_TU_Text *)pPrev, (const CNetObj_TU_Text *)pData);
 			}
 			break;
 				
-			case NETOBJTYPE_MODAPI_TEXTCHARACTER:
+			case NETOBJTYPE_TU_TEXTCHARACTER:
 			{
 				const void *pPrev = Client()->SnapFindItem(IClient::SNAP_PREV, Item.m_Type, Item.m_ID);
 				if(pPrev)
-					RenderModAPITextCharacter((const CNetObj_ModAPI_TextCharacter *)pPrev, (const CNetObj_ModAPI_TextCharacter *)pData);
+					RenderTextCharacter((const CNetObj_TU_TextCharacter *)pPrev, (const CNetObj_TU_TextCharacter *)pData);
 			}
 			break;
 		}
@@ -165,12 +168,14 @@ void CModAPI_Component_Items::OnRender()
 	}
 }
 
-void CModAPI_Component_Items::UpdateEvents(float DeltaTime)
+void CComponent_Items::UpdateEvents(float DeltaTime)
 {
 	
 }
 	
-bool CModAPI_Component_Items::ProcessEvent(int Type, CNetEvent_Common* pEvent)
+bool CComponent_Items::ProcessEvent(int Type, CNetEvent_Common* pEvent)
 {
 	
+}
+
 }

@@ -131,17 +131,17 @@ public:
 
 		void Reset();
 		
-		//ModAPI
+		//TU
 		int m_ModChunk;
 		int m_Protocol;
 	};
 
 	CClient m_aClients[MAX_CLIENTS];
 
-	CSnapshotDelta m_SnapshotDelta[MODAPI_NUM_SNAPSHOT];
-	CSnapshotBuilder m_SnapshotBuilder[MODAPI_NUM_SNAPSHOT];
-	CSnapIDPool m_IDPool[MODAPI_NUM_SNAPSHOT];
-	CModAPI_MetaNetServer m_NetServer;
+	CSnapshotDelta m_SnapshotDelta[tu::NUM_SNAPSHOT];
+	CSnapshotBuilder m_SnapshotBuilder[tu::NUM_SNAPSHOT];
+	CSnapIDPool m_IDPool[tu::NUM_SNAPSHOT];
+	tu::CMetaNetServer m_NetServer;
 	CEcon m_Econ;
 	CServerBan m_ServerBan;
 
@@ -256,8 +256,8 @@ public:
 	virtual void *SnapNewItem(int Snapshot, int Type, int ID, int Size);
 	void SnapSetStaticsize(int ItemType, int Size);
 	
-	//ModAPI
-	CModAPI_Server* m_pModAPIServer;
+	//TU
+	tu::CServer* m_pTUServer;
 	enum
 	{
 		MOD_CHUNK_SIZE = NET_MAX_PAYLOAD - NET_MAX_CHUNKHEADERSIZE-4,
@@ -268,14 +268,14 @@ public:
 	int m_CurrentModSize;
 	int m_ModChunksPerRequest;
 	
-	IModAPI_AssetsFileEngine *m_pAssetsFile;
+	tu::IAssetsFileEngine *m_pAssetsFile;
 	
 	const char *GetModName() const;
 	void SendInitialData(int ClientID);
 	
 	bool LoadMod(const char* pModName);
 	
-	void SetModAPIServer(class CModAPI_Server* pModAPIServer);
+	void SetTUServer(class tu::CServer* pTUServer);
 	
 	virtual bool GetClientProtocol(int ClientID) const;
 };

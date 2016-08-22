@@ -1,5 +1,5 @@
-#ifndef MODAPI_CLIENT_ASSETS_H
-#define MODAPI_CLIENT_ASSETS_H
+#ifndef TU_CLIENT_ASSETS_H
+#define TU_CLIENT_ASSETS_H
 
 #include <base/tl/array.h>
 #include <engine/graphics.h>
@@ -8,7 +8,10 @@
 #include <modapi/shared/assetsfile.h>
 #include <modapi/client/assetpath.h>
 
-class CModAPI_Asset
+namespace tu
+{
+
+class CAsset
 {
 public:
 	struct CStorageType
@@ -20,6 +23,8 @@ public:
 	char m_aName[128];
 
 public:
+	virtual ~CAsset() { }
+	
 	inline void SetName(const char* pName)
 	{
 		str_copy(m_aName, pName, sizeof(m_aName));
@@ -44,5 +49,7 @@ public:
 		return false;
 	}
 };
+
+}
 
 #endif

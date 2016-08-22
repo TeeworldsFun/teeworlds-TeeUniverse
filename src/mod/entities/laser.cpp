@@ -9,7 +9,7 @@
 #include "laser.h"
 
 CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEnergy, int Owner)
-: CModAPI_Entity(pGameWorld, MOD_ENTTYPE_LASER, Pos, 1)
+: tu::CEntity_TW(pGameWorld, MOD_ENTTYPE_LASER, Pos, 1)
 {
 	m_Owner = Owner;
 	m_Energy = StartEnergy;
@@ -69,7 +69,7 @@ void CLaser::DoBounce()
 			if(m_Bounces > GameServer()->Tuning()->m_LaserBounceNum)
 				m_Energy = -1;
 
-			CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+			tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 				.Send(m_Pos, SOUND_LASER_BOUNCE);
 		}
 	}
@@ -100,7 +100,7 @@ void CLaser::TickPaused()
 	++m_EvalTick;
 }
 
-void CLaser::Snap06(int Snapshot, int SnappingClient)
+void CLaser::Snap_TW06(int Snapshot, int SnappingClient)
 {
 	if(NetworkClipped(SnappingClient) && NetworkClipped(SnappingClient, m_From))
 		return;
@@ -116,7 +116,7 @@ void CLaser::Snap06(int Snapshot, int SnappingClient)
 	pObj->m_StartTick = m_EvalTick;
 }
 
-void CLaser::Snap07(int Snapshot, int SnappingClient)
+void CLaser::Snap_TW07(int Snapshot, int SnappingClient)
 {
 	if(NetworkClipped(SnappingClient) && NetworkClipped(SnappingClient, m_From))
 		return;

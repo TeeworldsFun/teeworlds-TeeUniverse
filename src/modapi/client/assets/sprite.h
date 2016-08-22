@@ -1,14 +1,19 @@
-#ifndef MODAPI_CLIENT_ASSETS_SPRITE_H
-#define MODAPI_CLIENT_ASSETS_SPRITE_H
+#ifndef TU_CLIENT_ASSETS_SPRITE_H
+#define TU_CLIENT_ASSETS_SPRITE_H
 
 #include <modapi/client/assets.h>
 
-class CModAPI_Asset_Sprite : public CModAPI_Asset
+class CDataFileWriter;
+
+namespace tu
+{
+
+class CAsset_Sprite : public CAsset
 {
 public:
-	static const int TypeId = CModAPI_AssetPath::TYPE_SPRITE;
+	static const int TypeId = CAssetPath::TYPE_SPRITE;
 
-	struct CStorageType : public CModAPI_Asset::CStorageType
+	struct CStorageType : public CAsset::CStorageType
 	{
 		int m_ImagePath;
 		int m_X;
@@ -17,9 +22,9 @@ public:
 		int m_Height;
 	};
 	
-	void InitFromAssetsFile(class CModAPI_AssetManager* pAssetManager, class IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem);
-	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
-	void Unload(class CModAPI_AssetManager* pAssetManager);
+	void InitFromAssetsFile(class CAssetManager* pAssetManager, class IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
+	void Unload(class CAssetManager* pAssetManager);
 	
 public:
 	enum
@@ -32,14 +37,14 @@ public:
 	};
 
 public:
-	CModAPI_AssetPath m_ImagePath;
+	CAssetPath m_ImagePath;
 	int m_X;
 	int m_Y;
 	int m_Width;
 	int m_Height;
 
 public:
-	CModAPI_Asset_Sprite() :
+	CAsset_Sprite() :
 		m_X(0),
 		m_Y(0),
 		m_Width(1),
@@ -48,7 +53,7 @@ public:
 		
 	}
 
-	inline void Init(CModAPI_AssetPath ImagePath, int X, int Y, int W, int H)
+	inline void Init(CAssetPath ImagePath, int X, int Y, int W, int H)
 	{
 		m_ImagePath = ImagePath;
 		m_X = X;
@@ -61,7 +66,7 @@ public:
 public:
 	enum
 	{
-		IMAGEPATH = CModAPI_Asset::NUM_MEMBERS, //Path
+		IMAGEPATH = CAsset::NUM_MEMBERS, //Path
 		X, //Int
 		Y, //Int
 		WIDTH, //Int
@@ -71,23 +76,25 @@ public:
 	template<typename T>
 	T GetValue(int ValueType, int Path, T DefaultValue)
 	{
-		return CModAPI_Asset::GetValue<T>(ValueType, Path, DefaultValue);
+		return CAsset::GetValue<T>(ValueType, Path, DefaultValue);
 	}
 	
 	template<typename T>
 	bool SetValue(int ValueType, int Path, T Value)
 	{
-		return CModAPI_Asset::SetValue<T>(ValueType, Path, Value);
+		return CAsset::SetValue<T>(ValueType, Path, Value);
 	}
 	
-	inline void OnAssetDeleted(const CModAPI_AssetPath& Path)
+	inline void OnAssetDeleted(const CAssetPath& Path)
 	{
 		m_ImagePath.OnIdDeleted(Path);
 	}
 	
 	inline int AddSubItem(int SubItemType) { }
 	inline bool DeleteSubItem(int SubItemPath) { return false; }
-	inline void OnSubItemDeleted(const CModAPI_AssetPath& Path, int SubItemPath) { }
+	inline void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath) { }
 };
+
+}
 
 #endif

@@ -1,10 +1,13 @@
-#ifndef MODAPI_SERVER_NETCLIENT_TW06_H
-#define MODAPI_SERVER_NETCLIENT_TW06_H
+#ifndef TU_SERVER_NETCLIENT_TW06_H
+#define TU_SERVER_NETCLIENT_TW06_H
 
 #include <modapi/client/metanetclient.h>
 #include <tw06/network.h>
 
-class CModAPI_NetClient_TW06 : public CModAPI_MetaNetClient::CNetClient
+namespace tu
+{
+
+class CNetClient_TW06 : public CMetaNetClient::CNetClient
 {
 private:
 	CTW06_NetConnection m_Connection;
@@ -17,7 +20,7 @@ private:
 	bool Recv(CNetChunk *pChunk);
 
 public:
-	CModAPI_NetClient_TW06(CModAPI_MetaNetClient* MetaNetClient, CModAPI_MetaNetClient::FProcessPacket fProcessServerPacket, CModAPI_MetaNetClient::FProcessPacket fProcessConnlessPacket);
+	CNetClient_TW06(CMetaNetClient* MetaNetClient, CMetaNetClient::FProcessPacket fProcessServerPacket, CMetaNetClient::FProcessPacket fProcessConnlessPacket);
 	
 	//NetServer
 	virtual bool Open(int NetServerID, NETADDR BindAddr, int Flags);
@@ -33,5 +36,7 @@ public:
 	virtual const char* ErrorString() const;
 	virtual void ResetErrorString();
 };
+
+}
 
 #endif

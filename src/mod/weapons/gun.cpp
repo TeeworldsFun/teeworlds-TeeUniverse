@@ -11,7 +11,7 @@
 #include "gun.h"
 
 CMod_Weapon_Gun::CMod_Weapon_Gun(CCharacter* pCharacter, int Ammo) :
-	CModAPI_Weapon_GenericGun07(MOD_WEAPON_GUN, WEAPON_GUN, pCharacter, Ammo)
+	tu::CWeapon_GenericGun07(MOD_WEAPON_GUN, WEAPON_GUN, pCharacter, Ammo)
 {
 	
 }
@@ -25,6 +25,6 @@ void CMod_Weapon_Gun::CreateProjectile(vec2 Pos, vec2 Direction)
 		(int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GunLifetime),
 		g_pData->m_Weapons.m_Gun.m_pBase->m_Damage, false, 0, -1, GetID());
 
-	CModAPI_Event_Sound(GameServer()).World(WorldID())
+	tu::CEvent_Sound(GameServer()).World(WorldID())
 		.Send(Character()->GetPos(), SOUND_GUN_FIRE);
 }

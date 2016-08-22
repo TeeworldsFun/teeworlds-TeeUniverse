@@ -143,7 +143,7 @@ function GenerateMacOSXSettings(settings, conf, arch)
 
 	-- Add requirements for Server & Client
 	BuildGameCommon(settings)
-	BuildModAPICommon(settings)
+	BuildTUCommon(settings)
 
 	-- Server
 	settings.link.frameworks:Add("Cocoa")
@@ -185,7 +185,7 @@ function GenerateLinuxSettings(settings, conf, arch)
 
 	-- Add requirements for Server & Client
 	BuildGameCommon(settings)
-	BuildModAPICommon(settings)
+	BuildTUCommon(settings)
 
 	-- Server
 	BuildServer(settings)
@@ -246,7 +246,7 @@ function GenerateWindowsSettings(settings, conf, target_arch, compiler)
 
 	-- Add requirements for Server & Client
 	BuildGameCommon(settings)
-	BuildModAPICommon(settings)
+	BuildTUCommon(settings)
 
 	-- Server
 	local server_settings = settings:Copy()
@@ -323,7 +323,7 @@ function BuildGameCommon(settings)
 	settings.link.extrafiles:Merge(Compile(settings, Collect("src/game/*.cpp"), SharedCommonFiles()))
 end
 
-function BuildModAPICommon(settings)
+function BuildTUCommon(settings)
 	settings.link.extrafiles:Merge(Compile(settings, Collect("src/modapi/shared/*.cpp"), Collect("src/tw06/*.cpp")))
 end
 
@@ -337,9 +337,9 @@ function BuildClient(settings, family, platform)
 	local game_client = Compile(settings, CollectRecursive("src/game/client/*.cpp"), SharedClientFiles())
 	local game_editor = Compile(settings, Collect("src/game/editor/*.cpp"))
 	
-	local client_modapi = Compile(settings, CollectRecursive("src/modapi/client/*.cpp"))
+	local client_tu = Compile(settings, CollectRecursive("src/modapi/client/*.cpp"))
 	
-	Link(settings, "teeworlds", libs["zlib"], libs["md5"], libs["wavpack"], libs["png"], libs["json"], client, game_client, game_editor, client_modapi)
+	Link(settings, "teeuniverses", libs["zlib"], libs["md5"], libs["wavpack"], libs["png"], libs["json"], client, game_client, game_editor, client_tu)
 end
 
 function BuildServer(settings, family, platform)
@@ -347,11 +347,11 @@ function BuildServer(settings, family, platform)
 	
 	local game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), SharedServerFiles())
 		
-	local server_modapi = Compile(settings, Collect("src/modapi/server/*.cpp"))
+	local server_tu = Compile(settings, Collect("src/modapi/server/*.cpp"))
 	
 	local server_mod = Compile(settings, CollectRecursive("src/mod/*.cpp"))
 	
-	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], libs["png"], server, game_server, server_modapi, server_mod)
+	return Link(settings, "teeuniverses_srv", libs["zlib"], libs["md5"], libs["png"], server, game_server, server_tu, server_mod)
 end
 
 function BuildTools(settings)
@@ -484,7 +484,7 @@ if ScriptArgs['builddir'] then
 	builddir = ScriptArgs['builddir']
 end
 
-targets = {client="teeworlds", server="teeworlds_srv",
+targets = {client="teeuniverses", server="teeuniverses_srv",
            versionserver="versionsrv", masterserver="mastersrv",
            tools="pseudo_tools", content="content"}
 

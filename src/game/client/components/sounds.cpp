@@ -143,7 +143,7 @@ void CSounds::Enqueue(int Channel, int SetId)
 	// add sound to the queue
 	if(m_QueuePos < QUEUE_SIZE)
 	{
-		if(Channel == CHN_MUSIC || g_Config.m_ClMode == MODAPI_CLIENTMODE_GAME)
+		if(Channel == CHN_MUSIC || g_Config.m_ClMode == TU_CLIENTMODE_GAME)
 		{
 			m_aQueue[m_QueuePos].m_Channel = Channel;
 			m_aQueue[m_QueuePos++].m_SetId = SetId;

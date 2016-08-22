@@ -175,22 +175,21 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 					LayerCount++;
 				}
 			}
-			else if(pGroup->m_lLayers[l]->m_Type == MODAPI_MAPLAYERTYPE_ENTITIES)
+			else if(pGroup->m_lLayers[l]->m_Type == tu::MAPLAYERTYPE_ENTITIES)
 			{
 				m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "editor", "saving entities layer");
 				CLayerEntities *pLayer = (CLayerEntities *)pGroup->m_lLayers[l];
 				if(pLayer->m_lEntityPoints.size())
 				{
-					CModAPI_MapItem_LayerEntities Item;
-					Item.m_Version = CModAPI_MapItem_LayerEntities::CURRENT_VERSION;
-					Item.m_ModName = df.AddData(str_length(m_pEditor->m_lEditorResources[pLayer->m_Resource].m_pName)+1, m_pEditor->m_lEditorResources[pLayer->m_Resource].m_pName);
+					tu::CMapItem_LayerEntities Item;
+					Item.m_Version = tu::CMapItem_LayerEntities::CURRENT_VERSION;
 					
 					Item.m_Layer.m_Flags = pLayer->m_Flags;
 					Item.m_Layer.m_Type = pLayer->m_Type;
 
 					// add the data
 					Item.m_NumPoints = pLayer->m_lEntityPoints.size();
-					Item.m_PointsData = df.AddDataSwapped(pLayer->m_lEntityPoints.size()*sizeof(CModAPI_MapEntity_Point), pLayer->m_lEntityPoints.base_ptr());
+					Item.m_PointsData = df.AddDataSwapped(pLayer->m_lEntityPoints.size()*sizeof(tu::CMapEntity_Point), pLayer->m_lEntityPoints.base_ptr());
 
 					// save layer name
 					StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), pLayer->m_aName);
@@ -454,9 +453,9 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						mem_copy(pQuads->m_lQuads.base_ptr(), pData, sizeof(CQuad)*pQuadsItem->m_NumQuads);
 						DataFile.UnloadData(pQuadsItem->m_Data);
 					}
-					else if(pLayerItem->m_Type == MODAPI_MAPLAYERTYPE_ENTITIES)
+					else if(pLayerItem->m_Type == tu::MAPLAYERTYPE_ENTITIES)
 					{
-						CModAPI_MapItem_LayerEntities *pEntitiesItem = (CModAPI_MapItem_LayerEntities *)pLayerItem;
+						tu::CMapItem_LayerEntities *pEntitiesItem = (tu::CMapItem_LayerEntities *)pLayerItem;
 						CLayerEntities *pEntities = new CLayerEntities;
 						pEntities->m_pEditor = m_pEditor;
 						pLayer = pEntities;
@@ -467,7 +466,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						void *pPointsData = DataFile.GetDataSwapped(pEntitiesItem->m_PointsData);
 						pGroup->AddLayer(pEntities);
 						pEntities->m_lEntityPoints.set_size(pEntitiesItem->m_NumPoints);
-						mem_copy(pEntities->m_lEntityPoints.base_ptr(), pPointsData, sizeof(CModAPI_MapEntity_Point)*pEntitiesItem->m_NumPoints);
+						mem_copy(pEntities->m_lEntityPoints.base_ptr(), pPointsData, sizeof(tu::CMapEntity_Point)*pEntitiesItem->m_NumPoints);
 						DataFile.UnloadData(pEntitiesItem->m_PointsData);
 					}
 

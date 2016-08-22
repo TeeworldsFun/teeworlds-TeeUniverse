@@ -6,8 +6,14 @@
 
 #include "text-edit.h"
 
-CModAPI_ClientGui_AbstractTextEdit::CModAPI_ClientGui_AbstractTextEdit(CModAPI_ClientGui_Config *pConfig, int TextMaxSize, int Style) :
-	CModAPI_ClientGui_Widget(pConfig),
+namespace tu
+{
+	
+namespace gui
+{
+
+CAbstractTextEdit::CAbstractTextEdit(CConfig *pConfig, int TextMaxSize, int Style) :
+	CWidget(pConfig),
 	m_UnderMouse(false),
 	m_CursorCharPos(-1),
 	m_TextStyle(Style),
@@ -17,7 +23,7 @@ CModAPI_ClientGui_AbstractTextEdit::CModAPI_ClientGui_AbstractTextEdit(CModAPI_C
 	m_Rect.h = m_pConfig->m_ButtonHeight;
 }
 	
-void CModAPI_ClientGui_AbstractTextEdit::Render()
+void CAbstractTextEdit::Render()
 {
 	CUIRect rect;
 	rect.x = m_Rect.x;
@@ -74,7 +80,7 @@ void CModAPI_ClientGui_AbstractTextEdit::Render()
 	}
 }
 
-void CModAPI_ClientGui_AbstractTextEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CAbstractTextEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_Rect.IsInside(X, Y))
 	{
@@ -86,7 +92,7 @@ void CModAPI_ClientGui_AbstractTextEdit::OnMouseOver(int X, int Y, int RelX, int
 	}
 }
 
-void CModAPI_ClientGui_AbstractTextEdit::OnButtonClick(int X, int Y, int Button)
+void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button)
 {
 	if(Button != KEY_MOUSE_1)
 		return;
@@ -133,7 +139,7 @@ void CModAPI_ClientGui_AbstractTextEdit::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_AbstractTextEdit::OnInputEvent()
+void CAbstractTextEdit::OnInputEvent()
 {
 	char* pText = GetTextPtr();
 	
@@ -151,14 +157,18 @@ void CModAPI_ClientGui_AbstractTextEdit::OnInputEvent()
 	}
 }
 
-CModAPI_ClientGui_ExternalTextEdit::CModAPI_ClientGui_ExternalTextEdit(CModAPI_ClientGui_Config *pConfig, char* pText, int TextMaxChar, int Style) :
-	CModAPI_ClientGui_AbstractTextEdit(pConfig, TextMaxChar, Style),
+CExternalTextEdit::CExternalTextEdit(CConfig *pConfig, char* pText, int TextMaxChar, int Style) :
+	CAbstractTextEdit(pConfig, TextMaxChar, Style),
 	m_pText(pText)
 {
 	
 }
 
-char* CModAPI_ClientGui_ExternalTextEdit::GetTextPtr()
+char* CExternalTextEdit::GetTextPtr()
 {
 	return m_pText;
+}
+
+}
+
 }

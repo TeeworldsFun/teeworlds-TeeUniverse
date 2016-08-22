@@ -122,7 +122,7 @@ void CLayerGroup::Render()
 
 	for(int i = 0; i < m_lLayers.size(); i++)
 	{
-		if(m_lLayers[i]->m_Visible && m_lLayers[i] != m_pMap->m_pGameLayer && m_lLayers[i]->m_Type != MODAPI_MAPLAYERTYPE_ENTITIES)
+		if(m_lLayers[i]->m_Visible && m_lLayers[i] != m_pMap->m_pGameLayer && m_lLayers[i]->m_Type != tu::MAPLAYERTYPE_ENTITIES)
 		{
 			if(m_pMap->m_pEditor->m_ShowDetail || !(m_lLayers[i]->m_Flags&LAYERFLAG_DETAIL))
 				m_lLayers[i]->Render();
@@ -779,9 +779,9 @@ CLayer *CEditor::GetSelectedLayerType(int Index, int Type)
 	return 0x0;
 }
 
-CModAPI_MapEntity_Point* CEditor::GetSelectedEntityPoint()
+tu::CMapEntity_Point* CEditor::GetSelectedEntityPoint()
 {
-	CLayerEntities *el = (CLayerEntities *)GetSelectedLayerType(0, MODAPI_MAPLAYERTYPE_ENTITIES);
+	CLayerEntities *el = (CLayerEntities *)GetSelectedLayerType(0, tu::MAPLAYERTYPE_ENTITIES);
 	if(!el)
 		return 0;
 	if(m_SelectedEntityPoint >= 0 && m_SelectedEntityPoint < el->m_lEntityPoints.size())
@@ -1070,12 +1070,12 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		TB_Top.VSplitLeft(60.0f, &Button, &TB_Top);
 		static int s_NewButton = 0;
 
-		CLayerEntities *pELayer = (CLayerEntities*) GetSelectedLayerType(0, MODAPI_MAPLAYERTYPE_ENTITIES);
+		CLayerEntities *pELayer = (CLayerEntities*) GetSelectedLayerType(0, tu::MAPLAYERTYPE_ENTITIES);
 		if(DoButton_Editor(&s_NewButton, "Add Point", pELayer?0:-1, &Button, 0, "Adds a new point"))
 		{
 			if(pELayer)
 			{
-				CModAPI_MapEntity_Point *pt = pELayer->NewPoint();
+				tu::CMapEntity_Point *pt = pELayer->NewPoint();
 				
 				m_SelectedEntityPoint = pELayer->m_lEntityPoints.size()-1;
 								
@@ -1095,7 +1095,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		int r = PopupSelectEntityResult();
 		if(r >= -1)
 		{
-			CModAPI_MapEntity_Point* pEntityPoint = GetSelectedEntityPoint();
+			tu::CMapEntity_Point* pEntityPoint = GetSelectedEntityPoint();
 			if(pEntityPoint)
 			{
 				pEntityPoint->m_Type = r;
@@ -1398,7 +1398,7 @@ void CEditor::DoQuad(CQuad *q, int Index)
 	Graphics()->QuadsDraw(&QuadItem, 1);
 }
 
-void CEditor::DoEntityPoint(CModAPI_MapEntity_Point *pt, int Index)
+void CEditor::DoEntityPoint(tu::CMapEntity_Point *pt, int Index)
 {
 	enum
 	{
@@ -1995,7 +1995,7 @@ void CEditor::DoMapEditor(CUIRect View, CUIRect ToolBar)
 				if(!m_Map.m_lGroups[g]->m_lLayers[l]->m_Visible)
 					continue;
 					
-				if(m_Map.m_lGroups[g]->m_lLayers[l]->m_Type != MODAPI_MAPLAYERTYPE_ENTITIES)
+				if(m_Map.m_lGroups[g]->m_lLayers[l]->m_Type != tu::MAPLAYERTYPE_ENTITIES)
 					continue;
 					
 				m_Map.m_lGroups[g]->m_lLayers[l]->Render();
@@ -2367,7 +2367,7 @@ void CEditor::DoMapEditor(CUIRect View, CUIRect ToolBar)
 		
 						for(int k = 0; k < NumEditLayers; k++)
 						{
-							if(pEditLayers[k]->m_Type == MODAPI_MAPLAYERTYPE_ENTITIES)
+							if(pEditLayers[k]->m_Type == tu::MAPLAYERTYPE_ENTITIES)
 							{
 								CLayerEntities *pLayer = (CLayerEntities *)pEditLayers[k];
 		
@@ -2721,14 +2721,7 @@ int CEditor::DoProperties(CUIRect *pToolBox, CProperty *pProps, int *pIDs, int *
 		else if(pProps[i].m_Type == PROPTYPE_ENTITY)
 		{
 			char aBuf[64];
-			if(pProps[i].m_Value >= 0 && pProps[i].m_Value < 256)
-			{
-				str_copy(aBuf, m_lEditorResources[0].m_aTypes[pProps[i].m_Value].m_pName, sizeof(aBuf));
-			}
-			else
-			{
-				str_copy(aBuf, "Unknown", sizeof(aBuf));
-			}
+			str_copy(aBuf, "Unknown", sizeof(aBuf));
 
 			if(DoButton_Editor(&pIDs[i], aBuf, 0, &Shifter, 0, 0))
 				PopupSelectEntityInvoke(pProps[i].m_Value, UI()->MouseX(), UI()->MouseY());
@@ -4370,7 +4363,7 @@ int CEditor::PopupMenuFile(CEditor *pEditor, CUIRect View)
 			pEditor->m_PopupEventActivated = true;
 		}
 		else
-			g_Config.m_ClMode = MODAPI_CLIENTMODE_GAME;
+			g_Config.m_ClMode = TU_CLIENTMODE_GAME;
 		return 1;
 	}
 
@@ -4788,10 +4781,6 @@ void CEditor::Init()
 	Reset();
 	m_Map.m_Modified = false;
 	
-	//Remove this
-	CEditorResource *pEditorResource = &m_lEditorResources[m_lEditorResources.add(CEditorResource())];
-	pEditorResource->Load(Storage(), Graphics(), "editorresources/tw07.editor");
-	
 }
 
 void CEditor::DoMapBorder()
@@ -4894,98 +4883,6 @@ CEntityType::CEntityType()
 {
 	str_copy(m_pName, "Unknown", sizeof(m_pName));
 	m_Loaded = false;
-}
-
-CEditorResource::CEditorResource()
-{
-	m_pImageData = 0;
-}
-
-CEditorResource::~CEditorResource()
-{
-}
-
-bool CEditorResource::Load(IStorage* pStorage, IGraphics* pGraphics, const char* pFileName)
-{
-	CDataFileReader DataFile;
-	if(!DataFile.Open(pStorage, pFileName, IStorage::TYPE_ALL))
-		return false;
-	
-	//Load information
-	{
-		int Start, Num;
-		DataFile.GetType(MODAPI_EDITORITEMTYPE_INFO, &Start, &Num);
-		
-		if(Num > 0)
-		{
-			CModAPI_EditorItem_Info *pItem = (CModAPI_EditorItem_Info*) DataFile.GetItem(Start, 0, 0);
-			
-			void* pData = DataFile.GetData(pItem->m_Name);
-			str_copy(m_pName, (char*) pData, sizeof(m_pName));
-			
-			DataFile.UnloadData(pItem->m_Name);
-		}
-		else return false;
-	}
-	
-	//Load image
-	{
-		int Start, Num;
-		DataFile.GetType(MODAPI_EDITORITEMTYPE_IMAGE, &Start, &Num);
-		
-		if(Num > 0)
-		{
-			CModAPI_EditorItem_Image *pItem = (CModAPI_EditorItem_Image*) DataFile.GetItem(Start, 0, 0);
-			
-			// copy base info
-			m_ImageWidth = pItem->m_Width;
-			m_ImageHeight = pItem->m_Height;
-			m_ImageFormat = pItem->m_Format;
-			int PixelSize = m_ImageFormat == CImageInfo::FORMAT_RGB ? 3 : 4;
-
-			// copy image data
-			void *pData = DataFile.GetData(pItem->m_ImageData);
-			m_pImageData = (char*) mem_alloc(m_ImageWidth*m_ImageHeight*PixelSize, 1);
-			mem_copy(m_pImageData, pData, m_ImageWidth*m_ImageHeight*PixelSize);
-			m_Texture = pGraphics->LoadTextureRaw(m_ImageWidth, m_ImageHeight, m_ImageFormat, m_pImageData, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_MULTI_DIMENSION);
-
-			// unload image
-			DataFile.UnloadData(pItem->m_ImageData);
-		}
-	}
-	
-	//Load entity point types
-	{
-		int Start, Num;
-		DataFile.GetType(MODAPI_EDITORITEMTYPE_ENTITYPOINTTYPE, &Start, &Num);
-		
-		for(int i=0; i<Num; i++)
-		{
-			CModAPI_EditorItem_EntityPointType *pItem = (CModAPI_EditorItem_EntityPointType*) DataFile.GetItem(Start+i, 0, 0);
-			
-			if(pItem->m_Id >= 0 && pItem->m_Id < 256)
-			{
-				CEntityType* pType = &m_aTypes[pItem->m_Id];
-				void* pData = DataFile.GetData(pItem->m_Name);
-				str_copy(pType->m_pName, (char*) pData, sizeof(pType->m_pName));
-				pType->m_Loaded = true;
-			}
-
-			DataFile.UnloadData(pItem->m_Name);
-		}
-	}
-	
-	return true;
-}
-
-bool CEditorResource::Unload(IGraphics* pGraphics)
-{
-	pGraphics->UnloadTexture(&m_Texture);
-	if(m_pImageData)
-	{
-		delete m_pImageData;
-		m_pImageData = 0;
-	}
 }
 
 IEditor *CreateEditor() { return new CEditor; }

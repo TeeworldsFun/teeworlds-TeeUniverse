@@ -4,14 +4,20 @@
 
 #include "expand.h"
 
-CModAPI_ClientGui_Expand::CModAPI_ClientGui_Expand(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_Widget(pConfig),
+namespace tu
+{
+	
+namespace gui
+{
+
+CExpand::CExpand(CConfig *pConfig) :
+	CWidget(pConfig),
 	m_pTitle(0)
 {
 	
 }
 
-CModAPI_ClientGui_Expand::~CModAPI_ClientGui_Expand()
+CExpand::~CExpand()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -22,7 +28,7 @@ CModAPI_ClientGui_Expand::~CModAPI_ClientGui_Expand()
 		delete m_pTitle;
 }
 
-void CModAPI_ClientGui_Expand::Clear()
+void CExpand::Clear()
 {
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -33,7 +39,7 @@ void CModAPI_ClientGui_Expand::Clear()
 	Update();
 }
 
-void CModAPI_ClientGui_Expand::Update()
+void CExpand::Update()
 {
 	m_pTitle->m_Rect.x = m_Rect.x;
 	m_pTitle->m_Rect.y = m_Rect.y;
@@ -48,7 +54,7 @@ void CModAPI_ClientGui_Expand::Update()
 	int PosY = m_Rect.y + m_pTitle->m_Rect.h + m_pConfig->m_ExpandSpacing;
 	for(int i=0; i<m_Childs.size(); i++)
 	{
-		m_Childs[i]->SetRect(CModAPI_ClientGui_Rect(
+		m_Childs[i]->SetRect(CRect(
 			m_Rect.x + m_pConfig->m_ExpandShift,
 			PosY,
 			m_Rect.w - m_pConfig->m_ExpandShift,
@@ -68,7 +74,7 @@ void CModAPI_ClientGui_Expand::Update()
 	}
 }
 	
-void CModAPI_ClientGui_Expand::Render()
+void CExpand::Render()
 {
 	m_pTitle->Render();
 	
@@ -79,17 +85,17 @@ void CModAPI_ClientGui_Expand::Render()
 	}
 }
 
-void CModAPI_ClientGui_Expand::SetTitle(CModAPI_ClientGui_Widget* pWidget)
+void CExpand::SetTitle(CWidget* pWidget)
 {
 	m_pTitle = pWidget;
 }
 
-void CModAPI_ClientGui_Expand::Add(CModAPI_ClientGui_Widget* pWidget)
+void CExpand::Add(CWidget* pWidget)
 {
 	m_Childs.add(pWidget);
 }
 
-void CModAPI_ClientGui_Expand::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CExpand::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	m_pTitle->OnMouseOver(X, Y, RelX, RelY, KeyState);
 	
@@ -99,7 +105,7 @@ void CModAPI_ClientGui_Expand::OnMouseOver(int X, int Y, int RelX, int RelY, int
 	}
 }
 
-void CModAPI_ClientGui_Expand::OnButtonClick(int X, int Y, int Button)
+void CExpand::OnButtonClick(int X, int Y, int Button)
 {
 	m_pTitle->OnButtonClick(X, Y, Button);
 	
@@ -109,7 +115,7 @@ void CModAPI_ClientGui_Expand::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_Expand::OnButtonRelease(int Button)
+void CExpand::OnButtonRelease(int Button)
 {
 	m_pTitle->OnButtonRelease(Button);
 	
@@ -119,7 +125,7 @@ void CModAPI_ClientGui_Expand::OnButtonRelease(int Button)
 	}
 }
 
-void CModAPI_ClientGui_Expand::OnInputEvent()
+void CExpand::OnInputEvent()
 {
 	m_pTitle->OnInputEvent();
 	
@@ -127,4 +133,8 @@ void CModAPI_ClientGui_Expand::OnInputEvent()
 	{
 		m_Childs[i]->OnInputEvent();
 	}
+}
+
+}
+
 }

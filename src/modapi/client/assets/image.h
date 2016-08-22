@@ -1,14 +1,19 @@
-#ifndef MODAPI_CLIENT_ASSETS_IMAGE_H
-#define MODAPI_CLIENT_ASSETS_IMAGE_H
+#ifndef TU_CLIENT_ASSETS_IMAGE_H
+#define TU_CLIENT_ASSETS_IMAGE_H
 
 #include <modapi/client/assets.h>
 
-class CModAPI_Asset_Image : public CModAPI_Asset
+class CDataFileWriter;
+
+namespace tu
+{
+
+class CAsset_Image : public CAsset
 {
 public:
-	static const int TypeId = CModAPI_AssetPath::TYPE_IMAGE;
+	static const int TypeId = CAssetPath::TYPE_IMAGE;
 
-	struct CStorageType : public CModAPI_Asset::CStorageType
+	struct CStorageType : public CAsset::CStorageType
 	{
 		int m_Width;
 		int m_Height;
@@ -18,14 +23,15 @@ public:
 		int m_GridHeight;
 	};
 	
-	void InitFromAssetsFile(class CModAPI_AssetManager* pAssetManager, class IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem);
-	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
-	void Unload(class CModAPI_AssetManager* pAssetManager);
+	void InitFromAssetsFile(class CAssetManager* pAssetManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
+	void SetData(int Width, int Height, int Format, unsigned char* pData);
+	int GetDataSize() const;
+	void Unload(class CAssetManager* pAssetManager);
 	
 public:
 	enum
 	{
-		FORMAT_AUTO=-1,
 		FORMAT_RGB=0,
 		FORMAT_RGBA=1,
 		FORMAT_ALPHA=2,
@@ -34,7 +40,7 @@ public:
 	int m_Width;
 	int m_Height;
 	int m_Format;
-	void *m_pData;
+	unsigned char *m_pData;
 	
 	IGraphics::CTextureHandle m_Texture;
 	
@@ -45,7 +51,7 @@ public:
 public:
 	enum
 	{
-		GRIDWIDTH = CModAPI_Asset::NUM_MEMBERS, //Int
+		GRIDWIDTH = CAsset::NUM_MEMBERS, //Int
 		GRIDHEIGHT, //Int
 		WIDTH, //Int
 		HEIGHT, //Int
@@ -54,19 +60,21 @@ public:
 	template<typename T>
 	T GetValue(int ValueType, int Path, T DefaultValue)
 	{
-		return CModAPI_Asset::GetValue<T>(ValueType, Path, DefaultValue);
+		return CAsset::GetValue<T>(ValueType, Path, DefaultValue);
 	}
 	
 	template<typename T>
 	bool SetValue(int ValueType, int Path, T Value)
 	{
-		return CModAPI_Asset::SetValue<T>(ValueType, Path, Value);
+		return CAsset::SetValue<T>(ValueType, Path, Value);
 	}
 	
-	inline void OnAssetDeleted(const CModAPI_AssetPath& Path) { }
+	inline void OnAssetDeleted(const CAssetPath& Path) { }
 	inline int AddSubItem(int SubItemType) { }
 	inline bool DeleteSubItem(int SubItemPath) { return false; }
-	inline void OnSubItemDeleted(const CModAPI_AssetPath& Path, int SubItemPath) { }
+	inline void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath) { }
 };
+
+}
 
 #endif

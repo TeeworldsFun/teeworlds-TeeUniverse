@@ -10,7 +10,7 @@
 
 CProjectile::CProjectile(CGameWorld *pGameWorld, int Type, int Owner, vec2 Pos, vec2 Dir, int Span,
 		int Damage, bool Explosive, float Force, int SoundImpact, int Weapon)
-: CModAPI_Entity(pGameWorld, MOD_ENTTYPE_PROJECTILE, Pos, 1)
+: tu::CEntity_TW(pGameWorld, MOD_ENTTYPE_PROJECTILE, Pos, 1)
 {
 	m_Type = Type;
 	m_Direction = Dir;
@@ -74,7 +74,7 @@ void CProjectile::Tick()
 	{
 		if(m_LifeSpan >= 0 || m_Weapon == WEAPON_GRENADE)
 		{
-			CModAPI_Event_Sound(GameServer()).World(GameWorld()->m_WorldID)
+			tu::CEvent_Sound(GameServer()).World(GameWorld()->m_WorldID)
 				.Send(CurPos, m_SoundImpact);
 		}
 
@@ -105,7 +105,7 @@ void CProjectile::FillInfo(CNetObj_Projectile *pProj)
 	pProj->m_Type = m_Type;
 }
 
-void CProjectile::Snap06(int Snapshot, int SnappingClient)
+void CProjectile::Snap_TW06(int Snapshot, int SnappingClient)
 {
 	float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
 
@@ -124,7 +124,7 @@ void CProjectile::Snap06(int Snapshot, int SnappingClient)
 	pProj->m_Type = m_Type;
 }
 
-void CProjectile::Snap07(int Snapshot, int SnappingClient)
+void CProjectile::Snap_TW07(int Snapshot, int SnappingClient)
 {
 	float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
 

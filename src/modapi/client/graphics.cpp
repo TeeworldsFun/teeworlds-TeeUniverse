@@ -9,16 +9,19 @@
 #include <game/gamecore.h>
 
 #include <engine/external/pnglite/pnglite.h>
+
+namespace tu
+{
 	
-CModAPI_Client_Graphics::CModAPI_Client_Graphics(IGraphics* pGraphics, CModAPI_AssetManager* pAssetManager)
+CClient_Graphics::CClient_Graphics(IGraphics* pGraphics, CAssetManager* pAssetManager)
 {
 	m_pGraphics = pGraphics;
 	m_pAssetManager = pAssetManager;
 }
 
-bool CModAPI_Client_Graphics::TextureSet(CModAPI_AssetPath AssetPath)
+bool CClient_Graphics::TextureSet(CAssetPath AssetPath)
 {
-	const CModAPI_Asset_Image* pImage = AssetManager()->GetAsset<CModAPI_Asset_Image>(AssetPath);
+	const CAsset_Image* pImage = AssetManager()->GetAsset<CAsset_Image>(AssetPath);
 	if(pImage == 0)
 		return false;
 	
@@ -27,25 +30,25 @@ bool CModAPI_Client_Graphics::TextureSet(CModAPI_AssetPath AssetPath)
 	return true;
 }
 
-void CModAPI_Client_Graphics::DrawSprite(CModAPI_AssetPath SpritePath, vec2 Pos, float Size, float Angle, int Flags)
+void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, float Size, float Angle, int Flags)
 {
 	DrawSprite(SpritePath, Pos, Size, Angle, Flags, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void CModAPI_Client_Graphics::DrawSprite(CModAPI_AssetPath SpritePath, vec2 Pos, float Size, float Angle, int Flags, vec4 Color)
+void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, float Size, float Angle, int Flags, vec4 Color)
 {
 	DrawSprite(SpritePath, Pos, vec2(Size, Size), Angle, Flags, Color);
 }
 
-void CModAPI_Client_Graphics::DrawSprite(CModAPI_AssetPath SpritePath, vec2 Pos, vec2 Size, float Angle, int Flags, vec4 Color)
+void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, vec2 Size, float Angle, int Flags, vec4 Color)
 {
 	//Get sprite
-	const CModAPI_Asset_Sprite* pSprite = AssetManager()->GetAsset<CModAPI_Asset_Sprite>(SpritePath);
+	const CAsset_Sprite* pSprite = AssetManager()->GetAsset<CAsset_Sprite>(SpritePath);
 	if(pSprite == 0)
 		return;
 	
 	//Get texture
-	const CModAPI_Asset_Image* pImage = AssetManager()->GetAsset<CModAPI_Asset_Image>(pSprite->m_ImagePath);
+	const CAsset_Image* pImage = AssetManager()->GetAsset<CAsset_Image>(pSprite->m_ImagePath);
 	if(pImage == 0)
 		return;
 
@@ -61,14 +64,14 @@ void CModAPI_Client_Graphics::DrawSprite(CModAPI_AssetPath SpritePath, vec2 Pos,
 	float texY1 = (pSprite->m_Y + pSprite->m_Height - 1.0f/32.0f)/(float)max(1, pImage->m_GridHeight);
 	
 	float Temp = 0;
-	if(Flags&CModAPI_Asset_Sprite::FLAG_FLIP_Y)
+	if(Flags&CAsset_Sprite::FLAG_FLIP_Y)
 	{
 		Temp = texY0;
 		texY0 = texY1;
 		texY1 = Temp;
 	}
 
-	if(Flags&CModAPI_Asset_Sprite::FLAG_FLIP_X)
+	if(Flags&CAsset_Sprite::FLAG_FLIP_X)
 	{
 		Temp = texX0;
 		texX0 = texX1;
@@ -82,7 +85,7 @@ void CModAPI_Client_Graphics::DrawSprite(CModAPI_AssetPath SpritePath, vec2 Pos,
 	//Compute sprite size
 	float ratio = sqrtf(pSprite->m_Width * pSprite->m_Width + pSprite->m_Height * pSprite->m_Height);
 	
-	if(Flags & CModAPI_Asset_Sprite::FLAG_SIZE_HEIGHT)
+	if(Flags & CAsset_Sprite::FLAG_SIZE_HEIGHT)
 		ratio = pSprite->m_Height;
 		
 	vec2 QuadSize = vec2(pSprite->m_Width/ratio, pSprite->m_Height/ratio) * Size;
@@ -94,41 +97,41 @@ void CModAPI_Client_Graphics::DrawSprite(CModAPI_AssetPath SpritePath, vec2 Pos,
 	m_pGraphics->QuadsEnd();
 }
 
-void CModAPI_Client_Graphics::DrawText(ITextRender* pTextRender, const char *pText, vec2 Pos, vec4 Color, float Size, int Alignment)
+void CClient_Graphics::DrawText(ITextRender* pTextRender, const char *pText, vec2 Pos, vec4 Color, float Size, int Alignment)
 {	
 	float width = pTextRender->TextWidth(0, Size, pText, -1);
 	float height = pTextRender->TextHeight(Size);
 	
 	switch(Alignment)
 	{
-		case MODAPI_TEXTALIGN_CENTER:
+		case tu::TEXTALIGN_CENTER:
 			Pos.x -= width/2;
 			Pos.y -= height/2;
 			break;
-		case MODAPI_TEXTALIGN_RIGHT_BOTTOM:
+		case tu::TEXTALIGN_RIGHT_BOTTOM:
 			break;
-		case MODAPI_TEXTALIGN_RIGHT_CENTER:
+		case tu::TEXTALIGN_RIGHT_CENTER:
 			Pos.y -= height/2;
 			break;
-		case MODAPI_TEXTALIGN_RIGHT_TOP:
+		case tu::TEXTALIGN_RIGHT_TOP:
 			Pos.y -= height;
 			break;
-		case MODAPI_TEXTALIGN_CENTER_TOP:
+		case tu::TEXTALIGN_CENTER_TOP:
 			Pos.x -= width/2;
 			Pos.y -= height;
 			break;
-		case MODAPI_TEXTALIGN_LEFT_TOP:
+		case tu::TEXTALIGN_LEFT_TOP:
 			Pos.x -= width;
 			Pos.y -= height;
 			break;
-		case MODAPI_TEXTALIGN_LEFT_CENTER:
+		case tu::TEXTALIGN_LEFT_CENTER:
 			Pos.x -= width;
 			Pos.y -= height/2;
 			break;
-		case MODAPI_TEXTALIGN_LEFT_BOTTOM:
+		case tu::TEXTALIGN_LEFT_BOTTOM:
 			Pos.x -= width;
 			break;
-		case MODAPI_TEXTALIGN_CENTER_BOTTOM:
+		case tu::TEXTALIGN_CENTER_BOTTOM:
 			Pos.y -= height/2;
 			break;
 	}
@@ -138,4 +141,6 @@ void CModAPI_Client_Graphics::DrawText(ITextRender* pTextRender, const char *pTe
 	
 	//reset color
 	pTextRender->TextColor(255,255,255,1);
+}
+
 }

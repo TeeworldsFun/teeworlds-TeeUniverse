@@ -185,8 +185,9 @@ public:
 	}
 
 	// general
-	virtual void Snap06(int Snapshot, int SnappingClient);
-	virtual void Snap07(int Snapshot, int SnappingClient);
+	virtual void Snap_TW06(int Snapshot, int SnappingClient);
+	virtual void Snap_TW07(int Snapshot, int SnappingClient);
+	virtual void Snap_TU07(int Snapshot, int SnappingClient);
 	virtual void Tick();
 
 	// info

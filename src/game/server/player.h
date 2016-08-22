@@ -33,8 +33,9 @@ public:
 
 	void Tick();
 	void PostTick();
-	void Snap06(int Snapshot, int SnappingClient);
-	void Snap07(int Snapshot, int SnappingClient);
+	void Snap_TW06(int Snapshot, int SnappingClient);
+	void Snap_TW07(int Snapshot, int SnappingClient);
+	void Snap_TU07(int Snapshot, int SnappingClient);
 
 	void OnDirectInput(CNetObj_PlayerInput *NewInput);
 	void OnPredictedInput(CNetObj_PlayerInput *NewInput);
@@ -129,7 +130,7 @@ private:
 	// used for spectator mode
 	int m_SpectatorID;
 
-	// ModAPI
+	// TU
 private:
 	int m_WorldID;
 

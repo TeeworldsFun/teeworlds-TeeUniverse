@@ -26,7 +26,6 @@
 #include "auto_map.h"
 
 #include <modapi/mapitem.h>
-#include <modapi/editoritem.h>
 
 typedef void (*INDEX_MODIFY_FUNC)(int *pIndex);
 
@@ -150,25 +149,6 @@ public:
 	bool m_Loaded;
 	
 	CEntityType();
-};
-
-class CEditorResource
-{
-public:
-	char m_pName[128];
-	
-	char* m_pImageData;
-	int m_ImageWidth;
-	int m_ImageHeight;
-	int m_ImageFormat;
-	IGraphics::CTextureHandle m_Texture;
-	CEntityType m_aTypes[256];
-	
-	CEditorResource();
-	~CEditorResource();
-	
-	bool Load(class IStorage* pStorage, class IGraphics* pGraphics, const char* pFileName);
-	bool Unload(class IGraphics* pGraphics);
 };
 
 class CLayer;
@@ -526,7 +506,7 @@ public:
 	~CLayerEntities();
 
 	virtual void Render();
-	CModAPI_MapEntity_Point *NewPoint();
+	tu::CMapEntity_Point *NewPoint();
 
 	virtual void BrushSelecting(CUIRect Rect);
 	virtual int BrushGrab(CLayerGroup *pBrush, CUIRect Rect);
@@ -542,7 +522,7 @@ public:
 
 	void GetSize(float *w, float *h) const;
 	
-	array<CModAPI_MapEntity_Point> m_lEntityPoints;
+	array<tu::CMapEntity_Point> m_lEntityPoints;
 	int m_Resource;
 };
 
@@ -666,7 +646,7 @@ public:
 	int Append(const char *pFilename, int StorageType);
 	void Render();
 
-	CModAPI_MapEntity_Point *GetSelectedEntityPoint();
+	tu::CMapEntity_Point *GetSelectedEntityPoint();
 	CQuad *GetSelectedQuad();
 	CLayer *GetSelectedLayerType(int Index, int Type);
 	CLayer *GetSelectedLayer(int Index);
@@ -878,7 +858,7 @@ public:
 	void DoMapEditor(CUIRect View, CUIRect Toolbar);
 	void DoToolbar(CUIRect Toolbar);
 	void DoQuad(CQuad *pQuad, int Index);
-	void DoEntityPoint(CModAPI_MapEntity_Point *pPoint, int Index);
+	void DoEntityPoint(tu::CMapEntity_Point *pPoint, int Index);
 	float UiDoScrollbarV(const void *pID, const CUIRect *pRect, float Current);
 	vec4 GetButtonColor(const void *pID, int Checked);
 
@@ -914,8 +894,6 @@ public:
 
 	int GetLineDistance() const;
 	void ZoomMouseTarget(float ZoomFactor);
-	
-	array<CEditorResource> m_lEditorResources;
 };
 
 // make sure to inline this function

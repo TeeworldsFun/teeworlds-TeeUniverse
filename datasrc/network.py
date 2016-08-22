@@ -226,9 +226,9 @@ Objects = [
 		NetIntAny("m_Angle"),
 	]),
 	
-	### ModAPI
+	### TU
 	
-	NetObject("ModAPI_Sprite", [
+	NetObject("TU_Sprite", [
 		NetIntAny("m_SpriteId"),
 		NetIntAny("m_ItemLayer"),
 		NetIntAny("m_X"),
@@ -237,11 +237,11 @@ Objects = [
 		NetIntRange("m_Angle", 0, 360),
 	]),
 	
-	NetObject("ModAPI_SpriteCharacter:ModAPI_Sprite", [
+	NetObject("TU_SpriteCharacter:TU_Sprite", [
 		NetIntAny("m_ClientId"),
 	]),
 	
-	NetObject("ModAPI_Text", [
+	NetObject("TU_Text", [
 		NetIntAny("m_ItemLayer"),
 		NetIntAny("m_X"),
 		NetIntAny("m_Y"),
@@ -251,7 +251,7 @@ Objects = [
 		NetArray(NetIntAny("m_aText"), 16),
 	]),
 	
-	NetObject("ModAPI_TextCharacter:ModAPI_Text", [
+	NetObject("TU_TextCharacter:TU_Text", [
 		NetIntAny("m_ClientId"),
 	]),
 ]
@@ -416,9 +416,9 @@ Messages = [
 		NetBool("m_Force"),
 	]),
 	
-	### ModAPI
+	### TU
 	
-	NetMessage("ModAPI_Sv_Broadcast", [
+	NetMessage("TU_Sv_Broadcast", [
 		NetStringStrict("m_pMessage"),
 	]),
 	

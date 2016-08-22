@@ -4,17 +4,23 @@
 
 #include "button.h"
 
-CModAPI_ClientGui_AbstractButton::CModAPI_ClientGui_AbstractButton(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_Widget(pConfig),
+namespace tu
+{
+	
+namespace gui
+{
+
+CAbstractButton::CAbstractButton(CConfig *pConfig) :
+	CWidget(pConfig),
 	m_Clicked(false),
 	m_UnderMouse(false),
-	m_ButtonStyle(MODAPI_CLIENTGUI_BUTTONSTYLE_NORMAL)
+	m_ButtonStyle(BUTTONSTYLE_NORMAL)
 {	
 	m_Rect.w = m_pConfig->m_ButtonHeight;
 	m_Rect.h = m_pConfig->m_ButtonHeight;
 }
 	
-void CModAPI_ClientGui_AbstractButton::Render()
+void CAbstractButton::Render()
 {
 	CUIRect rect;
 	rect.x = m_Rect.x;
@@ -23,17 +29,17 @@ void CModAPI_ClientGui_AbstractButton::Render()
 	rect.h = m_Rect.h;
 	
 	if(m_UnderMouse)
-		RenderTools()->DrawRoundRect(&rect, m_pConfig->m_ButtonColor[MODAPI_CLIENTGUI_BUTTONSTYLE_MOUSEOVER], s_ButtonCornerRadius);
-	else if(m_ButtonStyle != MODAPI_CLIENTGUI_BUTTONSTYLE_NONE)
+		RenderTools()->DrawRoundRect(&rect, m_pConfig->m_ButtonColor[BUTTONSTYLE_MOUSEOVER], s_ButtonCornerRadius);
+	else if(m_ButtonStyle != BUTTONSTYLE_NONE)
 		RenderTools()->DrawRoundRect(&rect, m_pConfig->m_ButtonColor[m_ButtonStyle], s_ButtonCornerRadius);
 }
 
-void CModAPI_ClientGui_AbstractButton::SetButtonStyle(int Style)
+void CAbstractButton::SetButtonStyle(int Style)
 {
 	m_ButtonStyle = Style;
 }
 
-void CModAPI_ClientGui_AbstractButton::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CAbstractButton::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_Rect.IsInside(X, Y))
 	{
@@ -45,7 +51,7 @@ void CModAPI_ClientGui_AbstractButton::OnMouseOver(int X, int Y, int RelX, int R
 	}
 }
 
-void CModAPI_ClientGui_AbstractButton::OnButtonClick(int X, int Y, int Button)
+void CAbstractButton::OnButtonClick(int X, int Y, int Button)
 {
 	if(Button != KEY_MOUSE_1)
 		return;
@@ -56,7 +62,7 @@ void CModAPI_ClientGui_AbstractButton::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_ClientGui_AbstractButton::OnButtonRelease(int Button)
+void CAbstractButton::OnButtonRelease(int Button)
 {
 	if(Button != KEY_MOUSE_1)
 		return;
@@ -70,16 +76,16 @@ void CModAPI_ClientGui_AbstractButton::OnButtonRelease(int Button)
 
 /* ICON BUTTON ********************************************************/
 
-CModAPI_ClientGui_IconButton::CModAPI_ClientGui_IconButton(CModAPI_ClientGui_Config *pConfig, int IconId) :
-	CModAPI_ClientGui_AbstractButton(pConfig),
+CIconButton::CIconButton(CConfig *pConfig, int IconId) :
+	CAbstractButton(pConfig),
 	m_IconId(IconId)
 {
 	
 }
 
-void CModAPI_ClientGui_IconButton::Render()
+void CIconButton::Render()
 {
-	CModAPI_ClientGui_AbstractButton::Render();
+	CAbstractButton::Render();
 	
 	int PosX = m_Rect.x + m_Rect.w/2;
 	int PosY = m_Rect.y + m_Rect.h/2;
@@ -95,15 +101,15 @@ void CModAPI_ClientGui_IconButton::Render()
 	Graphics()->QuadsEnd();
 }
 
-void CModAPI_ClientGui_IconButton::SetIcon(int IconId)
+void CIconButton::SetIcon(int IconId)
 {
 	m_IconId = IconId;
 }
 
 /* TEXT BUTTON ********************************************************/
 
-CModAPI_ClientGui_TextButton::CModAPI_ClientGui_TextButton(CModAPI_ClientGui_Config *pConfig, const char* pText, int IconId) :
-	CModAPI_ClientGui_AbstractButton(pConfig)
+CTextButton::CTextButton(CConfig *pConfig, const char* pText, int IconId) :
+	CAbstractButton(pConfig)
 {
 	SetText(pText);
 	SetIcon(IconId);
@@ -114,11 +120,11 @@ CModAPI_ClientGui_TextButton::CModAPI_ClientGui_TextButton(CModAPI_ClientGui_Con
 	m_Rect.h = m_pConfig->m_ButtonHeight;
 }
 
-void CModAPI_ClientGui_TextButton::Render()
+void CTextButton::Render()
 {
-	CModAPI_ClientGui_AbstractButton::Render();
+	CAbstractButton::Render();
 		
-	int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL], m_aText, -1);
+	int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[TEXTSTYLE_NORMAL], m_aText, -1);
 	
 	int PosX;
 	if(m_Centered)
@@ -139,11 +145,11 @@ void CModAPI_ClientGui_TextButton::Render()
 	}
 	
 	int CenterY = m_Rect.y + m_Rect.h/2;
-	int PosY = CenterY - m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL]*0.7;
+	int PosY = CenterY - m_pConfig->m_TextSize[TEXTSTYLE_NORMAL]*0.7;
 	
 	CTextCursor Cursor;
-	TextRender()->SetCursor(&Cursor, PosX, PosY, m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL], TEXTFLAG_RENDER);
-	TextRender()->TextColor(m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].x, m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].y, m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].z, m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].w);
+	TextRender()->SetCursor(&Cursor, PosX, PosY, m_pConfig->m_TextSize[TEXTSTYLE_NORMAL], TEXTFLAG_RENDER);
+	TextRender()->TextColor(m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].x, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].y, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].z, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].w);
 	TextRender()->TextEx(&Cursor, m_aText, -1);
 	
 	if(m_IconId >= 0)
@@ -164,21 +170,21 @@ void CModAPI_ClientGui_TextButton::Render()
 	}
 }
 
-void CModAPI_ClientGui_TextButton::SetText(const char* pText)
+void CTextButton::SetText(const char* pText)
 {
 	if(pText)
 		str_copy(m_aText, pText, sizeof(m_aText));
 }
 
-void CModAPI_ClientGui_TextButton::SetIcon(int IconId)
+void CTextButton::SetIcon(int IconId)
 {
 	m_IconId = IconId;
 }
 
 /* EXTERNAL TEXT BUTTON ********************************************************/
 
-CModAPI_ClientGui_ExternalTextButton::CModAPI_ClientGui_ExternalTextButton(class CModAPI_ClientGui_Config *pConfig, const char* pText, int IconId) :
-	CModAPI_ClientGui_AbstractButton(pConfig),
+CExternalTextButton::CExternalTextButton(class CConfig *pConfig, const char* pText, int IconId) :
+	CAbstractButton(pConfig),
 	m_pText(pText),
 	m_Centered(true)
 {
@@ -188,14 +194,14 @@ CModAPI_ClientGui_ExternalTextButton::CModAPI_ClientGui_ExternalTextButton(class
 	m_Rect.h = m_pConfig->m_ButtonHeight;
 }
 
-void CModAPI_ClientGui_ExternalTextButton::Render()
+void CExternalTextButton::Render()
 {
-	CModAPI_ClientGui_AbstractButton::Render();
+	CAbstractButton::Render();
 	
 	if(!m_pText)
 		return;
 		
-	int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL], m_pText, -1);
+	int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[TEXTSTYLE_NORMAL], m_pText, -1);
 	
 	int PosX;
 	if(m_Centered)
@@ -216,11 +222,11 @@ void CModAPI_ClientGui_ExternalTextButton::Render()
 	}
 	
 	int CenterY = m_Rect.y + m_Rect.h/2;
-	int PosY = CenterY - m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL]*0.7;
+	int PosY = CenterY - m_pConfig->m_TextSize[TEXTSTYLE_NORMAL]*0.7;
 	
 	CTextCursor Cursor;
-	TextRender()->SetCursor(&Cursor, PosX, PosY, m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL], TEXTFLAG_RENDER);
-	TextRender()->TextColor(m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].x, m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].y, m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].z, m_pConfig->m_TextColor[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL].w);
+	TextRender()->SetCursor(&Cursor, PosX, PosY, m_pConfig->m_TextSize[TEXTSTYLE_NORMAL], TEXTFLAG_RENDER);
+	TextRender()->TextColor(m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].x, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].y, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].z, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].w);
 	TextRender()->TextEx(&Cursor, m_pText, -1);
 	
 	if(m_IconId >= 0)
@@ -241,7 +247,11 @@ void CModAPI_ClientGui_ExternalTextButton::Render()
 	}
 }
 
-void CModAPI_ClientGui_ExternalTextButton::SetIcon(int IconId)
+void CExternalTextButton::SetIcon(int IconId)
 {
 	m_IconId = IconId;
+}
+
+}
+
 }

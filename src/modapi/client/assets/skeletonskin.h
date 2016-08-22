@@ -1,15 +1,18 @@
-#ifndef MODAPI_CLIENT_ASSETS_SKELETONSKIN_H
-#define MODAPI_CLIENT_ASSETS_SKELETONSKIN_H
+#ifndef TU_CLIENT_ASSETS_SKELETONSKIN_H
+#define TU_CLIENT_ASSETS_SKELETONSKIN_H
 
 #include <modapi/client/assets.h>
 #include <modapi/client/assets/skeleton.h>
 
-class CModAPI_Asset_SkeletonSkin : public CModAPI_Asset
+namespace tu
+{
+
+class CAsset_SkeletonSkin : public CAsset
 {
 public:
-	static const int TypeId = CModAPI_AssetPath::TYPE_SKELETONSKIN;
+	static const int TypeId = CAssetPath::TYPE_SKELETONSKIN;
 
-	struct CStorageType : public CModAPI_Asset::CStorageType
+	struct CStorageType : public CAsset::CStorageType
 	{
 		struct CSprite
 		{
@@ -32,12 +35,12 @@ public:
 		int m_SpritesData;
 	};
 	
-	void InitFromAssetsFile(class CModAPI_AssetManager* pAssetManager, class IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class CAssetManager* pAssetManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
-	void Unload(class CModAPI_AssetManager* pAssetManager);
+	void Unload(class CAssetManager* pAssetManager);
 
 public:
-	class CSubPath : public CModAPI_GenericPath<2, 0, 0>
+	class CSubPath : public CGenericPath<2, 0, 0>
 	{
 	public:
 		enum
@@ -47,11 +50,11 @@ public:
 		};
 
 	public:
-		CSubPath() : CModAPI_GenericPath() { }
-		CSubPath(int PathInt) : CModAPI_GenericPath(PathInt) { }
-		CSubPath(int Type, int Id) : CModAPI_GenericPath(Type, 0, 0x0, Id) { }
+		CSubPath() : CGenericPath() { }
+		CSubPath(int PathInt) : CGenericPath(PathInt) { }
+		CSubPath(int Type, int Id) : CGenericPath(Type, 0, 0x0, Id) { }
 		
-		static inline CSubPath Null() { return CSubPath(CModAPI_GenericPath::UNDEFINED); }
+		static inline CSubPath Null() { return CSubPath(CGenericPath::UNDEFINED); }
 		static inline CSubPath Sprite(int Id) { return CSubPath(TYPE_SPRITE, Id); }
 	};
 	
@@ -64,9 +67,9 @@ public:
 	class CSprite
 	{
 	public:
-		CModAPI_AssetPath m_SpritePath;
-		CModAPI_Asset_Skeleton::CBonePath m_BonePath;
-		CModAPI_Asset_Skeleton::CBonePath m_LayerPath;
+		CAssetPath m_SpritePath;
+		CAsset_Skeleton::CBonePath m_BonePath;
+		CAsset_Skeleton::CBonePath m_LayerPath;
 		vec2 m_Translation;
 		vec2 m_Scale;
 		float m_Angle;
@@ -76,7 +79,7 @@ public:
 		
 	public:
 		CSprite() :
-			m_BonePath(CModAPI_Asset_Skeleton::CBonePath::Null()),
+			m_BonePath(CAsset_Skeleton::CBonePath::Null()),
 			m_Translation(vec2(0.0f, 0.0f)),
 			m_Scale(vec2(64.0f, 64.0f)),
 			m_Angle(0.0f),
@@ -87,9 +90,9 @@ public:
 			
 		}
 		
-		CSprite(CModAPI_AssetPath Path) :
+		CSprite(CAssetPath Path) :
 			m_SpritePath(Path),
-			m_BonePath(CModAPI_Asset_Skeleton::CBonePath::Null()),
+			m_BonePath(CAsset_Skeleton::CBonePath::Null()),
 			m_Translation(vec2(0.0f, 0.0f)),
 			m_Scale(vec2(64.0f, 64.0f)),
 			m_Angle(0.0f),
@@ -100,13 +103,13 @@ public:
 			
 		}
 		
-		inline CSprite& Bone(CModAPI_Asset_Skeleton::CBonePath v)
+		inline CSprite& Bone(CAsset_Skeleton::CBonePath v)
 		{
 			m_BonePath = v;
 			return *this;
 		}
 		
-		inline CSprite& Layer(CModAPI_Asset_Skeleton::CBonePath v)
+		inline CSprite& Layer(CAsset_Skeleton::CBonePath v)
 		{
 			m_LayerPath = v;
 			return *this;
@@ -150,17 +153,17 @@ public:
 	};
 
 public:
-	CModAPI_AssetPath m_SkeletonPath;
+	CAssetPath m_SkeletonPath;
 	array<CSprite> m_Sprites;
 
 public:
-	CModAPI_Asset_SkeletonSkin()
+	CAsset_SkeletonSkin()
 	{
 		
 	}
 	
 	void AddSprite(const CSprite& Sprite);
-	CSprite& AddSprite(CModAPI_AssetPath SkeletonPath, CModAPI_Asset_Skeleton::CBonePath BonePath, CModAPI_Asset_Skeleton::CBonePath LayerPath);
+	CSprite& AddSprite(CAssetPath SkeletonPath, CAsset_Skeleton::CBonePath BonePath, CAsset_Skeleton::CBonePath LayerPath);
 
 	//Getter/Setter for AssetsEdtiro
 public:
@@ -171,7 +174,7 @@ public:
 
 	enum
 	{
-		SKELETONPATH = CModAPI_Asset::NUM_MEMBERS, //AssetPath
+		SKELETONPATH = CAsset::NUM_MEMBERS, //AssetPath
 		SPRITE_PATH, //AssetPath
 		SPRITE_BONE, //Int
 		SPRITE_LAYER, //Int
@@ -192,16 +195,16 @@ public:
 	template<typename T>
 	T GetValue(int ValueType, int Path, T DefaultValue)
 	{
-		return CModAPI_Asset::GetValue<T>(ValueType, Path, DefaultValue);
+		return CAsset::GetValue<T>(ValueType, Path, DefaultValue);
 	}
 	
 	template<typename T>
 	bool SetValue(int ValueType, int Path, T Value)
 	{
-		return CModAPI_Asset::SetValue<T>(ValueType, Path, Value);
+		return CAsset::SetValue<T>(ValueType, Path, Value);
 	}
 	
-	inline void OnAssetDeleted(const CModAPI_AssetPath& Path)
+	inline void OnAssetDeleted(const CAssetPath& Path)
 	{
 		m_SkeletonPath.OnIdDeleted(Path);
 		for(int i=0; i<m_Sprites.size(); i++)
@@ -218,7 +221,7 @@ public:
 			{
 				m_Sprites.add(CSprite());
 				CSprite& Sprite = m_Sprites[m_Sprites.size()-1];
-				Sprite.m_SpritePath = CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_SPRITE, MODAPI_SPRITE_WHITESQUARE);
+				Sprite.m_SpritePath = CAssetPath::Internal(CAssetPath::TYPE_SPRITE, tu::SPRITE_WHITESQUARE);
 				return CSubPath::Sprite(m_Sprites.size()-1).ConvertToInteger();
 			}
 		}
@@ -226,20 +229,20 @@ public:
 	
 	inline bool DeleteSubItem(int SubItemPath) { return false; }
 	
-	inline void OnSubItemDeleted(const CModAPI_AssetPath& Path, int SubItemPath)
+	inline void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath)
 	{
-		if(Path.GetType() == CModAPI_AssetPath::TYPE_SKELETON)
+		if(Path.GetType() == CAssetPath::TYPE_SKELETON)
 		{
 			if(!(Path == m_SkeletonPath))
 				return;
 			
-			CModAPI_Asset_Skeleton::CSubPath SubPath(SubItemPath);
+			CAsset_Skeleton::CSubPath SubPath(SubItemPath);
 			
-			if(SubPath.GetType() == CModAPI_Asset_Skeleton::SUBITEM_BONE)
+			if(SubPath.GetType() == CAsset_Skeleton::SUBITEM_BONE)
 			{
 				for(int i=0; i<m_Sprites.size(); i++)
 				{
-					if(m_Sprites[i].m_BonePath.GetSource() == CModAPI_Asset_Skeleton::CBonePath::SRC_LOCAL)
+					if(m_Sprites[i].m_BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
 					{
 						int CurrentId = m_Sprites[i].m_BonePath.GetId();
 						if(CurrentId >=  SubPath.GetId())
@@ -247,11 +250,11 @@ public:
 					}
 				}
 			}
-			else if(SubPath.GetType() == CModAPI_Asset_Skeleton::SUBITEM_LAYER)
+			else if(SubPath.GetType() == CAsset_Skeleton::SUBITEM_LAYER)
 			{
 				for(int i=0; i<m_Sprites.size(); i++)
 				{
-					if(m_Sprites[i].m_LayerPath.GetSource() == CModAPI_Asset_Skeleton::CBonePath::SRC_LOCAL)
+					if(m_Sprites[i].m_LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
 					{
 						int CurrentId = m_Sprites[i].m_LayerPath.GetId();
 						if(CurrentId >=  SubPath.GetId())
@@ -262,5 +265,7 @@ public:
 		}
 	}
 };
+
+}
 
 #endif

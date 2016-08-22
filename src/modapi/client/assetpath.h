@@ -1,8 +1,11 @@
-#ifndef MODAPI_CLIENT_ASSETPATH_H
-#define MODAPI_CLIENT_ASSETPATH_H
+#ifndef TU_CLIENT_ASSETPATH_H
+#define TU_CLIENT_ASSETPATH_H
+
+namespace tu
+{
 
 template<int NBTYPES, int NBSRCS, int NBFLAGS, int ID2SIZE=0>
-class CModAPI_GenericPath
+class CGenericPath
 {
 public:
 	int m_Path;
@@ -30,10 +33,10 @@ public:
 	};
 	
 public:
-	CModAPI_GenericPath() : m_Path(UNDEFINED) { }
-	CModAPI_GenericPath(int PathInt) : m_Path(PathInt) { }
-	CModAPI_GenericPath(int Type, int Source, int Flags, int Id) : m_Path((Type << TYPE_SHIFT) + (Source << SRC_SHIFT) + (Flags << FLAGS_SHIFT) + (Id << ID_SHIFT)) { }
-	CModAPI_GenericPath(int Type, int Source, int Flags, int Id, int Id2) : m_Path((Type << TYPE_SHIFT) + (Source << SRC_SHIFT) + (Flags << FLAGS_SHIFT) + (Id << ID_SHIFT) + (Id2 << ID2_SHIFT)) { }
+	CGenericPath() : m_Path(UNDEFINED) { }
+	CGenericPath(int PathInt) : m_Path(PathInt) { }
+	CGenericPath(int Type, int Source, int Flags, int Id) : m_Path((Type << TYPE_SHIFT) + (Source << SRC_SHIFT) + (Flags << FLAGS_SHIFT) + (Id << ID_SHIFT)) { }
+	CGenericPath(int Type, int Source, int Flags, int Id, int Id2) : m_Path((Type << TYPE_SHIFT) + (Source << SRC_SHIFT) + (Flags << FLAGS_SHIFT) + (Id << ID_SHIFT) + (Id2 << ID2_SHIFT)) { }
 	
 	inline int ConvertToInteger() const { return m_Path; }
 	inline int GetId() const { return (m_Path & MASK_ID) >> ID_SHIFT; }
@@ -46,9 +49,9 @@ public:
 	inline void SetId2(int Id) { m_Path = m_Path & ~MASK_ID2 + (Id << ID2_SHIFT); }
 	
 	inline bool IsNull() const { return m_Path == UNDEFINED; }
-	inline bool operator==(const CModAPI_GenericPath& path) const { return path.m_Path == m_Path; }
+	inline bool operator==(const CGenericPath& path) const { return path.m_Path == m_Path; }
 	
-	inline void OnIdDeleted(const CModAPI_GenericPath& Path)
+	inline void OnIdDeleted(const CGenericPath& Path)
 	{
 		if(!IsNull() && (m_Path & ~MASK_ID) == (Path.m_Path & ~MASK_ID))
 		{
@@ -63,7 +66,7 @@ public:
 	}
 };
 
-class CModAPI_AssetPath : public CModAPI_GenericPath<12, 4, 0>
+class CAssetPath : public CGenericPath<12, 4, 0>
 {
 public:
 	enum
@@ -86,27 +89,30 @@ public:
 		TYPE_CHARACTERPART,
 		TYPE_WEAPON,
 		TYPE_MAPGROUP,
-		TYPE_LIST,
+		TYPE_MAPLAYERTILES,
+		TYPE_MAPLAYERQUADS,
 		NUM_ASSETTYPES,
 	};
 
 public:
-	CModAPI_AssetPath() : CModAPI_GenericPath() { }
-	CModAPI_AssetPath(int PathInt) : CModAPI_GenericPath(PathInt) { }
-	CModAPI_AssetPath(int Type, int Source, int Id) : CModAPI_GenericPath(Type, Source, 0x0, Id) { }
+	CAssetPath() : CGenericPath() { }
+	CAssetPath(int PathInt) : CGenericPath(PathInt) { }
+	CAssetPath(int Type, int Source, int Id) : CGenericPath(Type, Source, 0x0, Id) { }
 	
 	//Static constructors	
-	static inline CModAPI_AssetPath Null() { return CModAPI_AssetPath(CModAPI_GenericPath::UNDEFINED); }
+	static inline CAssetPath Null() { return CAssetPath(CGenericPath::UNDEFINED); }
 	
-	static inline CModAPI_AssetPath Asset(int Type, int Source, int Id) { return CModAPI_AssetPath(Type, Source, Id); }
+	static inline CAssetPath Asset(int Type, int Source, int Id) { return CAssetPath(Type, Source, Id); }
 	
-	static inline CModAPI_AssetPath Internal(int Type, int Id) { return Asset(Type, SRC_INTERNAL, Id); }
-	static inline CModAPI_AssetPath External(int Type, int Id) { return Asset(Type, SRC_EXTERNAL, Id); }
-	static inline CModAPI_AssetPath Skin(int Type, int Id) { return Asset(Type, SRC_SKIN, Id); }
-	static inline CModAPI_AssetPath Map(int Type, int Id) { return Asset(Type, SRC_MAP, Id); }
+	static inline CAssetPath Internal(int Type, int Id) { return Asset(Type, SRC_INTERNAL, Id); }
+	static inline CAssetPath External(int Type, int Id) { return Asset(Type, SRC_EXTERNAL, Id); }
+	static inline CAssetPath Skin(int Type, int Id) { return Asset(Type, SRC_SKIN, Id); }
+	static inline CAssetPath Map(int Type, int Id) { return Asset(Type, SRC_MAP, Id); }
 	
 	static inline int TypeToStoredType(int Type) { return Type+1; }
 	static inline int StoredTypeToType(int StoredType) { return StoredType-1; }
 };
+
+}
 
 #endif

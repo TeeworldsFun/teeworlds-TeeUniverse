@@ -11,7 +11,7 @@
 #include "grenade.h"
 
 CMod_Weapon_Grenade::CMod_Weapon_Grenade(CCharacter* pCharacter, int Ammo) :
-	CModAPI_Weapon_GenericGun07(MOD_WEAPON_GRENADE, WEAPON_GRENADE, pCharacter, Ammo)
+	tu::CWeapon_GenericGun07(MOD_WEAPON_GRENADE, WEAPON_GRENADE, pCharacter, Ammo)
 {
 	
 }
@@ -25,6 +25,6 @@ void CMod_Weapon_Grenade::CreateProjectile(vec2 Pos, vec2 Direction)
 		(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeLifetime),
 		g_pData->m_Weapons.m_Grenade.m_pBase->m_Damage, true, 0, SOUND_GRENADE_EXPLODE, MOD_WEAPON_GRENADE);
 
-	CModAPI_Event_Sound(GameServer()).World(WorldID())
+	tu::CEvent_Sound(GameServer()).World(WorldID())
 		.Send(Character()->GetPos(), SOUND_GRENADE_FIRE);
 }

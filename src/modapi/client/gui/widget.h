@@ -1,5 +1,5 @@
-#ifndef MODAPI_CLIENT_GUI_WIDGET_H
-#define MODAPI_CLIENT_GUI_WIDGET_H
+#ifndef TU_CLIENT_GUI_WIDGET_H
+#define TU_CLIENT_GUI_WIDGET_H
 
 #include "config.h"
 
@@ -7,12 +7,18 @@
 
 enum
 {
-	MODAPI_INPUT_CTRL=0x1,
-	MODAPI_INPUT_SHIFT=0x2,
-	MODAPI_INPUT_ALT=0x4,
+	TU_INPUT_CTRL=0x1,
+	TU_INPUT_SHIFT=0x2,
+	TU_INPUT_ALT=0x4,
 };
 
-class CModAPI_ClientGui_Rect
+namespace tu
+{
+	
+namespace gui
+{
+
+class CRect
 {
 public:
 	int x;
@@ -21,14 +27,14 @@ public:
 	int h;
 	
 public:
-	CModAPI_ClientGui_Rect();
-	CModAPI_ClientGui_Rect(int X, int Y, int W, int H);
+	CRect();
+	CRect(int X, int Y, int W, int H);
 	
-	void CenterIn(const CModAPI_ClientGui_Rect& Rect);
+	void CenterIn(const CRect& Rect);
 	bool IsInside(int X, int Y);
 };
 
-class CModAPI_ClientGui_Widget
+class CWidget
 {
 protected:
 	static float s_LayoutOpacity;
@@ -39,13 +45,13 @@ protected:
 	static float s_ButtonCornerRadius;
 
 public:
-	class CModAPI_ClientGui_Config *m_pConfig;
+	class CConfig *m_pConfig;
 
 public:
-	CModAPI_ClientGui_Rect m_Rect;
+	CRect m_Rect;
 
 protected:
-	CModAPI_ClientGui_Widget(class CModAPI_ClientGui_Config *pConfig);
+	CWidget(class CConfig *pConfig);
 	
 	class IGraphics *Graphics() { return m_pConfig->m_pGraphics; };
 	class ITextRender *TextRender() { return m_pConfig->m_pTextRender; };
@@ -53,7 +59,7 @@ protected:
 	class IInput *Input() { return m_pConfig->m_pInput; };
 	
 public:
-	virtual ~CModAPI_ClientGui_Widget();
+	virtual ~CWidget();
 	
 	virtual void Update();
 	virtual void Render() = 0;
@@ -63,7 +69,7 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnInputEvent();
 	
-	void SetRect(const CModAPI_ClientGui_Rect& Rect);
+	void SetRect(const CRect& Rect);
 	void SetX(int y);
 	void SetY(int y);
 	void SetWidth(int w);
@@ -75,5 +81,9 @@ public:
 			m_pConfig->m_fShowHint(pText, m_pConfig->m_pShowHintData);
 	}
 };
+
+}
+
+}
 
 #endif

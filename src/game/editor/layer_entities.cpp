@@ -14,7 +14,7 @@
 
 CLayerEntities::CLayerEntities()
 {
-	m_Type = MODAPI_MAPLAYERTYPE_ENTITIES;
+	m_Type = tu::MAPLAYERTYPE_ENTITIES;
 	str_copy(m_aName, "Entities", sizeof(m_aName));
 	
 	m_Resource = 0;
@@ -26,18 +26,16 @@ CLayerEntities::~CLayerEntities()
 
 void CLayerEntities::Render()
 {
-	if(m_Resource < 0 || m_Resource >= m_pEditor->m_lEditorResources.size())
-		return;
+	return;
 	
 	Graphics()->BlendNormal();
-	Graphics()->TextureSet(m_pEditor->m_lEditorResources[m_Resource].m_Texture);
 	
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1.0f,1.0f,1.0f,1.0f);
 	
 	for(int i=0; i<m_lEntityPoints.size(); i++)
 	{
-		CModAPI_MapEntity_Point *pt = &m_lEntityPoints[i];
+		tu::CMapEntity_Point *pt = &m_lEntityPoints[i];
 	
 		int SpriteX = pt->m_Type%16;
 		int SpriteY = pt->m_Type/16;
@@ -57,11 +55,11 @@ void CLayerEntities::Render()
 	Graphics()->QuadsEnd();
 }
 
-CModAPI_MapEntity_Point *CLayerEntities::NewPoint()
+tu::CMapEntity_Point *CLayerEntities::NewPoint()
 {
 	m_pEditor->m_Map.m_Modified = true;
 
-	CModAPI_MapEntity_Point *pt = &m_lEntityPoints[m_lEntityPoints.add(CModAPI_MapEntity_Point())];
+	tu::CMapEntity_Point *pt = &m_lEntityPoints[m_lEntityPoints.add(tu::CMapEntity_Point())];
 
 	pt->x = 0;
 	pt->y = 0;

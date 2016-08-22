@@ -1,16 +1,19 @@
-#ifndef MODAPI_CLIENT_ASSETS_SKELETONANIMATION_H
-#define MODAPI_CLIENT_ASSETS_SKELETONANIMATION_H
+#ifndef TU_CLIENT_ASSETS_SKELETONANIMATION_H
+#define TU_CLIENT_ASSETS_SKELETONANIMATION_H
 
 #include <modapi/client/assets.h>
 
-#define MODAPI_SKELETONANIMATION_TIMESTEP 30
+#define TU_SKELETONANIMATION_TIMESTEP 30
 
-class CModAPI_Asset_SkeletonAnimation : public CModAPI_Asset
+namespace tu
+{
+
+class CAsset_SkeletonAnimation : public CAsset
 {
 public:
-	static const int TypeId = CModAPI_AssetPath::TYPE_SKELETONANIMATION;
+	static const int TypeId = CAssetPath::TYPE_SKELETONANIMATION;
 
-	struct CStorageType : public CModAPI_Asset::CStorageType
+	struct CStorageType : public CAsset::CStorageType
 	{
 		struct CBoneKeyFrame
 		{
@@ -60,12 +63,12 @@ public:
 		
 	};
 	
-	void InitFromAssetsFile(class CModAPI_AssetManager* pAssetManager, class IModAPI_AssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class CAssetManager* pAssetManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
-	void Unload(class CModAPI_AssetManager* pAssetManager);
+	void Unload(class CAssetManager* pAssetManager);
 	
 public:
-	class CSubPath : public CModAPI_GenericPath<2, 0, 0, 16>
+	class CSubPath : public CGenericPath<2, 0, 0, 16>
 	{
 	public:
 		enum
@@ -78,11 +81,11 @@ public:
 		};
 		
 	public:
-		CSubPath() : CModAPI_GenericPath() { }
-		CSubPath(int PathInt) : CModAPI_GenericPath(PathInt) { }
-		CSubPath(int Type, int Id, int Id2) : CModAPI_GenericPath(Type, 0, 0x0, Id, Id2) { }
+		CSubPath() : CGenericPath() { }
+		CSubPath(int PathInt) : CGenericPath(PathInt) { }
+		CSubPath(int Type, int Id, int Id2) : CGenericPath(Type, 0, 0x0, Id, Id2) { }
 		
-		static inline CSubPath Null() { return CSubPath(CModAPI_GenericPath::UNDEFINED); }
+		static inline CSubPath Null() { return CSubPath(CGenericPath::UNDEFINED); }
 		static inline CSubPath BoneAnimation(int Id) { return CSubPath(TYPE_BONEANIMATION, Id, 0); }
 		static inline CSubPath BoneKeyFrame(int Id, int Id2) { return CSubPath(TYPE_BONEKEYFRAME, Id, Id2); }
 		static inline CSubPath LayerAnimation(int Id) { return CSubPath(TYPE_LAYERANIMATION, Id, 0); }
@@ -159,13 +162,13 @@ public:
 			}
 		};
 		
-		CModAPI_Asset_Skeleton::CBonePath m_BonePath;
+		CAsset_Skeleton::CBonePath m_BonePath;
 		array<CKeyFrame> m_KeyFrames;
 		int m_CycleType;
 		
 		CBoneAnimation() :
 			m_CycleType(CYCLETYPE_CLAMP),
-			m_BonePath(CModAPI_Asset_Skeleton::CBonePath::Null())
+			m_BonePath(CAsset_Skeleton::CBonePath::Null())
 		{
 			
 		}
@@ -187,13 +190,13 @@ public:
 		
 		inline int TimeToKeyFrame(float Time) const
 		{
-			return IntTimeToKeyFrame(Time*MODAPI_SKELETONANIMATION_TIMESTEP);
+			return IntTimeToKeyFrame(Time*TU_SKELETONANIMATION_TIMESTEP);
 		}
 
 		float GetDuration() const
 		{
 			if(m_KeyFrames.size())
-				return m_KeyFrames[m_KeyFrames.size()-1].m_Time/static_cast<float>(MODAPI_SKELETONANIMATION_TIMESTEP);
+				return m_KeyFrames[m_KeyFrames.size()-1].m_Time/static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
 			else
 				return 1.0f;
 		}
@@ -221,7 +224,7 @@ public:
 			}
 			else
 			{
-				float alpha = (MODAPI_SKELETONANIMATION_TIMESTEP*CycleTime - m_KeyFrames[i-1].m_Time) / (m_KeyFrames[i].m_Time - m_KeyFrames[i-1].m_Time);
+				float alpha = (TU_SKELETONANIMATION_TIMESTEP*CycleTime - m_KeyFrames[i-1].m_Time) / (m_KeyFrames[i].m_Time - m_KeyFrames[i-1].m_Time);
 				pFrame->m_Translation = mix(m_KeyFrames[i-1].m_Translation, m_KeyFrames[i].m_Translation, alpha);
 				pFrame->m_Scale = mix(m_KeyFrames[i-1].m_Scale, m_KeyFrames[i].m_Scale, alpha);
 				pFrame->m_Angle = mix(m_KeyFrames[i-1].m_Angle, m_KeyFrames[i].m_Angle, alpha); //Need better interpolation
@@ -267,13 +270,13 @@ public:
 			}
 		};
 		
-		CModAPI_Asset_Skeleton::CBonePath m_LayerPath;
+		CAsset_Skeleton::CBonePath m_LayerPath;
 		array<CKeyFrame> m_KeyFrames;
 		int m_CycleType;
 		
 		CLayerAnimation() :
 			m_CycleType(CYCLETYPE_CLAMP),
-			m_LayerPath(CModAPI_Asset_Skeleton::CBonePath::Null())
+			m_LayerPath(CAsset_Skeleton::CBonePath::Null())
 		{
 			
 		}
@@ -295,13 +298,13 @@ public:
 		
 		inline int TimeToKeyFrame(float Time) const
 		{
-			return IntTimeToKeyFrame(Time*MODAPI_SKELETONANIMATION_TIMESTEP);
+			return IntTimeToKeyFrame(Time*TU_SKELETONANIMATION_TIMESTEP);
 		}
 
 		float GetDuration() const
 		{
 			if(m_KeyFrames.size())
-				return m_KeyFrames[m_KeyFrames.size()-1].m_Time/static_cast<float>(MODAPI_SKELETONANIMATION_TIMESTEP);
+				return m_KeyFrames[m_KeyFrames.size()-1].m_Time/static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
 			else
 				return 1.0f;
 		}
@@ -329,7 +332,7 @@ public:
 			}
 			else
 			{
-				float alpha = (MODAPI_SKELETONANIMATION_TIMESTEP*CycleTime - m_KeyFrames[i-1].m_Time) / (m_KeyFrames[i].m_Time - m_KeyFrames[i-1].m_Time);
+				float alpha = (TU_SKELETONANIMATION_TIMESTEP*CycleTime - m_KeyFrames[i-1].m_Time) / (m_KeyFrames[i].m_Time - m_KeyFrames[i-1].m_Time);
 				pFrame->m_Color = mix(m_KeyFrames[i-1].m_Color, m_KeyFrames[i].m_Color, alpha); //Need better interpolation
 				pFrame->m_State = m_KeyFrames[i].m_State;
 			}
@@ -340,17 +343,17 @@ public:
 	
 
 public:
-	CModAPI_AssetPath m_SkeletonPath;
+	CAssetPath m_SkeletonPath;
 	array<CBoneAnimation> m_BoneAnimations;
 	array<CLayerAnimation> m_LayerAnimations;
 
 public:
-	CModAPI_Asset_SkeletonAnimation()
+	CAsset_SkeletonAnimation()
 	{
 		
 	}
 	
-	CBoneAnimation::CKeyFrame& AddBoneKeyFrame(CModAPI_Asset_Skeleton::CBonePath BonePath, int Time)
+	CBoneAnimation::CKeyFrame& AddBoneKeyFrame(CAsset_Skeleton::CBonePath BonePath, int Time)
 	{
 		//Find BoneAnimation
 		int BoneAnimationId = -1;
@@ -369,8 +372,8 @@ public:
 			m_BoneAnimations[BoneAnimationId].m_BonePath = BonePath;
 		}
 		
-		CModAPI_Asset_SkeletonAnimation::CBoneAnimation::CKeyFrame KeyFrame;
-		m_BoneAnimations[BoneAnimationId].GetFrame(Time/static_cast<float>(MODAPI_SKELETONANIMATION_TIMESTEP), &KeyFrame);
+		CAsset_SkeletonAnimation::CBoneAnimation::CKeyFrame KeyFrame;
+		m_BoneAnimations[BoneAnimationId].GetFrame(Time/static_cast<float>(TU_SKELETONANIMATION_TIMESTEP), &KeyFrame);
 		KeyFrame.m_Time = Time;
 		
 		int KeyFrameId = m_BoneAnimations[BoneAnimationId].IntTimeToKeyFrame(Time);
@@ -385,7 +388,7 @@ public:
 		return m_BoneAnimations[BoneAnimationId].m_KeyFrames[KeyFrameId];
 	}
 	
-	CLayerAnimation::CKeyFrame& AddLayerKeyFrame(CModAPI_Asset_Skeleton::CBonePath LayerPath, int Time)
+	CLayerAnimation::CKeyFrame& AddLayerKeyFrame(CAsset_Skeleton::CBonePath LayerPath, int Time)
 	{
 		//Find BoneAnimation
 		int LayerAnimationId = -1;
@@ -404,8 +407,8 @@ public:
 			m_LayerAnimations[LayerAnimationId].m_LayerPath = LayerPath;
 		}
 		
-		CModAPI_Asset_SkeletonAnimation::CLayerAnimation::CKeyFrame KeyFrame;
-		m_LayerAnimations[LayerAnimationId].GetFrame(Time/static_cast<float>(MODAPI_SKELETONANIMATION_TIMESTEP), &KeyFrame);
+		CAsset_SkeletonAnimation::CLayerAnimation::CKeyFrame KeyFrame;
+		m_LayerAnimations[LayerAnimationId].GetFrame(Time/static_cast<float>(TU_SKELETONANIMATION_TIMESTEP), &KeyFrame);
 		KeyFrame.m_Time = Time;
 		
 		int KeyFrameId = m_LayerAnimations[LayerAnimationId].IntTimeToKeyFrame(Time);
@@ -421,7 +424,7 @@ public:
 		return m_LayerAnimations[LayerAnimationId].m_KeyFrames[KeyFrameId];
 	}
 	
-	void SetCycle(CModAPI_Asset_Skeleton::CBonePath BonePath, int CycleType)
+	void SetCycle(CAsset_Skeleton::CBonePath BonePath, int CycleType)
 	{
 		//Find BoneAnimation
 		for(int i=0; i<m_BoneAnimations.size(); i++)
@@ -434,7 +437,7 @@ public:
 		}
 	}
 	
-	CSubPath GetBoneKeyFramePath(CModAPI_Asset_Skeleton::CBonePath BonePath, int IntTime)
+	CSubPath GetBoneKeyFramePath(CAsset_Skeleton::CBonePath BonePath, int IntTime)
 	{
 		//Find BoneAnimation
 		for(int i=0; i<m_BoneAnimations.size(); i++)
@@ -454,9 +457,9 @@ public:
 		return CSubPath::Null();
 	}
 	
-	CSubPath GetBoneKeyFramePath(CModAPI_Asset_SkeletonAnimation::CSubPath SubPath, int IntTime)
+	CSubPath GetBoneKeyFramePath(CAsset_SkeletonAnimation::CSubPath SubPath, int IntTime)
 	{
-		if(SubPath.GetType() != CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_BONEANIMATION)
+		if(SubPath.GetType() != CAsset_SkeletonAnimation::CSubPath::TYPE_BONEANIMATION)
 			return CSubPath::Null();
 			
 		int animId = SubPath.GetId();
@@ -473,7 +476,7 @@ public:
 		return CSubPath::Null();
 	}
 	
-	CSubPath GetLayerKeyFramePath(CModAPI_Asset_Skeleton::CBonePath LayerPath, int IntTime)
+	CSubPath GetLayerKeyFramePath(CAsset_Skeleton::CBonePath LayerPath, int IntTime)
 	{
 		//Find BoneAnimation
 		for(int i=0; i<m_LayerAnimations.size(); i++)
@@ -493,9 +496,9 @@ public:
 		return CSubPath::Null();
 	}
 	
-	CSubPath GetLayerKeyFramePath(CModAPI_Asset_SkeletonAnimation::CSubPath SubPath, int IntTime)
+	CSubPath GetLayerKeyFramePath(CAsset_SkeletonAnimation::CSubPath SubPath, int IntTime)
 	{
-		if(SubPath.GetType() != CModAPI_Asset_SkeletonAnimation::CSubPath::TYPE_LAYERANIMATION)
+		if(SubPath.GetType() != CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERANIMATION)
 			return CSubPath::Null();
 			
 		int animId = SubPath.GetId();
@@ -516,7 +519,7 @@ public:
 public:
 	enum
 	{
-		SKELETONPATH = CModAPI_Asset::NUM_MEMBERS, //AssetPath
+		SKELETONPATH = CAsset::NUM_MEMBERS, //AssetPath
 		BONEANIMATION_CYCLETYPE, //Int
 		BONEKEYFRAME_TIME, //Int
 		BONEKEYFRAME_TRANSLATION_X, //Float
@@ -533,13 +536,13 @@ public:
 	template<typename T>
 	T GetValue(int ValueType, int Path, T DefaultValue)
 	{
-		return CModAPI_Asset::GetValue<T>(ValueType, Path, DefaultValue);
+		return CAsset::GetValue<T>(ValueType, Path, DefaultValue);
 	}
 	
 	template<typename T>
 	bool SetValue(int ValueType, int Path, T Value)
 	{
-		return CModAPI_Asset::SetValue<T>(ValueType, Path, Value);
+		return CAsset::SetValue<T>(ValueType, Path, Value);
 	}
 	
 	inline int GetKeyFramePath(int i)
@@ -547,7 +550,7 @@ public:
 		return i;
 	}
 	
-	inline void OnAssetDeleted(const CModAPI_AssetPath& Path)
+	inline void OnAssetDeleted(const CAssetPath& Path)
 	{
 		m_SkeletonPath.OnIdDeleted(Path);
 	}
@@ -597,7 +600,9 @@ public:
 		return false;
 	}
 	
-	inline void OnSubItemDeleted(const CModAPI_AssetPath& Path, int SubItemPath) { }
+	inline void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath) { }
 };
+
+}
 
 #endif

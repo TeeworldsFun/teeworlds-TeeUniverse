@@ -1,24 +1,30 @@
-#ifndef MODAPI_CLIENT_GUI_SLIDER_H
-#define MODAPI_CLIENT_GUI_SLIDER_H
+#ifndef TU_CLIENT_GUI_SLIDER_H
+#define TU_CLIENT_GUI_SLIDER_H
 
 #include <base/tl/array.h>
 
 #include "widget.h"
 
-class CModAPI_ClientGui_AbstractSlider : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CAbstractSlider : public CWidget
 {
 protected:
 	float m_Pos;
 
-	CModAPI_ClientGui_Rect m_RailRect;
-	CModAPI_ClientGui_Rect m_SliderRect;
+	CRect m_RailRect;
+	CRect m_SliderRect;
 	bool m_UnderMouse;
 	bool m_ButtonDown;
 	
 	virtual void OnNewPosition(float Pos) = 0;
 
 public:
-	CModAPI_ClientGui_AbstractSlider(class CModAPI_ClientGui_Config *pConfig);
+	CAbstractSlider(class CConfig *pConfig);
 	
 	virtual void Render();
 	
@@ -30,10 +36,10 @@ public:
 	virtual void SetSliderPos(float Pos);
 };
 
-class CModAPI_ClientGui_HSlider : public CModAPI_ClientGui_AbstractSlider
+class CHSlider : public CAbstractSlider
 {
 public:
-	CModAPI_ClientGui_HSlider(class CModAPI_ClientGui_Config *pConfig);
+	CHSlider(class CConfig *pConfig);
 	
 	virtual void Update();
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
@@ -42,10 +48,10 @@ public:
 	virtual void SetSliderSize(int Size);
 };
 
-class CModAPI_ClientGui_VSlider : public CModAPI_ClientGui_AbstractSlider
+class CVSlider : public CAbstractSlider
 {
 public:
-	CModAPI_ClientGui_VSlider(class CModAPI_ClientGui_Config *pConfig);
+	CVSlider(class CConfig *pConfig);
 	
 	virtual void Update();
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
@@ -53,5 +59,9 @@ public:
 	
 	virtual void SetSliderSize(int Size);
 };
+
+}
+
+}
 
 #endif

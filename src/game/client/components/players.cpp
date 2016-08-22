@@ -154,7 +154,7 @@ void CPlayers::RenderHook(
 		else
 			HookPos = mix(vec2(Prev.m_HookX, Prev.m_HookY), vec2(Player.m_HookX, Player.m_HookY), IntraTick);
 
-		//~ ModAPIGraphics()->DrawLine(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_LINESTYLE, MODAPI_LINESTYLE_HOOK), Position, HookPos, 1.0f, 0.0f);
+		//~ ModAPIGraphics()->DrawLine(tu::CAssetPath::Internal(tu::CAssetPath::TYPE_LINESTYLE, MODAPI_LINESTYLE_HOOK), Position, HookPos, 1.0f, 0.0f);
 	}
 }
 
@@ -166,7 +166,7 @@ void CPlayers::RenderPlayer(
 	int ClientID
 	)
 {
-	if(!ModAPIGraphics()) return;
+	if(!TUGraphics()) return;
 	
 	CNetObj_Character Prev;
 	CNetObj_Character Player;
@@ -224,15 +224,15 @@ void CPlayers::RenderPlayer(
 	bool InAir = !Collision()->CheckPoint(Player.m_X, Player.m_Y+16);
 	bool WantOtherDir = (Player.m_Direction == -1 && Vel.x > 0) || (Player.m_Direction == 1 && Vel.x < 0);
 	
-	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), AssetManager());
+	tu::CSkeletonRenderer SkeletonRenderer(Graphics(), AssetManager());
 	SkeletonRenderer.SetAim(AimDir);
 	SkeletonRenderer.SetMotion(MotionDir);
 	
-	CModAPI_Asset_CharacterPart* pCharacterPart[6];
-	CModAPI_AssetPath CharacterPath;
+	tu::CAsset_CharacterPart* pCharacterPart[6];
+	tu::CAssetPath CharacterPath;
 	for(int i=0; i<6; i++)
 	{
-		pCharacterPart[i] = AssetManager()->GetAsset<CModAPI_Asset_CharacterPart>(RenderInfo.m_aCharacterParts[i]);
+		pCharacterPart[i] = AssetManager()->GetAsset<tu::CAsset_CharacterPart>(RenderInfo.m_aCharacterParts[i]);
 		if(pCharacterPart[i])
 		{
 			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart[i]->m_SkeletonSkinPath, RenderInfo.m_aColors[i]);
@@ -242,7 +242,7 @@ void CPlayers::RenderPlayer(
 	}
 	
 	// Skin
-	CModAPI_Asset_Character* pCharacter = AssetManager()->GetAsset<CModAPI_Asset_Character>(CharacterPath);
+	tu::CAsset_Character* pCharacter = AssetManager()->GetAsset<tu::CAsset_Character>(CharacterPath);
 	if(pCharacter)
 	{
 		if(InAir)
@@ -282,8 +282,8 @@ void CPlayers::RenderPlayer(
 	switch(Player.m_Weapon)
 	{
 		case WEAPON_HAMMER:
-			SkeletonRenderer.AddSkinWithSkeleton(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_SKELETONSKIN, MODAPI_SKELETONSKIN_HAMMER), vec4(1.0, 1.0, 1.0, 1.0));
-			SkeletonRenderer.ApplyAnimation(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_SKELETONANIMATION, MODAPI_SKELETONANIMATION_HAMMERATTACK), WeaponTime);
+			SkeletonRenderer.AddSkinWithSkeleton(tu::CAssetPath::Internal(tu::CAssetPath::TYPE_SKELETONSKIN, tu::SKELETONSKIN_HAMMER), vec4(1.0, 1.0, 1.0, 1.0));
+			SkeletonRenderer.ApplyAnimation(tu::CAssetPath::Internal(tu::CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_HAMMERATTACK), WeaponTime);
 			break;
 	}
 	

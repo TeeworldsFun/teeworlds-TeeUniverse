@@ -807,7 +807,7 @@ int CEditor::PopupEvent(CEditor *pEditor, CUIRect View)
 	if(pEditor->DoButton_Editor(&s_OkButton, "Ok", 0, &Label, 0, 0))
 	{
 		if(pEditor->m_PopupEventType == POPEVENT_EXIT)
-			g_Config.m_ClMode = MODAPI_CLIENTMODE_GAME;
+			g_Config.m_ClMode = TU_CLIENTMODE_GAME;
 		else if(pEditor->m_PopupEventType == POPEVENT_LOAD)
 			pEditor->InvokeFileDialog(IStorage::TYPE_ALL, FILETYPE_MAP, "Load map", "Load", "maps", "", pEditor->CallbackOpenMap, pEditor);
 		else if(pEditor->m_PopupEventType == POPEVENT_NEW)
@@ -1176,44 +1176,6 @@ int CEditor::PopupSelectEntity(CEditor *pEditor, CUIRect View)
 
 	int ShowEntity = g_SelectEntityCurrent;
 
-	for(int i=0; i<256; i++)
-	{
-		if(!pEditor->m_lEditorResources[0].m_aTypes[i].m_Loaded)
-			continue;
-		
-		CUIRect Button;
-		ButtonBar.HSplitTop(12.0f, &Button, &ButtonBar);
-		ButtonBar.HSplitTop(2.0f, 0, &ButtonBar);
-
-		if(pEditor->UI()->MouseInside(&Button))
-			ShowEntity = i;
-
-		if(pEditor->DoButton_MenuItem(&pEditor->m_lEditorResources[0].m_aTypes[i], pEditor->m_lEditorResources[0].m_aTypes[i].m_pName, i==g_SelectEntityCurrent, &Button))
-		{
-			g_SelectEntitySelected = i;
-			return 1;
-		}
-	}
-
-	//~ if(ShowImage >= 0 && ShowImage < pEditor->m_Map.m_lImages.size())
-	//~ {
-		//~ if(ImageView.h < ImageView.w)
-			//~ ImageView.w = ImageView.h;
-		//~ else
-			//~ ImageView.h = ImageView.w;
-		//~ float Max = (float)(max(pEditor->m_Map.m_lImages[ShowImage]->m_Width, pEditor->m_Map.m_lImages[ShowImage]->m_Height));
-		//~ ImageView.w *= pEditor->m_Map.m_lImages[ShowImage]->m_Width/Max;
-		//~ ImageView.h *= pEditor->m_Map.m_lImages[ShowImage]->m_Height/Max;
-		//~ pEditor->Graphics()->TextureSet(pEditor->m_Map.m_lImages[ShowImage]->m_Texture);
-		//~ pEditor->Graphics()->BlendNormal();
-		//~ pEditor->Graphics()->WrapClamp();
-		//~ pEditor->Graphics()->QuadsBegin();
-		//~ IGraphics::CQuadItem QuadItem(ImageView.x, ImageView.y, ImageView.w, ImageView.h);
-		//~ pEditor->Graphics()->QuadsDrawTL(&QuadItem, 1);
-		//~ pEditor->Graphics()->QuadsEnd();
-		//~ pEditor->Graphics()->WrapNormal();
-	//~ }
-
 	return 0;
 }
 
@@ -1237,7 +1199,7 @@ int CEditor::PopupSelectEntityResult()
 
 int CEditor::PopupEntityPoint(CEditor *pEditor, CUIRect View)
 {
-	CModAPI_MapEntity_Point *pEntityPoint = pEditor->GetSelectedEntityPoint();
+	tu::CMapEntity_Point *pEntityPoint = pEditor->GetSelectedEntityPoint();
 
 	CUIRect Button;
 
@@ -1246,7 +1208,7 @@ int CEditor::PopupEntityPoint(CEditor *pEditor, CUIRect View)
 	static int s_DeleteButton = 0;
 	if(pEditor->DoButton_Editor(&s_DeleteButton, "Delete", 0, &Button, 0, "Deletes the current entity"))
 	{
-		CLayerEntities *pLayer = (CLayerEntities *)pEditor->GetSelectedLayerType(0, MODAPI_MAPLAYERTYPE_ENTITIES);
+		CLayerEntities *pLayer = (CLayerEntities *)pEditor->GetSelectedLayerType(0, tu::MAPLAYERTYPE_ENTITIES);
 		if(pLayer)
 		{
 			pEditor->m_Map.m_Modified = true;

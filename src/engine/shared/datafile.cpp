@@ -103,14 +103,20 @@ bool CDataFileReader::Open(class IStorage *pStorage, const char *pFilename, int 
 	// TODO: change this header
 	CDatafileHeader Header;
 	io_read(File, &Header, sizeof(Header));
-	if(Header.m_aID[0] != 'A' || Header.m_aID[1] != 'T' || Header.m_aID[2] != 'A' || Header.m_aID[3] != 'D')
+	
+	if(Header.m_aID[0] == 'A' && Header.m_aID[1] == 'T' && Header.m_aID[2] == 'A' && Header.m_aID[3] == 'D')
+		m_Type = DATAFILE_TYPE_DATA;
+	else if(Header.m_aID[0] == 'D' && Header.m_aID[1] == 'A' && Header.m_aID[2] == 'T' && Header.m_aID[3] == 'A')
+		m_Type = DATAFILE_TYPE_DATA;
+	else if(Header.m_aID[0] == 'A' && Header.m_aID[1] == 'S' && Header.m_aID[2] == 'S' && Header.m_aID[3] == 'E')
+		m_Type = DATAFILE_TYPE_ASSET;
+	else if(Header.m_aID[0] == 'E' && Header.m_aID[1] == 'S' && Header.m_aID[2] == 'S' && Header.m_aID[3] == 'A')
+		m_Type = DATAFILE_TYPE_ASSET;
+	else
 	{
-		if(Header.m_aID[0] != 'D' || Header.m_aID[1] != 'A' || Header.m_aID[2] != 'T' || Header.m_aID[3] != 'A')
-		{
-			dbg_msg("datafile", "wrong signature. %x %x %x %x", Header.m_aID[0], Header.m_aID[1], Header.m_aID[2], Header.m_aID[3]);
-			io_close(File);
-			return 0;
-		}
+		dbg_msg("datafile", "wrong signature. %x %x %x %x", Header.m_aID[0], Header.m_aID[1], Header.m_aID[2], Header.m_aID[3]);
+		io_close(File);
+		return 0;
 	}
 
 #if defined(CONF_ARCH_ENDIAN_BIG)
@@ -398,6 +404,10 @@ unsigned CDataFileReader::Crc() const
 	return m_pDataFile->m_Crc;
 }
 
+int CDataFileReader::GetDataFileType() const
+{
+	return m_Type;
+}
 
 CDataFileWriter::CDataFileWriter()
 {
@@ -518,7 +528,7 @@ int CDataFileWriter::AddDataSwapped(int Size, void *pData)
 }
 
 
-int CDataFileWriter::Finish()
+int CDataFileWriter::Finish(int Type)
 {
 	if(!m_File) return 1;
 
@@ -557,10 +567,20 @@ int CDataFileWriter::Finish()
 
 	// construct Header
 	{
-		Header.m_aID[0] = 'D';
-		Header.m_aID[1] = 'A';
-		Header.m_aID[2] = 'T';
-		Header.m_aID[3] = 'A';
+		if(Type == DATAFILE_TYPE_ASSET)
+		{
+			Header.m_aID[0] = 'A';
+			Header.m_aID[1] = 'S';
+			Header.m_aID[2] = 'S';
+			Header.m_aID[3] = 'E';
+		}
+		else
+		{
+			Header.m_aID[0] = 'D';
+			Header.m_aID[1] = 'A';
+			Header.m_aID[2] = 'T';
+			Header.m_aID[3] = 'A';
+		}
 		Header.m_Version = 4;
 		Header.m_Size = FileSize - 16;
 		Header.m_Swaplen = SwapSize - 16;

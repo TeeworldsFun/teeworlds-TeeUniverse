@@ -7,7 +7,7 @@
 #include "flag.h"
 
 CFlag::CFlag(CGameWorld *pGameWorld, int Team, vec2 StandPos)
-: CModAPI_Entity(pGameWorld, MOD_ENTTYPE_FLAG, StandPos, 0, ms_PhysSize)
+: tu::CEntity_TW(pGameWorld, MOD_ENTTYPE_FLAG, StandPos, 0, ms_PhysSize)
 {
 	m_Team = Team;
 	m_StandPos = StandPos;

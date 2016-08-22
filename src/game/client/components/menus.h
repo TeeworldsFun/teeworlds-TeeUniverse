@@ -217,7 +217,7 @@ private:
 	bool m_EnterPressed;
 	bool m_DeletePressed;
 
-	//ModAPI for parallel download of mod and map
+	//TU for parallel download of mod and map
 	int64 m_MapDownloadLastCheckTime;
 	int m_MapDownloadLastCheckSize;
 	float m_MapDownloadSpeed;

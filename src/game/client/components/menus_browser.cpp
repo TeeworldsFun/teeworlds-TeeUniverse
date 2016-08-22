@@ -1041,9 +1041,9 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 				int ItemIndex = i;
 				const CServerInfo *pItem = pFilter->SortedGet(ItemIndex);
 				
-				int Protocol = MODAPI_SERVERPROTOCOL_TW07;
+				int Protocol = tu::SERVERPROTOCOL_TW07;
 				if(str_comp_num(pItem->m_aVersion, "0.6", 3) == 0)
-					Protocol = MODAPI_SERVERPROTOCOL_TW06;
+					Protocol = tu::SERVERPROTOCOL_TW06;
 				
 				CUIRect SelectHitBox;
 
@@ -1618,7 +1618,7 @@ void CMenus::RenderServerbrowserBottomBox(CUIRect MainView)
 	static CButtonContainer s_JoinButton;
 	if(DoButton_Menu(&s_JoinButton, Localize("Connect"), 0, &Button) || m_EnterPressed)
 	{
-		Client()->Connect(g_Config.m_UiServerAddress, MODAPI_SERVERPROTOCOL_TW07);
+		Client()->Connect(g_Config.m_UiServerAddress, tu::SERVERPROTOCOL_TW07);
 		m_EnterPressed = false;
 	}
 
@@ -1627,7 +1627,7 @@ void CMenus::RenderServerbrowserBottomBox(CUIRect MainView)
 	static CButtonContainer s_JoinButtonTW06;
 	if(DoButton_Menu(&s_JoinButtonTW06, Localize("Connect (0.6)"), 0, &Button) || m_EnterPressed)
 	{
-		Client()->Connect(g_Config.m_UiServerAddress, MODAPI_SERVERPROTOCOL_TW06);
+		Client()->Connect(g_Config.m_UiServerAddress, tu::SERVERPROTOCOL_TW06);
 		m_EnterPressed = false;
 	}
 }

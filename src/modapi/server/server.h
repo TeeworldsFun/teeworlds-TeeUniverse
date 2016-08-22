@@ -1,10 +1,15 @@
-#ifndef MODAPI_SERVER_H
-#define MODAPI_SERVER_H
+#ifndef TU_SERVER_H
+#define TU_SERVER_H
 
-class CModAPI_Server
+namespace tu
+{
+
+class CServer
 {
 public:
-	CModAPI_Server();
+	CServer();
 };
+
+}
 
 #endif

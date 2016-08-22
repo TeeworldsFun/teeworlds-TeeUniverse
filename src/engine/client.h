@@ -53,7 +53,7 @@ public:
 		STATE_QUITING - The client is quiting.
 	*/
 
-	//ModAPI
+	//TU
 	enum
 	{
 		STATE_OFFLINE=0,
@@ -107,7 +107,7 @@ public:
 	virtual int MapDownloadAmount() const = 0;
 	virtual int MapDownloadTotalsize() const = 0;
 	
-	//ModAPI
+	//TU
 	virtual const char *ModDownloadName() const = 0;
 	virtual int ModDownloadAmount() const = 0;
 	virtual int ModDownloadTotalsize() const = 0;
@@ -150,7 +150,7 @@ public:
 		CMsgPacker Packer(pMsg->MsgID(), false);
 		if(pMsg->Pack(&Packer))
 			return -1;
-		return SendMsg(CModAPI_MetaNetClient::DST_SERVER, &Packer, Flags);
+		return SendMsg(tu::CMetaNetClient::DST_SERVER, &Packer, Flags);
 	}
 
 	//
@@ -162,10 +162,10 @@ public:
 
 	virtual IGraphics::CTextureHandle GetDebugFont() const = 0; // TODO: remove this function
 
-	//ModAPI
+	//TU
 public:
-	virtual CModAPI_Client_Graphics *ModAPIGraphics() const = 0;
-	virtual CModAPI_AssetManager *AssetManager() const = 0;
+	virtual tu::CClient_Graphics *TUGraphics() const = 0;
+	virtual tu::CAssetManager *AssetManager() const = 0;
 	virtual void LoadAssetsFile(const char* pFileName) = 0;
 };
 

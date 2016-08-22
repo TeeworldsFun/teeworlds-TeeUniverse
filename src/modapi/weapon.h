@@ -1,14 +1,18 @@
-#ifndef MODAPI_WEAPON_H
-#define MODAPI_WEAPON_H
+#ifndef TU_WEAPON_H
+#define TU_WEAPON_H
 
 #include <generated/protocol.h>
 
+namespace tu
+{
+
 enum
 {
-	MODAPI_AMMOTYPE_INFINITE = 0,
-	MODAPI_AMMOTYPE_INTEGER,
-	MODAPI_AMMOTYPE_TIME,
+	AMMOTYPE_INFINITE = 0,
+	AMMOTYPE_INTEGER,
+	AMMOTYPE_TIME,
 };
 
+}
 
 #endif

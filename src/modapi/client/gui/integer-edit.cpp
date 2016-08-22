@@ -7,32 +7,38 @@
 
 #include "integer-edit.h"
 
-CModAPI_ClientGui_AbstractIntegerEdit::CIncreaseButton::CIncreaseButton(CModAPI_ClientGui_AbstractIntegerEdit *pIntegerEdit) :
-	CModAPI_ClientGui_IconButton(pIntegerEdit->m_pConfig, 3),
+namespace tu
+{
+	
+namespace gui
+{
+
+CAbstractIntegerEdit::CIncreaseButton::CIncreaseButton(CAbstractIntegerEdit *pIntegerEdit) :
+	CIconButton(pIntegerEdit->m_pConfig, 3),
 	m_pIntegerEdit(pIntegerEdit)
 {
 	
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::CIncreaseButton::MouseClickAction()
+void CAbstractIntegerEdit::CIncreaseButton::MouseClickAction()
 {
 	m_pIntegerEdit->SetValue(m_pIntegerEdit->GetValue()+1);
 }
 
-CModAPI_ClientGui_AbstractIntegerEdit::CDecreaseButton::CDecreaseButton(CModAPI_ClientGui_AbstractIntegerEdit *pIntegerEdit) :
-	CModAPI_ClientGui_IconButton(pIntegerEdit->m_pConfig, 2),
+CAbstractIntegerEdit::CDecreaseButton::CDecreaseButton(CAbstractIntegerEdit *pIntegerEdit) :
+	CIconButton(pIntegerEdit->m_pConfig, 2),
 	m_pIntegerEdit(pIntegerEdit)
 {
 	
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::CDecreaseButton::MouseClickAction()
+void CAbstractIntegerEdit::CDecreaseButton::MouseClickAction()
 {
 	m_pIntegerEdit->SetValue(m_pIntegerEdit->GetValue()-1);
 }
 
-CModAPI_ClientGui_AbstractIntegerEdit::CModAPI_ClientGui_AbstractIntegerEdit(CModAPI_ClientGui_Config *pConfig) :
-	CModAPI_ClientGui_Widget(pConfig),
+CAbstractIntegerEdit::CAbstractIntegerEdit(CConfig *pConfig) :
+	CWidget(pConfig),
 	m_pIncreaseButton(0),
 	m_pDecreaseButton(0),
 	m_CursorCharPos(-1),
@@ -41,28 +47,28 @@ CModAPI_ClientGui_AbstractIntegerEdit::CModAPI_ClientGui_AbstractIntegerEdit(CMo
 {
 	m_Rect.h = m_pConfig->m_ButtonHeight;
 	
-	m_pIncreaseButton = new CModAPI_ClientGui_AbstractIntegerEdit::CIncreaseButton(this);
-	m_pDecreaseButton = new CModAPI_ClientGui_AbstractIntegerEdit::CDecreaseButton(this);
+	m_pIncreaseButton = new CAbstractIntegerEdit::CIncreaseButton(this);
+	m_pDecreaseButton = new CAbstractIntegerEdit::CDecreaseButton(this);
 	
 	m_IntegerRect.h = m_Rect.h;
 }
 
-CModAPI_ClientGui_AbstractIntegerEdit::~CModAPI_ClientGui_AbstractIntegerEdit()
+CAbstractIntegerEdit::~CAbstractIntegerEdit()
 {
 	delete m_pIncreaseButton;
 	delete m_pDecreaseButton;
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::Update()
+void CAbstractIntegerEdit::Update()
 {
-	m_pIncreaseButton->SetRect(CModAPI_ClientGui_Rect(
+	m_pIncreaseButton->SetRect(CRect(
 		m_Rect.x + m_Rect.w - m_pIncreaseButton->m_Rect.w,
 		m_Rect.y,
 		m_pIncreaseButton->m_Rect.w,
 		m_pIncreaseButton->m_Rect.h
 	));
 	
-	m_pDecreaseButton->SetRect(CModAPI_ClientGui_Rect(
+	m_pDecreaseButton->SetRect(CRect(
 		m_Rect.x + m_Rect.w - m_pDecreaseButton->m_Rect.w - m_pIncreaseButton->m_Rect.w - 4.0f,
 		m_Rect.y,
 		m_pDecreaseButton->m_Rect.w,
@@ -75,7 +81,7 @@ void CModAPI_ClientGui_AbstractIntegerEdit::Update()
 	m_IntegerRect.h = m_Rect.h;
 }
 	
-void CModAPI_ClientGui_AbstractIntegerEdit::Render()
+void CAbstractIntegerEdit::Render()
 {
 	//Integer
 	{
@@ -97,14 +103,14 @@ void CModAPI_ClientGui_AbstractIntegerEdit::Render()
 			m_LastValue = Value;
 		}
 		
-		int TextSize = m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL];
+		int TextSize = m_pConfig->m_TextSize[TEXTSTYLE_NORMAL];
 		
 		int ContentX = m_IntegerRect.x + m_IntegerRect.w/2;
 		int ContentY = m_IntegerRect.y + m_IntegerRect.h/2;
 	
-		int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL], m_aIntegerText, -1);
+		int TextWidth = TextRender()->TextWidth(0, m_pConfig->m_TextSize[TEXTSTYLE_NORMAL], m_aIntegerText, -1);
 		int PosX = ContentX - TextWidth/2;
-		int PosY = ContentY - m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL]*0.7;
+		int PosY = ContentY - m_pConfig->m_TextSize[TEXTSTYLE_NORMAL]*0.7;
 		
 		CTextCursor Cursor;
 		TextRender()->SetCursor(&Cursor, PosX, PosY, TextSize, TEXTFLAG_RENDER);
@@ -139,7 +145,7 @@ void CModAPI_ClientGui_AbstractIntegerEdit::Render()
 	m_pDecreaseButton->Render();
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::OnButtonClick(int X, int Y, int Button)
+void CAbstractIntegerEdit::OnButtonClick(int X, int Y, int Button)
 {
 	if(Button == KEY_MOUSE_1)
 	{
@@ -147,7 +153,7 @@ void CModAPI_ClientGui_AbstractIntegerEdit::OnButtonClick(int X, int Y, int Butt
 		{
 			m_Clicked = true;
 			
-			float FontSize = m_pConfig->m_TextSize[MODAPI_CLIENTGUI_TEXTSTYLE_NORMAL];
+			float FontSize = m_pConfig->m_TextSize[TEXTSTYLE_NORMAL];
 
 			int TextLength = str_length(m_aIntegerText);
 			int CursorCharPos = 0;
@@ -183,13 +189,13 @@ void CModAPI_ClientGui_AbstractIntegerEdit::OnButtonClick(int X, int Y, int Butt
 	m_pDecreaseButton->OnButtonClick(X, Y, Button);
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::OnButtonRelease(int Button)
+void CAbstractIntegerEdit::OnButtonRelease(int Button)
 {
 	m_pIncreaseButton->OnButtonRelease(Button);
 	m_pDecreaseButton->OnButtonRelease(Button);
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CAbstractIntegerEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_IntegerRect.IsInside(X, Y))
 	{
@@ -204,7 +210,7 @@ void CModAPI_ClientGui_AbstractIntegerEdit::OnMouseOver(int X, int Y, int RelX, 
 	m_pDecreaseButton->OnMouseOver(X, Y, RelX, RelY, KeyState);
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::ApplyTextEntry()
+void CAbstractIntegerEdit::ApplyTextEntry()
 {
 	m_Clicked = false;
 	m_CursorCharPos = -1;
@@ -215,7 +221,7 @@ void CModAPI_ClientGui_AbstractIntegerEdit::ApplyTextEntry()
 	str_format(m_aIntegerText, sizeof(m_aIntegerText), "%d", Value);
 }
 
-void CModAPI_ClientGui_AbstractIntegerEdit::OnInputEvent()
+void CAbstractIntegerEdit::OnInputEvent()
 {
 	if(Input()->KeyIsPressed(KEY_RETURN) || Input()->KeyIsPressed(KEY_KP_ENTER))
 	{
@@ -235,36 +241,40 @@ void CModAPI_ClientGui_AbstractIntegerEdit::OnInputEvent()
 	}
 }
 
-CModAPI_ClientGui_IntegerEdit::CModAPI_ClientGui_IntegerEdit(CModAPI_ClientGui_Config *pConfig, int DefaultValue) :
-	CModAPI_ClientGui_AbstractIntegerEdit(pConfig),
+CIntegerEdit::CIntegerEdit(CConfig *pConfig, int DefaultValue) :
+	CAbstractIntegerEdit(pConfig),
 	m_Value(DefaultValue)
 {
 	
 }
 	
-void CModAPI_ClientGui_IntegerEdit::SetValue(int v)
+void CIntegerEdit::SetValue(int v)
 {
 	m_Value = v;
 }
 	
-int CModAPI_ClientGui_IntegerEdit::GetValue()
+int CIntegerEdit::GetValue()
 {
 	return m_Value;
 }
 
-CModAPI_ClientGui_ExternalIntegerEdit::CModAPI_ClientGui_ExternalIntegerEdit(CModAPI_ClientGui_Config *pConfig, int* Memory) :
-	CModAPI_ClientGui_AbstractIntegerEdit(pConfig),
+CExternalIntegerEdit::CExternalIntegerEdit(CConfig *pConfig, int* Memory) :
+	CAbstractIntegerEdit(pConfig),
 	m_Memory(Memory)
 {
 	
 }
 	
-void CModAPI_ClientGui_ExternalIntegerEdit::SetValue(int v)
+void CExternalIntegerEdit::SetValue(int v)
 {
 	*m_Memory = v;
 }
 	
-int CModAPI_ClientGui_ExternalIntegerEdit::GetValue()
+int CExternalIntegerEdit::GetValue()
 {
 	return *m_Memory;
+}
+
+}
+
 }

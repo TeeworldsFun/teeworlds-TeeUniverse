@@ -1,7 +1,10 @@
 #include "assets.h"
 
+namespace tu
+{
+
 template<>
-bool CModAPI_Asset::SetValue<const char*>(int ValueType, int Path, const char* pText)
+bool CAsset::SetValue<const char*>(int ValueType, int Path, const char* pText)
 {
 	switch(ValueType)
 	{
@@ -14,7 +17,7 @@ bool CModAPI_Asset::SetValue<const char*>(int ValueType, int Path, const char* p
 }
 
 template<>
-char* CModAPI_Asset::GetValue(int ValueType, int Path, char* DefaultValue)
+char* CAsset::GetValue(int ValueType, int Path, char* DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -25,3 +28,4 @@ char* CModAPI_Asset::GetValue(int ValueType, int Path, char* DefaultValue)
 	return DefaultValue;
 }
 
+}

@@ -1,10 +1,13 @@
-#ifndef MODAPI_CLIENT_COMPONENTS_ITEMS_H
-#define MODAPI_CLIENT_COMPONENTS_ITEMS_H
+#ifndef TU_CLIENT_COMPONENTS_ITEMS_H
+#define TU_CLIENT_COMPONENTS_ITEMS_H
 #include <game/client/component.h>
 #include <modapi/graphics.h>
 #include <list>
 
-class CModAPI_Component_Items : public CComponent
+namespace tu
+{
+
+class CComponent_Items : public CComponent
 {
 	struct CTextEventState
 	{
@@ -26,16 +29,16 @@ private:
 	std::list<CTextEventState> m_TextEvent;
 	
 private:
-	void RenderModAPISprite(const CNetObj_ModAPI_Sprite *pPrev, const struct CNetObj_ModAPI_Sprite *pCurrent);
-	void RenderModAPISpriteCharacter(const struct CNetObj_ModAPI_SpriteCharacter *pPrev, const struct CNetObj_ModAPI_SpriteCharacter *pCurrent);
+	void RenderSprite(const CNetObj_TU_Sprite *pPrev, const struct CNetObj_TU_Sprite *pCurrent);
+	void RenderSpriteCharacter(const struct CNetObj_TU_SpriteCharacter *pPrev, const struct CNetObj_TU_SpriteCharacter *pCurrent);
 	
-	void RenderModAPIText(const struct CNetObj_ModAPI_Text *pPrev, const struct CNetObj_ModAPI_Text *pCurrent);
-	void RenderModAPITextCharacter(const struct CNetObj_ModAPI_TextCharacter *pPrev, const struct CNetObj_ModAPI_TextCharacter *pCurrent);
+	void RenderText(const struct CNetObj_TU_Text *pPrev, const struct CNetObj_TU_Text *pCurrent);
+	void RenderTextCharacter(const struct CNetObj_TU_TextCharacter *pPrev, const struct CNetObj_TU_TextCharacter *pCurrent);
 
 	void UpdateEvents(float DeltaTime);
 
 public:
-	CModAPI_Component_Items();
+	CComponent_Items();
 
 	void SetLayer(int Layer);
 	int GetLayer() const;
@@ -43,5 +46,7 @@ public:
 	
 	bool ProcessEvent(int Type, CNetEvent_Common* pEvent);
 };
+
+}
 
 #endif

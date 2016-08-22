@@ -2,7 +2,12 @@
 
 #include <modapi/server/server.h>
 
-CModAPI_Server::CModAPI_Server()
+namespace tu
+{
+
+CServer::CServer()
 {
 	
+}
+
 }

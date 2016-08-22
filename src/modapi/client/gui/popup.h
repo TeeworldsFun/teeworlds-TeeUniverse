@@ -1,5 +1,5 @@
-#ifndef MODAPI_CLIENT_GUI_POPUP_H
-#define MODAPI_CLIENT_GUI_POPUP_H
+#ifndef TU_CLIENT_GUI_POPUP_H
+#define TU_CLIENT_GUI_POPUP_H
 
 #include <base/tl/array.h>
 
@@ -7,7 +7,13 @@
 #include "layout.h"
 #include "button.h"
 
-class CModAPI_ClientGui_Popup : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CPopup : public CWidget
 {
 public:
 	enum
@@ -19,13 +25,13 @@ public:
 protected:
 	int m_ChildWidth;
 	int m_ChildHeight;
-	CModAPI_ClientGui_Widget* m_Child;
+	CWidget* m_Child;
 	bool m_IsClosed;
 
-	CModAPI_ClientGui_Popup(class CModAPI_ClientGui_Config *pConfig, const CModAPI_ClientGui_Rect& CreatorRect, int Width, int Height, int Alignment);
+	CPopup(class CConfig *pConfig, const CRect& CreatorRect, int Width, int Height, int Alignment);
 
 public:
-	virtual ~CModAPI_ClientGui_Popup();
+	virtual ~CPopup();
 	
 	virtual void Update();
 	virtual void Render();
@@ -34,11 +40,15 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnInputEvent();
 	
-	virtual void Add(CModAPI_ClientGui_Widget* pWidget);
+	virtual void Add(CWidget* pWidget);
 	virtual void Clear();
 	
 	virtual void Close();
 	virtual bool IsClosed();
 };
+
+}
+
+}
 
 #endif

@@ -17,12 +17,16 @@
 #include <modapi/client/gui/integer-edit.h>
 #include <modapi/client/gui/text-edit.h>
 #include <modapi/client/skeletonrenderer.h>
+#include <modapi/client/maprenderer.h>
 
 #include <cstddef>
 
 #include "view.h"
+
+namespace tu
+{
 		
-const char* CModAPI_AssetsEditorGui_View::s_CursorToolHints[] = {
+const char* CAssetsEditorGui_View::s_CursorToolHints[] = {
 	"View: move the view (not implemented)",
 	"Translation: move an object",
 	"Horizontal Translation: move an object along his local X axis",
@@ -37,18 +41,18 @@ const char* CModAPI_AssetsEditorGui_View::s_CursorToolHints[] = {
 	"Sprite Creator: create sprite from an image",
 };
 
-const char* CModAPI_AssetsEditorGui_View::s_GizmoHints[] = {
+const char* CAssetsEditorGui_View::s_GizmoHints[] = {
 	"Aim Direction: set the aim direction",
 	"Motion Direction: set the motion direction",
 	"Hook Direction: set the hook direction",
 };
 
-const char* CModAPI_AssetsEditorGui_View::s_HintText[] = {
+const char* CAssetsEditorGui_View::s_HintText[] = {
 	"Show/Hide skeleton bones",
 };
 
-CModAPI_AssetsEditorGui_View::CModAPI_AssetsEditorGui_View(CModAPI_AssetsEditor* pAssetsEditor) :
-	CModAPI_ClientGui_Widget(pAssetsEditor->m_pGuiConfig),
+CAssetsEditorGui_View::CAssetsEditorGui_View(CAssetsEditor* pAssetsEditor) :
+	gui::CWidget(pAssetsEditor->m_pGuiConfig),
 	m_pAssetsEditor(pAssetsEditor),
 	m_StartPointPos(-128.0f, 0.0f),
 	m_EndPointPos(128.0f, 0.0f),
@@ -59,7 +63,7 @@ CModAPI_AssetsEditorGui_View::CModAPI_AssetsEditorGui_View(CModAPI_AssetsEditor*
 	m_CursorTool(CURSORTOOL_MOVE),
 	m_ShowSkeleton(true)
 {	
-	m_pToolbar = new CModAPI_ClientGui_HListLayout(m_pConfig);
+	m_pToolbar = new gui::CHListLayout(m_pConfig);
 	RefreshToolBar();
 	
 	for(int i=0; i<NUM_GIZMOS; i++)
@@ -69,12 +73,12 @@ CModAPI_AssetsEditorGui_View::CModAPI_AssetsEditorGui_View(CModAPI_AssetsEditor*
 	}
 }
 	
-CModAPI_AssetsEditorGui_View::~CModAPI_AssetsEditorGui_View()
+CAssetsEditorGui_View::~CAssetsEditorGui_View()
 {
 	if(m_pToolbar) delete m_pToolbar;
 }
 
-void CModAPI_AssetsEditorGui_View::RefreshToolBar()
+void CAssetsEditorGui_View::RefreshToolBar()
 {
 	m_pToolbar->Clear();
 	
@@ -83,48 +87,48 @@ void CModAPI_AssetsEditorGui_View::RefreshToolBar()
 		m_CursorToolButtons[i] = 0;
 	}
 	
-	CModAPI_ClientGui_Label* pZoomLabel = new CModAPI_ClientGui_Label(m_pConfig, "Zoom:");
-	pZoomLabel->SetRect(CModAPI_ClientGui_Rect(
+	gui::CLabel* pZoomLabel = new gui::CLabel(m_pConfig, "Zoom:");
+	pZoomLabel->SetRect(gui::CRect(
 		0, 0, //Positions will be filled when the toolbar is updated
 		90,
 		pZoomLabel->m_Rect.h
 	));
 	
 	m_pToolbar->Add(pZoomLabel);
-	m_pToolbar->Add(new CModAPI_AssetsEditorGui_View::CZoomSlider(this));
+	m_pToolbar->Add(new CAssetsEditorGui_View::CZoomSlider(this));
 	
 	switch(m_pAssetsEditor->m_ViewedAssetPath.GetType())
 	{
-		case CModAPI_AssetPath::TYPE_SKELETON:
-		case CModAPI_AssetPath::TYPE_SKELETONANIMATION:
-		case CModAPI_AssetPath::TYPE_SKELETONSKIN:
+		case CAssetPath::TYPE_SKELETON:
+		case CAssetPath::TYPE_SKELETONANIMATION:
+		case CAssetPath::TYPE_SKELETONSKIN:
 			m_pToolbar->AddSeparator();
-			m_pToolbar->Add(new CModAPI_ClientGui_Label(m_pConfig, "Show:"));
-			m_pToolbar->Add(new CViewSwitch(this, MODAPI_ASSETSEDITOR_ICON_SKELETON, &m_ShowSkeleton, s_HintText[HINT_SHOW_SKELETON]));
+			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Show:"));
+			m_pToolbar->Add(new CViewSwitch(this, CAssetsEditor::ICON_SKELETON, &m_ShowSkeleton, s_HintText[HINT_SHOW_SKELETON]));
 			break;
 	}
 	
 	m_pToolbar->AddSeparator();
-	m_pToolbar->Add(new CModAPI_ClientGui_Label(m_pConfig, "Tools:"));
+	m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
 	
-	m_CursorToolButtons[CURSORTOOL_MOVE] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_MOVE, CURSORTOOL_MOVE);
+	m_CursorToolButtons[CURSORTOOL_MOVE] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_MOVE, CURSORTOOL_MOVE);
 	m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_MOVE]);
 	
 	switch(m_pAssetsEditor->m_ViewedAssetPath.GetType())
 	{
-		case CModAPI_AssetPath::TYPE_IMAGE:
-			//~ m_CursorToolButtons[CURSORTOOL_SPRITE_CREATOR] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_SPRITE, CURSORTOOL_SPRITE_CREATOR);
+		case CAssetPath::TYPE_IMAGE:
+			//~ m_CursorToolButtons[CURSORTOOL_SPRITE_CREATOR] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_SPRITE, CURSORTOOL_SPRITE_CREATOR);
 			//~ m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_SPRITE_CREATOR]);
 			break;
-		case CModAPI_AssetPath::TYPE_SKELETON:
-		case CModAPI_AssetPath::TYPE_SKELETONANIMATION:
-			m_CursorToolButtons[CURSORTOOL_TRANSLATE] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_TRANSLATE, CURSORTOOL_TRANSLATE);
-			m_CursorToolButtons[CURSORTOOL_TRANSLATE_X] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_TRANSLATE_X, CURSORTOOL_TRANSLATE_X);
-			m_CursorToolButtons[CURSORTOOL_TRANSLATE_Y] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_TRANSLATE_Y, CURSORTOOL_TRANSLATE_Y);
-			m_CursorToolButtons[CURSORTOOL_ROTATE] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_ROTATE, CURSORTOOL_ROTATE);
-			m_CursorToolButtons[CURSORTOOL_SCALE] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_SCALE, CURSORTOOL_SCALE);
-			m_CursorToolButtons[CURSORTOOL_SCALE_X] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_SCALE_X, CURSORTOOL_SCALE_X);
-			m_CursorToolButtons[CURSORTOOL_SCALE_Y] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_SCALE_Y, CURSORTOOL_SCALE_Y);
+		case CAssetPath::TYPE_SKELETON:
+		case CAssetPath::TYPE_SKELETONANIMATION:
+			m_CursorToolButtons[CURSORTOOL_TRANSLATE] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_TRANSLATE, CURSORTOOL_TRANSLATE);
+			m_CursorToolButtons[CURSORTOOL_TRANSLATE_X] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_TRANSLATE_X, CURSORTOOL_TRANSLATE_X);
+			m_CursorToolButtons[CURSORTOOL_TRANSLATE_Y] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_TRANSLATE_Y, CURSORTOOL_TRANSLATE_Y);
+			m_CursorToolButtons[CURSORTOOL_ROTATE] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_ROTATE, CURSORTOOL_ROTATE);
+			m_CursorToolButtons[CURSORTOOL_SCALE] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_SCALE, CURSORTOOL_SCALE);
+			m_CursorToolButtons[CURSORTOOL_SCALE_X] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_SCALE_X, CURSORTOOL_SCALE_X);
+			m_CursorToolButtons[CURSORTOOL_SCALE_Y] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_SCALE_Y, CURSORTOOL_SCALE_Y);
 			m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_TRANSLATE]);
 			m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_TRANSLATE_X]);
 			m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_TRANSLATE_Y]);
@@ -134,11 +138,11 @@ void CModAPI_AssetsEditorGui_View::RefreshToolBar()
 			m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_SCALE_Y]);
 			
 			
-			if(m_pAssetsEditor->m_ViewedAssetPath.GetType() == CModAPI_AssetPath::TYPE_SKELETON)
+			if(m_pAssetsEditor->m_ViewedAssetPath.GetType() == CAssetPath::TYPE_SKELETON)
 			{
-				m_CursorToolButtons[CURSORTOOL_BONE_LENGTH] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_BONE_LENGTH, CURSORTOOL_BONE_LENGTH);
-				m_CursorToolButtons[CURSORTOOL_BONE_ADD] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_BONE_ADD, CURSORTOOL_BONE_ADD);
-				m_CursorToolButtons[CURSORTOOL_BONE_DELETE] = new CModAPI_AssetsEditorGui_View::CCursorToolButton(this, MODAPI_ASSETSEDITOR_ICON_CURSORTOOL_BONE_DELETE, CURSORTOOL_BONE_DELETE);
+				m_CursorToolButtons[CURSORTOOL_BONE_LENGTH] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_BONE_LENGTH, CURSORTOOL_BONE_LENGTH);
+				m_CursorToolButtons[CURSORTOOL_BONE_ADD] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_BONE_ADD, CURSORTOOL_BONE_ADD);
+				m_CursorToolButtons[CURSORTOOL_BONE_DELETE] = new CAssetsEditorGui_View::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_BONE_DELETE, CURSORTOOL_BONE_DELETE);
 				m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_BONE_LENGTH]);
 				m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_BONE_ADD]);
 				m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_BONE_DELETE]);
@@ -149,7 +153,16 @@ void CModAPI_AssetsEditorGui_View::RefreshToolBar()
 	m_pToolbar->Update();
 }
 
-vec2 CModAPI_AssetsEditorGui_View::GetTeePosition()
+vec2 CAssetsEditorGui_View::GetMapPosition()
+{
+	vec2 MapPos;
+	MapPos.x = m_ViewRect.x + m_ViewRect.w/2;
+	MapPos.y = m_ViewRect.y + m_ViewRect.h/2;
+	
+	return MapPos;
+}
+
+vec2 CAssetsEditorGui_View::GetTeePosition()
 {
 	vec2 TeePos;
 	TeePos.x = m_ViewRect.x + m_ViewRect.w/2;
@@ -158,7 +171,7 @@ vec2 CModAPI_AssetsEditorGui_View::GetTeePosition()
 	return TeePos;
 }
 
-vec2 CModAPI_AssetsEditorGui_View::GetAimPosition()
+vec2 CAssetsEditorGui_View::GetAimPosition()
 {
 	float AimDist = min(m_ViewRect.w/2.0f - 20.0f, m_ViewRect.h/2.0f - 20.0f) - 48.0f;
 	vec2 AimPos = GetTeePosition() + m_AimDir * AimDist - vec2(16.0f, 16.0f);
@@ -166,7 +179,7 @@ vec2 CModAPI_AssetsEditorGui_View::GetAimPosition()
 	return AimPos;
 }
 
-vec2 CModAPI_AssetsEditorGui_View::GetMotionPosition()
+vec2 CAssetsEditorGui_View::GetMotionPosition()
 {
 	float MotionDist = min(m_ViewRect.w/2.0f - 20.0f, m_ViewRect.h/2.0f - 20.0f);
 	vec2 MotionPos = GetTeePosition() + m_MotionDir * MotionDist - vec2(16.0f, 16.0f);
@@ -174,9 +187,9 @@ vec2 CModAPI_AssetsEditorGui_View::GetMotionPosition()
 	return MotionPos;
 }
 
-void CModAPI_AssetsEditorGui_View::Update()
+void CAssetsEditorGui_View::Update()
 {
-	m_pToolbar->SetRect(CModAPI_ClientGui_Rect(
+	m_pToolbar->SetRect(gui::CRect(
 		m_Rect.x,
 		m_Rect.y,
 		m_Rect.w,
@@ -191,9 +204,9 @@ void CModAPI_AssetsEditorGui_View::Update()
 	m_pToolbar->Update();
 }
 
-void CModAPI_AssetsEditorGui_View::RenderImage()
+void CAssetsEditorGui_View::RenderImage()
 {
-	CModAPI_Asset_Image* pImage = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Image>(m_pAssetsEditor->m_ViewedAssetPath);
+	CAsset_Image* pImage = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Image>(m_pAssetsEditor->m_ViewedAssetPath);
 	if(!pImage)
 		return;
 		
@@ -224,12 +237,12 @@ void CModAPI_AssetsEditorGui_View::RenderImage()
 	Graphics()->TextureClear();
 	Graphics()->QuadsBegin();
 	float alpha = 0.75f;
-	for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<CModAPI_Asset_Sprite>(CModAPI_AssetPath::SRC_INTERNAL); i++)
+	for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<CAsset_Sprite>(CAssetPath::SRC_INTERNAL); i++)
 	{
-		CModAPI_Asset_Sprite* pSprite = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Sprite>(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_SPRITE, i));
+		CAsset_Sprite* pSprite = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Sprite>(CAssetPath::Internal(CAssetPath::TYPE_SPRITE, i));
 		if(pSprite->m_ImagePath == m_pAssetsEditor->m_ViewedAssetPath)
 		{
-			if(m_pAssetsEditor->IsEditedAsset(CModAPI_AssetPath::Internal(CModAPI_AssetPath::TYPE_SPRITE, i)))
+			if(m_pAssetsEditor->IsEditedAsset(CAssetPath::Internal(CAssetPath::TYPE_SPRITE, i)))
 				Graphics()->SetColor(alpha, alpha*0.5f, alpha*0.5f, alpha);
 			else
 				Graphics()->SetColor(alpha, alpha, alpha*0.5f, alpha);
@@ -238,12 +251,12 @@ void CModAPI_AssetsEditorGui_View::RenderImage()
 			Graphics()->QuadsDrawTL(&QuadItem, 1);
 		}
 	}
-	for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<CModAPI_Asset_Sprite>(CModAPI_AssetPath::SRC_EXTERNAL); i++)
+	for(int i=0; i<m_pAssetsEditor->AssetManager()->GetNumAssets<CAsset_Sprite>(CAssetPath::SRC_EXTERNAL); i++)
 	{
-		CModAPI_Asset_Sprite* pSprite = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Sprite>(CModAPI_AssetPath::External(CModAPI_AssetPath::TYPE_SPRITE, i));
+		CAsset_Sprite* pSprite = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Sprite>(CAssetPath::External(CAssetPath::TYPE_SPRITE, i));
 		if(pSprite->m_ImagePath == m_pAssetsEditor->m_ViewedAssetPath)
 		{
-			if(m_pAssetsEditor->IsEditedAsset(CModAPI_AssetPath::External(CModAPI_AssetPath::TYPE_SPRITE, i)))
+			if(m_pAssetsEditor->IsEditedAsset(CAssetPath::External(CAssetPath::TYPE_SPRITE, i)))
 				Graphics()->SetColor(alpha, alpha*0.5f, alpha*0.5f, alpha);
 			else
 				Graphics()->SetColor(alpha, alpha, alpha*0.5f, alpha);
@@ -255,7 +268,7 @@ void CModAPI_AssetsEditorGui_View::RenderImage()
 	Graphics()->QuadsEnd();
 	
 	//Draw image
-	m_pAssetsEditor->ModAPIGraphics()->TextureSet(m_pAssetsEditor->m_ViewedAssetPath);
+	m_pAssetsEditor->TUGraphics()->TextureSet(m_pAssetsEditor->m_ViewedAssetPath);
 	
 	Graphics()->QuadsBegin();
 	IGraphics::CQuadItem QuadItem(x0, y0, SizeX, SizeY);
@@ -283,13 +296,13 @@ void CModAPI_AssetsEditorGui_View::RenderImage()
 	Graphics()->LinesEnd();
 }
 
-void CModAPI_AssetsEditorGui_View::RenderSprite()
+void CAssetsEditorGui_View::RenderSprite()
 {
-	CModAPI_Asset_Sprite* pSprite = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Sprite>(m_pAssetsEditor->m_ViewedAssetPath);
+	CAsset_Sprite* pSprite = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Sprite>(m_pAssetsEditor->m_ViewedAssetPath);
 	if(!pSprite)
 		return;
 	
-	CModAPI_Asset_Image* pImage = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Image>(pSprite->m_ImagePath);
+	CAsset_Image* pImage = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Image>(pSprite->m_ImagePath);
 	if(!pImage)
 		return;
 	
@@ -300,49 +313,49 @@ void CModAPI_AssetsEditorGui_View::RenderSprite()
 	Pos.x = m_ViewRect.x + m_ViewRect.w/2;
 	Pos.y = m_ViewRect.y + m_ViewRect.h/2;
 	
-	m_pAssetsEditor->ModAPIGraphics()->DrawSprite(m_pAssetsEditor->m_ViewedAssetPath, Pos, SpriteScaling, 0.0f, 0x0);
+	m_pAssetsEditor->TUGraphics()->DrawSprite(m_pAssetsEditor->m_ViewedAssetPath, Pos, SpriteScaling, 0.0f, 0x0);
 }
 
-void CModAPI_AssetsEditorGui_View::RenderSkeleton()
+void CAssetsEditorGui_View::RenderSkeleton()
 {
-	CModAPI_Asset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(m_pAssetsEditor->m_ViewedAssetPath);
+	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(m_pAssetsEditor->m_ViewedAssetPath);
 	if(!pSkeleton)
 		return;
 		
-	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-	SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+	CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+	SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 	SkeletonRenderer.Finalize();
 	SkeletonRenderer.RenderSkins(GetTeePosition(), m_Zoom);
 	
 	if(m_ShowSkeleton)
 	{
-		CModAPI_Asset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pSkeleton->m_ParentPath);
+		CAsset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pSkeleton->m_ParentPath);
 		if(pParentSkeleton)
 		{
 			for(int i=0; i<pParentSkeleton->m_Bones.size(); i++)
 			{
 				if(m_CursorTool == CURSORTOOL_BONE_ADD)
-					SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CModAPI_Asset_Skeleton::CSubPath::Bone(i));
+					SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
 				else
-					SkeletonRenderer.RenderBoneOutline(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CModAPI_Asset_Skeleton::CSubPath::Bone(i));
+					SkeletonRenderer.RenderBoneOutline(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
 			}
 		}
 		
 		for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 		{
-			SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_Skeleton::CSubPath::Bone(i));
+			SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, m_pAssetsEditor->m_ViewedAssetPath, CAsset_Skeleton::CSubPath::Bone(i));
 		}
 	}
 }
 
-void CModAPI_AssetsEditorGui_View::RenderSkeletonSkin()
+void CAssetsEditorGui_View::RenderSkeletonSkin()
 {
-	CModAPI_Asset_SkeletonSkin* pSkeletonSkin = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_SkeletonSkin>(m_pAssetsEditor->m_ViewedAssetPath);
+	CAsset_SkeletonSkin* pSkeletonSkin = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_SkeletonSkin>(m_pAssetsEditor->m_ViewedAssetPath);
 	if(!pSkeletonSkin)
 		return;
 	
-	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-	SkeletonRenderer.AddSkeletonWithParents(pSkeletonSkin->m_SkeletonPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_ONLYPARENT);
+	CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+	SkeletonRenderer.AddSkeletonWithParents(pSkeletonSkin->m_SkeletonPath, CSkeletonRenderer::ADDDEFAULTSKIN_ONLYPARENT);
 	SkeletonRenderer.Finalize();
 	SkeletonRenderer.AddSkin(m_pAssetsEditor->m_ViewedAssetPath, vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	SkeletonRenderer.RenderSkins(GetTeePosition(), m_Zoom);
@@ -352,17 +365,17 @@ void CModAPI_AssetsEditorGui_View::RenderSkeletonSkin()
 	}
 }
 
-void CModAPI_AssetsEditorGui_View::RenderSkeletonAnimation()
+void CAssetsEditorGui_View::RenderSkeletonAnimation()
 {
-	CModAPI_Asset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_SkeletonAnimation>(m_pAssetsEditor->m_ViewedAssetPath);
+	CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_ViewedAssetPath);
 	if(!pSkeletonAnimation)
 		return;
 		
-	CModAPI_Asset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
+	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
 	if(!pSkeleton)
 		return;
 	
-	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+	CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
 	
 	if(m_GizmoEnabled[GIZMO_AIM])
 		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
@@ -373,46 +386,46 @@ void CModAPI_AssetsEditorGui_View::RenderSkeletonAnimation()
 	if(m_GizmoEnabled[GIZMO_HOOK])
 		SkeletonRenderer.SetHook(m_GizmoPos[GIZMO_HOOK]);
 	
-	SkeletonRenderer.AddSkeletonWithParents(pSkeletonAnimation->m_SkeletonPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+	SkeletonRenderer.AddSkeletonWithParents(pSkeletonAnimation->m_SkeletonPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 	SkeletonRenderer.ApplyAnimation(m_pAssetsEditor->m_ViewedAssetPath, m_pAssetsEditor->GetTime());
 	SkeletonRenderer.Finalize();
 	SkeletonRenderer.RenderSkins(GetTeePosition(), m_Zoom);
 	
 	
 	float Time = m_pAssetsEditor->GetTime();
-	int Frame = static_cast<int>(round(Time*static_cast<float>(MODAPI_SKELETONANIMATION_TIMESTEP)));
+	int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
 	
 	if(m_ShowSkeleton)
 	{
-		CModAPI_Asset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pSkeleton->m_ParentPath);
+		CAsset_Skeleton* pParentSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pSkeleton->m_ParentPath);
 		if(pParentSkeleton)
 		{
 			for(int i=0; i<pParentSkeleton->m_Bones.size(); i++)
 			{
-				if(!pSkeletonAnimation->GetBoneKeyFramePath(CModAPI_Asset_Skeleton::CBonePath::Parent(i), Frame).IsNull())
-					SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CModAPI_Asset_Skeleton::CSubPath::Bone(i));
+				if(!pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Parent(i), Frame).IsNull())
+					SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
 				else
-					SkeletonRenderer.RenderBoneOutline(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CModAPI_Asset_Skeleton::CSubPath::Bone(i));
+					SkeletonRenderer.RenderBoneOutline(GetTeePosition(), m_Zoom, pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
 			}
 		}
 		
 		for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 		{
-			if(!pSkeletonAnimation->GetBoneKeyFramePath(CModAPI_Asset_Skeleton::CBonePath::Local(i), Frame).IsNull())
-				SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, pSkeletonAnimation->m_SkeletonPath, CModAPI_Asset_Skeleton::CSubPath::Bone(i));
+			if(!pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Local(i), Frame).IsNull())
+				SkeletonRenderer.RenderBone(GetTeePosition(), m_Zoom, pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::CSubPath::Bone(i));
 			else
-				SkeletonRenderer.RenderBoneOutline(GetTeePosition(), m_Zoom, pSkeletonAnimation->m_SkeletonPath, CModAPI_Asset_Skeleton::CSubPath::Bone(i));
+				SkeletonRenderer.RenderBoneOutline(GetTeePosition(), m_Zoom, pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::CSubPath::Bone(i));
 		}
 	}
 }
 
-void CModAPI_AssetsEditorGui_View::RenderCharacter()
+void CAssetsEditorGui_View::RenderCharacter()
 {
-	CModAPI_Asset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Character>(m_pAssetsEditor->m_ViewedAssetPath);
+	CAsset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Character>(m_pAssetsEditor->m_ViewedAssetPath);
 	if(!pCharacter)
 		return;
 		
-	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+	CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
 	
 	if(m_GizmoEnabled[GIZMO_AIM])
 		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
@@ -423,13 +436,13 @@ void CModAPI_AssetsEditorGui_View::RenderCharacter()
 	if(m_GizmoEnabled[GIZMO_HOOK])
 		SkeletonRenderer.SetHook(m_GizmoPos[GIZMO_HOOK]);
 	
-	CModAPI_Asset_CharacterPart* pCharacterPart;
+	CAsset_CharacterPart* pCharacterPart;
 	for(int i=0; i<pCharacter->m_Parts.size(); i++)
 	{
 		if(!pCharacter->m_Parts[i].m_DefaultPath.IsNull())
 		{
-			CModAPI_AssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
-			CModAPI_Asset_CharacterPart* pCharacterPart = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_CharacterPart>(DefaultCharacterPartPath);
+			CAssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
+			CAsset_CharacterPart* pCharacterPart = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_CharacterPart>(DefaultCharacterPartPath);
 
 			if(pCharacterPart)
 			{
@@ -444,22 +457,22 @@ void CModAPI_AssetsEditorGui_View::RenderCharacter()
 	SkeletonRenderer.RenderSkins(GetTeePosition(), m_Zoom);	
 }
 
-void CModAPI_AssetsEditorGui_View::RenderCharacterPart()
+void CAssetsEditorGui_View::RenderCharacterPart()
 {
 	
 }
 
-void CModAPI_AssetsEditorGui_View::RenderWeapon()
+void CAssetsEditorGui_View::RenderWeapon()
 {
-	CModAPI_Asset_Weapon* pWeapon = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Weapon>(m_pAssetsEditor->m_ViewedAssetPath);
+	CAsset_Weapon* pWeapon = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Weapon>(m_pAssetsEditor->m_ViewedAssetPath);
 	if(!pWeapon)
 		return;
 		
-	CModAPI_Asset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Character>(pWeapon->m_CharacterPath);
+	CAsset_Character* pCharacter = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Character>(pWeapon->m_CharacterPath);
 	if(!pCharacter)
 		return;
 		
-	CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+	CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
 	
 	if(m_GizmoEnabled[GIZMO_AIM])
 		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
@@ -470,13 +483,13 @@ void CModAPI_AssetsEditorGui_View::RenderWeapon()
 	if(m_GizmoEnabled[GIZMO_HOOK])
 		SkeletonRenderer.SetHook(m_GizmoPos[GIZMO_HOOK]);
 	
-	CModAPI_Asset_CharacterPart* pCharacterPart;
+	CAsset_CharacterPart* pCharacterPart;
 	for(int i=0; i<pCharacter->m_Parts.size(); i++)
 	{
 		if(!pCharacter->m_Parts[i].m_DefaultPath.IsNull())
 		{
-			CModAPI_AssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
-			CModAPI_Asset_CharacterPart* pCharacterPart = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_CharacterPart>(DefaultCharacterPartPath);
+			CAssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
+			CAsset_CharacterPart* pCharacterPart = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_CharacterPart>(DefaultCharacterPartPath);
 
 			if(pCharacterPart)
 			{
@@ -495,7 +508,67 @@ void CModAPI_AssetsEditorGui_View::RenderWeapon()
 	SkeletonRenderer.RenderSkins(GetTeePosition(), m_Zoom);	
 }
 
-void CModAPI_AssetsEditorGui_View::RenderGizmos()
+void CAssetsEditorGui_View::RenderMap()
+{
+	CMapRenderer MapRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+	
+	//Render map
+	MapRenderer.RenderSource(CAssetPath::SRC_MAP);
+	
+	//Render additional informations
+	switch(m_pAssetsEditor->m_ViewedAssetPath.GetType())
+	{
+		case CAssetPath::TYPE_MAPLAYERTILES:
+		{
+			CAsset_MapLayerTiles* pLayer = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_MapLayerTiles>(m_pAssetsEditor->m_ViewedAssetPath);
+			if(pLayer)
+			{
+				Graphics()->TextureClear();
+				Graphics()->LinesBegin();
+				Graphics()->SetColor(0.5f, 0.5f, 0.5f, 0.5f);
+				
+				vec2 MapPos = GetMapPosition();
+				
+				float xMap = pLayer->m_Width*m_Zoom*32.0f;
+				float yMap = pLayer->m_Height*m_Zoom*32.0f;
+				
+				float x0 = MapPos.x - xMap/2.0f;
+				float x1 = MapPos.x + 3.0f*xMap/2.0f;
+				float y0 = MapPos.y - yMap/2.0f;
+				float y1 = MapPos.y + 3.0f*yMap/2.0f;
+				
+				{
+					IGraphics::CLineItem Lines[4];
+					Lines[0] = IGraphics::CLineItem(x0, y0, x1, y0);
+					Lines[1] = IGraphics::CLineItem(x1, y0, x1, y1);
+					Lines[2] = IGraphics::CLineItem(x1, y1, x0, y1);
+					Lines[3] = IGraphics::CLineItem(x0, y1, x0, y0);
+					
+					Graphics()->LinesDraw(Lines, 4);
+				}
+				
+				Graphics()->SetColor(0.25f, 0.25f, 0.25f, 0.25f);
+				for(int j=0; j<=pLayer->m_Height; j++)
+				{
+					float y = y0+(y1-y0)*(static_cast<float>(j)/pLayer->m_Height);
+					IGraphics::CLineItem Line(x0, y, x1, y);
+					Graphics()->LinesDraw(&Line, 1);
+				}
+				for(int i=0; i<pLayer->m_Width; i++)
+				{
+					float x = x0+(x1-x0)*(static_cast<float>(i)/pLayer->m_Width);
+					IGraphics::CLineItem Line(x, y0, x, y1);
+					Graphics()->LinesDraw(&Line, 1);
+				}
+				
+				Graphics()->LinesEnd();
+			}
+			break;
+		}
+	}
+}
+
+void CAssetsEditorGui_View::RenderGizmos()
 {
 	vec2 TeePos = GetTeePosition();
 		
@@ -558,7 +631,7 @@ void CModAPI_AssetsEditorGui_View::RenderGizmos()
 	Graphics()->QuadsEnd();
 }
 
-void CModAPI_AssetsEditorGui_View::Render()
+void CAssetsEditorGui_View::Render()
 {
 	CUIRect rect;
 	rect.x = m_ViewRect.x;
@@ -572,33 +645,38 @@ void CModAPI_AssetsEditorGui_View::Render()
 	Graphics()->ClipEnable(m_ViewRect.x, m_ViewRect.y, m_ViewRect.w, m_ViewRect.h);
 	switch(m_pAssetsEditor->m_ViewedAssetPath.GetType())
 	{
-		case CModAPI_AssetPath::TYPE_IMAGE:
+		case CAssetPath::TYPE_IMAGE:
 			RenderImage();
 			break;
-		case CModAPI_AssetPath::TYPE_SPRITE:
+		case CAssetPath::TYPE_SPRITE:
 			RenderSprite();
 			break;
-		case CModAPI_AssetPath::TYPE_SKELETON:
+		case CAssetPath::TYPE_SKELETON:
 			RenderSkeleton();
 			break;
-		case CModAPI_AssetPath::TYPE_SKELETONSKIN:
+		case CAssetPath::TYPE_SKELETONSKIN:
 			RenderSkeletonSkin();
 			break;
-		case CModAPI_AssetPath::TYPE_SKELETONANIMATION:
+		case CAssetPath::TYPE_SKELETONANIMATION:
 			RenderSkeletonAnimation();
 			RenderGizmos();
 			break;
-		case CModAPI_AssetPath::TYPE_CHARACTER:
+		case CAssetPath::TYPE_CHARACTER:
 			RenderCharacter();
 			RenderGizmos();
 			break;
-		case CModAPI_AssetPath::TYPE_CHARACTERPART:
+		case CAssetPath::TYPE_CHARACTERPART:
 			RenderCharacterPart();
 			RenderGizmos();
 			break;
-		case CModAPI_AssetPath::TYPE_WEAPON:
+		case CAssetPath::TYPE_WEAPON:
 			RenderWeapon();
 			RenderGizmos();
+			break;
+		case CAssetPath::TYPE_MAPGROUP:
+		case CAssetPath::TYPE_MAPLAYERTILES:
+		case CAssetPath::TYPE_MAPLAYERQUADS:
+			RenderMap();
 			break;
 	}
 	
@@ -615,16 +693,16 @@ void CModAPI_AssetsEditorGui_View::Render()
 		if(m_CursorToolButtons[i])
 		{
 			if(m_CursorTool == i)
-				m_CursorToolButtons[i]->SetButtonStyle(MODAPI_CLIENTGUI_BUTTONSTYLE_HIGHLIGHT);
+				m_CursorToolButtons[i]->SetButtonStyle(gui::BUTTONSTYLE_HIGHLIGHT);
 			else
-				m_CursorToolButtons[i]->SetButtonStyle(MODAPI_CLIENTGUI_BUTTONSTYLE_NORMAL);
+				m_CursorToolButtons[i]->SetButtonStyle(gui::BUTTONSTYLE_NORMAL);
 		}
 	}
 	
 	m_pToolbar->Render();
 }
 
-bool CModAPI_AssetsEditorGui_View::IsOnGizmo(int GizmoId, int X, int Y)
+bool CAssetsEditorGui_View::IsOnGizmo(int GizmoId, int X, int Y)
 {
 	float Radius = min(m_ViewRect.w/2.0f - 20.0f, m_ViewRect.h/2.0f - 20.0f) - 48.0f;
 	if(m_GizmoEnabled[GizmoId] == 0)
@@ -635,7 +713,7 @@ bool CModAPI_AssetsEditorGui_View::IsOnGizmo(int GizmoId, int X, int Y)
 	return (length(GizmoPos - vec2(X, Y)) < 32.0f);
 }
 
-void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
+void CAssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 {
 	if(m_ViewRect.IsInside(X, Y))
 	{
@@ -643,14 +721,14 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 		{
 			switch(m_pAssetsEditor->m_ViewedAssetPath.GetType())
 			{
-				case CModAPI_AssetPath::TYPE_IMAGE:
+				case CAssetPath::TYPE_IMAGE:
 				{
 					
 					break;
 				}
-				case CModAPI_AssetPath::TYPE_SKELETON:
+				case CAssetPath::TYPE_SKELETON:
 				{
-					CModAPI_Asset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(m_pAssetsEditor->m_ViewedAssetPath);
+					CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(m_pAssetsEditor->m_ViewedAssetPath);
 					if(!pSkeleton)
 						return;
 						
@@ -665,12 +743,12 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 						case CURSORTOOL_SCALE_Y:
 						case CURSORTOOL_BONE_LENGTH:
 						{
-							CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-							SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+							CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+							SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 							SkeletonRenderer.Finalize();
 							
-							CModAPI_AssetPath SkeletonPath;
-							CModAPI_Asset_Skeleton::CSubPath BonePath;
+							CAssetPath SkeletonPath;
+							CAsset_Skeleton::CSubPath BonePath;
 							if(SkeletonRenderer.BonePicking(GetTeePosition(), m_Zoom, vec2(X, Y), SkeletonPath, BonePath) && SkeletonPath == m_pAssetsEditor->m_ViewedAssetPath)
 							{
 								m_DragType = DRAGTYPE_CURSORTOOL;
@@ -684,17 +762,17 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 						}
 						case CURSORTOOL_BONE_ADD:
 						{
-							CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-							SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+							CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+							SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 							SkeletonRenderer.Finalize();
 							
-							CModAPI_AssetPath SkeletonPath;
-							CModAPI_Asset_Skeleton::CSubPath BonePath;
+							CAssetPath SkeletonPath;
+							CAsset_Skeleton::CSubPath BonePath;
 							if(SkeletonRenderer.BonePicking(GetTeePosition(), m_Zoom, vec2(X, Y), SkeletonPath, BonePath))
 							{
 								if(SkeletonPath == m_pAssetsEditor->m_ViewedAssetPath || SkeletonPath == pSkeleton->m_ParentPath)
 								{
-									CModAPI_Asset_Skeleton::CSubPath NewBonePath = m_pAssetsEditor->AssetManager()->AddSubItem(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_Skeleton::SUBITEM_BONE);
+									CAsset_Skeleton::CSubPath NewBonePath = m_pAssetsEditor->AssetManager()->AddSubItem(m_pAssetsEditor->m_ViewedAssetPath, CAsset_Skeleton::SUBITEM_BONE);
 									if(!NewBonePath.IsNull())
 									{
 										m_CursorPivos = vec2(X, Y);
@@ -704,15 +782,15 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 										m_SelectedAsset = m_pAssetsEditor->m_ViewedAssetPath;
 										m_SelectedBone = NewBonePath;
 										
-										CModAPI_Asset_Skeleton::CBonePath ParentPath;
+										CAsset_Skeleton::CBonePath ParentPath;
 										if(SkeletonPath == pSkeleton->m_ParentPath)
-											ParentPath = CModAPI_Asset_Skeleton::CBonePath::Parent(BonePath.GetId());
+											ParentPath = CAsset_Skeleton::CBonePath::Parent(BonePath.GetId());
 										else
-											ParentPath = CModAPI_Asset_Skeleton::CBonePath::Local(BonePath.GetId());
+											ParentPath = CAsset_Skeleton::CBonePath::Local(BonePath.GetId());
 										
-										m_pAssetsEditor->AssetManager()->SetAssetValue<CModAPI_Asset_Skeleton::CBonePath>(
+										m_pAssetsEditor->AssetManager()->SetAssetValue<CAsset_Skeleton::CBonePath>(
 											m_SelectedAsset,
-											CModAPI_Asset_Skeleton::BONE_PARENT,
+											CAsset_Skeleton::BONE_PARENT,
 											m_SelectedBone.ConvertToInteger(),
 											ParentPath);
 										
@@ -722,7 +800,7 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 							}
 							else
 							{
-								CModAPI_Asset_Skeleton::CSubPath NewBonePath = m_pAssetsEditor->AssetManager()->AddSubItem(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_Skeleton::SUBITEM_BONE);
+								CAsset_Skeleton::CSubPath NewBonePath = m_pAssetsEditor->AssetManager()->AddSubItem(m_pAssetsEditor->m_ViewedAssetPath, CAsset_Skeleton::SUBITEM_BONE);
 								if(!NewBonePath.IsNull())
 								{
 									m_CursorPivos = vec2(X, Y);
@@ -732,16 +810,16 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 									m_SelectedAsset = m_pAssetsEditor->m_ViewedAssetPath;
 									m_SelectedBone = NewBonePath;
 									
-									CModAPI_Asset_Skeleton::CBonePath ParentPath;
+									CAsset_Skeleton::CBonePath ParentPath;
 									if(SkeletonPath == pSkeleton->m_ParentPath)
-										ParentPath = CModAPI_Asset_Skeleton::CBonePath::Parent(BonePath.GetId());
+										ParentPath = CAsset_Skeleton::CBonePath::Parent(BonePath.GetId());
 									else
-										ParentPath = CModAPI_Asset_Skeleton::CBonePath::Local(BonePath.GetId());
+										ParentPath = CAsset_Skeleton::CBonePath::Local(BonePath.GetId());
 									
-									m_pAssetsEditor->AssetManager()->SetAssetValue<CModAPI_Asset_Skeleton::CBonePath>(
+									m_pAssetsEditor->AssetManager()->SetAssetValue<CAsset_Skeleton::CBonePath>(
 										m_SelectedAsset,
-										CModAPI_Asset_Skeleton::BONE_PARENT,
-										CModAPI_Asset_Skeleton::CBonePath::Null().ConvertToInteger(),
+										CAsset_Skeleton::BONE_PARENT,
+										CAsset_Skeleton::CBonePath::Null().ConvertToInteger(),
 										ParentPath);
 									
 									m_pAssetsEditor->RefreshAssetEditor();
@@ -751,12 +829,12 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 						}
 						case CURSORTOOL_BONE_DELETE:
 						{
-							CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-							SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+							CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+							SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 							SkeletonRenderer.Finalize();
 							
-							CModAPI_AssetPath SkeletonPath;
-							CModAPI_Asset_Skeleton::CSubPath BonePath;
+							CAssetPath SkeletonPath;
+							CAsset_Skeleton::CSubPath BonePath;
 							if(SkeletonRenderer.BonePicking(GetTeePosition(), m_Zoom, vec2(X, Y), SkeletonPath, BonePath) && SkeletonPath == m_pAssetsEditor->m_ViewedAssetPath)
 							{
 								m_pAssetsEditor->AssetManager()->DeleteSubItem(m_pAssetsEditor->m_ViewedAssetPath, BonePath.ConvertToInteger());
@@ -767,7 +845,7 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 					}
 					break;
 				}
-				case CModAPI_AssetPath::TYPE_SKELETONANIMATION:
+				case CAssetPath::TYPE_SKELETONANIMATION:
 				{
 					//Check gizmo first
 					int GizmoFound = -1;
@@ -787,11 +865,11 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 					}
 					else
 					{				
-						CModAPI_Asset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_SkeletonAnimation>(m_pAssetsEditor->m_ViewedAssetPath);
+						CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_ViewedAssetPath);
 						if(!pSkeletonAnimation)
 							return;
 							
-						CModAPI_Asset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
+						CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
 						if(!pSkeleton)
 							return;
 							
@@ -805,13 +883,13 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 							case CURSORTOOL_SCALE_X:
 							case CURSORTOOL_SCALE_Y:
 							{
-								CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-								SkeletonRenderer.AddSkeletonWithParents(pSkeletonAnimation->m_SkeletonPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+								CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+								SkeletonRenderer.AddSkeletonWithParents(pSkeletonAnimation->m_SkeletonPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 								SkeletonRenderer.ApplyAnimation(m_pAssetsEditor->m_ViewedAssetPath, m_pAssetsEditor->GetTime());
 								SkeletonRenderer.Finalize();
 								
-								CModAPI_AssetPath SkeletonPath;
-								CModAPI_Asset_Skeleton::CSubPath BonePath;
+								CAssetPath SkeletonPath;
+								CAsset_Skeleton::CSubPath BonePath;
 								if(SkeletonRenderer.BonePicking(GetTeePosition(), m_Zoom, vec2(X, Y), SkeletonPath, BonePath))
 								{
 									m_DragType = DRAGTYPE_CURSORTOOL;
@@ -826,9 +904,9 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 						}
 					}
 				}
-				case CModAPI_AssetPath::TYPE_CHARACTER:
-				case CModAPI_AssetPath::TYPE_CHARACTERPART:
-				case CModAPI_AssetPath::TYPE_WEAPON:
+				case CAssetPath::TYPE_CHARACTER:
+				case CAssetPath::TYPE_CHARACTERPART:
+				case CAssetPath::TYPE_WEAPON:
 				{
 					//Check gizmo first
 					int GizmoFound = -1;
@@ -856,7 +934,7 @@ void CModAPI_AssetsEditorGui_View::OnButtonClick(int X, int Y, int Button)
 	}
 }
 
-void CModAPI_AssetsEditorGui_View::OnButtonRelease(int Button)
+void CAssetsEditorGui_View::OnButtonRelease(int Button)
 {
 	if(Button == KEY_MOUSE_1 && m_DragType != DRAGTYPE_TILT)
 	{
@@ -866,7 +944,7 @@ void CModAPI_AssetsEditorGui_View::OnButtonRelease(int Button)
 	m_pToolbar->OnButtonRelease(Button);
 }
 
-void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CAssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_DragType == DRAGTYPE_GIZMO)
 	{
@@ -888,12 +966,12 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 		
 		switch(m_pAssetsEditor->m_ViewedAssetPath.GetType())
 		{
-			case CModAPI_AssetPath::TYPE_SKELETON:
+			case CAssetPath::TYPE_SKELETON:
 			{
 				vec2 Origin, AxisX, AxisY;
 						
-				CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-				SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+				CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+				SkeletonRenderer.AddSkeletonWithParents(m_pAssetsEditor->m_ViewedAssetPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 				SkeletonRenderer.Finalize();
 				
 				switch(m_CursorTool)
@@ -906,16 +984,16 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 						{
 							if(m_CursorTool != CURSORTOOL_TRANSLATE_Y)
 							{
-								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_TRANSLATION_X, m_SelectedBone.ConvertToInteger(), 0.0f);
+								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_X, m_SelectedBone.ConvertToInteger(), 0.0f);
 								TranslationX += dot(AxisX, vec2(RelX, RelY));
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_TRANSLATION_X, m_SelectedBone.ConvertToInteger(), TranslationX);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_X, m_SelectedBone.ConvertToInteger(), TranslationX);
 							}
 							
 							if(m_CursorTool != CURSORTOOL_TRANSLATE_X)
 							{
-								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_TRANSLATION_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
+								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
 								TranslationY += dot(AxisY, vec2(RelX, RelY));
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_TRANSLATION_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
 							}
 						}
 						break;					
@@ -924,13 +1002,13 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 					{
 						if(SkeletonRenderer.GetParentAxis(GetTeePosition(), m_Zoom, m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
 						{
-							float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), 0.0f);
-							float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
+							float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), 0.0f);
+							float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
 							float Translation =  (length(m_CursorToolPosition - m_CursorPivos) - length(m_CursorToolLastPosition - m_CursorPivos))/10.0f;
 							TranslationX += Translation;
 							TranslationY += Translation;
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), TranslationX);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), TranslationX);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
 						}
 						break;					
 					}
@@ -941,16 +1019,16 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 						{
 							if(m_CursorTool != CURSORTOOL_SCALE_Y)
 							{
-								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), 0.0f);
+								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), 0.0f);
 								TranslationX += dot(AxisX, vec2(RelX, RelY))/5.0f;
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), TranslationX);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), TranslationX);
 							}
 							
 							if(m_CursorTool != CURSORTOOL_SCALE_X)
 							{
-								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
+								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
 								TranslationY += dot(AxisY, vec2(RelX, RelY))/5.0f;
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
 							}
 						}
 						break;					
@@ -959,9 +1037,9 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 					{
 						if(SkeletonRenderer.GetLocalAxis(GetTeePosition(), m_Zoom, m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
 						{
-							float Angle = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), 0.0f);
+							float Angle = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), 0.0f);
 							Angle += angle(m_CursorToolLastPosition - Origin, m_CursorToolPosition - Origin);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
 						}
 						break;				
 					}
@@ -969,12 +1047,12 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 					{
 						if(SkeletonRenderer.GetLocalAxis(GetTeePosition(), m_Zoom, m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
 						{
-							float Angle = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), 0.0f);
-							float Length = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), 32.0f);
+							float Angle = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), 0.0f);
+							float Length = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), 32.0f);
 							Angle += angle(m_CursorToolLastPosition - Origin, m_CursorToolPosition - Origin);
 							Length += dot(AxisX, vec2(RelX, RelY));
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), Length);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), Length);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
 						}
 						break;					
 					}
@@ -986,42 +1064,42 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 							float LengthX = dot(AxisX, RelPos);
 							float LengthY = dot(AxisY, RelPos);
 							float Length = sqrt(LengthX*LengthX + LengthY*LengthY);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), Length);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), Length);
 							float Angle = angle(AxisX, RelPos);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
 						}
 						vec2 OriginParent, AxisXParent, AxisYParent;
 						if(SkeletonRenderer.GetParentAxis(GetTeePosition(), m_Zoom, m_SelectedAsset, m_SelectedBone, OriginParent, AxisXParent, AxisYParent))
 						{
 							float Angle = angle(AxisXParent, m_CursorToolPosition - Origin);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CModAPI_Asset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
 						}
 						break;					
 					}
 				}
 				break;
 			}
-			case CModAPI_AssetPath::TYPE_SKELETONANIMATION:
+			case CAssetPath::TYPE_SKELETONANIMATION:
 			{
-				CModAPI_Asset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_SkeletonAnimation>(m_pAssetsEditor->m_ViewedAssetPath);
+				CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_ViewedAssetPath);
 				if(!pSkeletonAnimation)
 					return;
 				
 				float Time = m_pAssetsEditor->GetTime();
-				int Frame = static_cast<int>(round(Time*static_cast<float>(MODAPI_SKELETONANIMATION_TIMESTEP)));
+				int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
 				int BoneId = m_SelectedBone.GetId();
-				CModAPI_Asset_SkeletonAnimation::CSubPath FramePath = pSkeletonAnimation->GetBoneKeyFramePath(CModAPI_Asset_Skeleton::CBonePath::Local(BoneId), Frame);
+				CAsset_SkeletonAnimation::CSubPath FramePath = pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Local(BoneId), Frame);
 				if(FramePath.IsNull())
 					return;
 				
-				CModAPI_Asset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CModAPI_Asset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
+				CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
 				if(!pSkeleton)
 					return;
 					
 				vec2 Origin, AxisX, AxisY;
 						
-				CModAPI_SkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
-				SkeletonRenderer.AddSkeletonWithParents(pSkeletonAnimation->m_SkeletonPath, CModAPI_SkeletonRenderer::ADDDEFAULTSKIN_YES);
+				CSkeletonRenderer SkeletonRenderer(Graphics(), m_pAssetsEditor->AssetManager());
+				SkeletonRenderer.AddSkeletonWithParents(pSkeletonAnimation->m_SkeletonPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 				SkeletonRenderer.ApplyAnimation(m_pAssetsEditor->m_ViewedAssetPath, m_pAssetsEditor->GetTime());
 				SkeletonRenderer.Finalize();
 						
@@ -1035,16 +1113,16 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 						{
 							if(m_CursorTool != CURSORTOOL_TRANSLATE_Y)
 							{
-								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_X, FramePath.ConvertToInteger(), 0.0f);
+								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_X, FramePath.ConvertToInteger(), 0.0f);
 								TranslationX += dot(AxisX, vec2(RelX, RelY));
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_X, FramePath.ConvertToInteger(), TranslationX);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_X, FramePath.ConvertToInteger(), TranslationX);
 							}
 							
 							if(m_CursorTool != CURSORTOOL_TRANSLATE_X)
 							{
-								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_Y, FramePath.ConvertToInteger(), 0.0f);
+								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_Y, FramePath.ConvertToInteger(), 0.0f);
 								TranslationY += dot(AxisY, vec2(RelX, RelY));
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_Y, FramePath.ConvertToInteger(), TranslationY);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_Y, FramePath.ConvertToInteger(), TranslationY);
 							}
 						}
 						break;					
@@ -1053,13 +1131,13 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 					{
 						if(SkeletonRenderer.GetParentAxis(GetTeePosition(), m_Zoom, m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
 						{
-							float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), 0.0f);
-							float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), 0.0f);
+							float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), 0.0f);
+							float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), 0.0f);
 							float Translation =  (length(m_CursorToolPosition - m_CursorPivos) - length(m_CursorToolLastPosition - m_CursorPivos))/10.0f;
 							TranslationX += Translation;
 							TranslationY += Translation;
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), TranslationX);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), TranslationY);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), TranslationX);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), TranslationY);
 						}
 						break;					
 					}
@@ -1070,16 +1148,16 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 						{
 							if(m_CursorTool != CURSORTOOL_SCALE_Y)
 							{
-								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), 0.0f);
+								float TranslationX = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), 0.0f);
 								TranslationX += dot(AxisX, vec2(RelX, RelY))/5.0f;
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), TranslationX);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), TranslationX);
 							}
 							
 							if(m_CursorTool != CURSORTOOL_SCALE_X)
 							{
-								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), 0.0f);
+								float TranslationY = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), 0.0f);
 								TranslationY += dot(AxisY, vec2(RelX, RelY))/5.0f;
-								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), TranslationY);
+								m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), TranslationY);
 							}
 						}
 						break;					
@@ -1088,9 +1166,9 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 					{
 						if(SkeletonRenderer.GetLocalAxis(GetTeePosition(), m_Zoom, m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
 						{
-							float Angle = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_ANGLE, FramePath.ConvertToInteger(), 0.0f);
+							float Angle = m_pAssetsEditor->AssetManager()->GetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_ANGLE, FramePath.ConvertToInteger(), 0.0f);
 							Angle += angle(m_CursorToolLastPosition - Origin, m_CursorToolPosition - Origin);
-							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CModAPI_Asset_SkeletonAnimation::BONEKEYFRAME_ANGLE, FramePath.ConvertToInteger(), Angle);
+							m_pAssetsEditor->AssetManager()->SetAssetValue<float>(m_pAssetsEditor->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_ANGLE, FramePath.ConvertToInteger(), Angle);
 						}
 						break;				
 					}
@@ -1119,10 +1197,12 @@ void CModAPI_AssetsEditorGui_View::OnMouseOver(int X, int Y, int RelX, int RelY,
 	}
 }
 
-void CModAPI_AssetsEditorGui_View::ZoomCallback(float Pos)
+void CAssetsEditorGui_View::ZoomCallback(float Pos)
 {
 	float MinZoom = 0.1;
 	float MaxScale = 10.0f;
 	float ScaleWidth = MaxScale - MinZoom;
 	m_Zoom = MinZoom + Pos * Pos * ScaleWidth;
+}
+
 }

@@ -1,5 +1,5 @@
-#ifndef MODAPI_ASSETSEDITOR_VIEW_H
-#define MODAPI_ASSETSEDITOR_VIEW_H
+#ifndef TU_ASSETSEDITOR_VIEW_H
+#define TU_ASSETSEDITOR_VIEW_H
 
 #include <base/vmath.h>
 #include <engine/kernel.h>
@@ -9,13 +9,16 @@
 
 #include "assetseditor.h"
 
-class CModAPI_AssetsEditorGui_View : public CModAPI_ClientGui_Widget
+namespace tu
+{
+
+class CAssetsEditorGui_View : public gui::CWidget
 {
 public:
-	class CZoomSlider : public CModAPI_ClientGui_HSlider
+	class CZoomSlider : public gui::CHSlider
 	{
 	protected:
-		CModAPI_AssetsEditorGui_View* m_pView;
+		CAssetsEditorGui_View* m_pView;
 		
 	protected:
 		virtual void OnNewPosition(float Pos)
@@ -24,8 +27,8 @@ public:
 		}
 		
 	public:
-		CZoomSlider(CModAPI_AssetsEditorGui_View* pView) :
-			CModAPI_ClientGui_HSlider(pView->m_pConfig),
+		CZoomSlider(CAssetsEditorGui_View* pView) :
+			gui::CHSlider(pView->m_pConfig),
 			m_pView(pView)
 		{
 			m_Rect.w = 150;
@@ -33,10 +36,10 @@ public:
 		}
 	};
 	
-	class CCursorToolButton : public CModAPI_ClientGui_IconButton
+	class CCursorToolButton : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_View* m_pView;
+		CAssetsEditorGui_View* m_pView;
 		int m_CursorTool;
 		
 	protected:
@@ -46,8 +49,8 @@ public:
 		}
 		
 	public:
-		CCursorToolButton(CModAPI_AssetsEditorGui_View* pView, int Icon, int CursorTool) :
-			CModAPI_ClientGui_IconButton(pView->m_pConfig, Icon),
+		CCursorToolButton(CAssetsEditorGui_View* pView, int Icon, int CursorTool) :
+			gui::CIconButton(pView->m_pConfig, Icon),
 			m_pView(pView),
 			m_CursorTool(CursorTool)
 		{
@@ -57,16 +60,16 @@ public:
 		virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 		{
 			if(m_Rect.IsInside(X, Y))
-				ShowHint(CModAPI_AssetsEditorGui_View::s_CursorToolHints[m_CursorTool]);
+				ShowHint(CAssetsEditorGui_View::s_CursorToolHints[m_CursorTool]);
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
-	class CViewSwitch : public CModAPI_ClientGui_IconButton
+	class CViewSwitch : public gui::CIconButton
 	{
 	protected:
-		CModAPI_AssetsEditorGui_View* m_pView;
+		CAssetsEditorGui_View* m_pView;
 		bool* m_pBoolean;
 		const char* m_pHint;
 		
@@ -77,8 +80,8 @@ public:
 		}
 		
 	public:
-		CViewSwitch(CModAPI_AssetsEditorGui_View* pView, int Icon, bool* pBoolean, const char* pHint) :
-			CModAPI_ClientGui_IconButton(pView->m_pConfig, Icon),
+		CViewSwitch(CAssetsEditorGui_View* pView, int Icon, bool* pBoolean, const char* pHint) :
+			gui::CIconButton(pView->m_pConfig, Icon),
 			m_pView(pView),
 			m_pBoolean(pBoolean),
 			m_pHint(pHint)
@@ -89,11 +92,11 @@ public:
 		virtual void Render()
 		{
 			if(*m_pBoolean)
-				SetButtonStyle(MODAPI_CLIENTGUI_BUTTONSTYLE_HIGHLIGHT);
+				SetButtonStyle(gui::BUTTONSTYLE_HIGHLIGHT);
 			else
-				SetButtonStyle(MODAPI_CLIENTGUI_BUTTONSTYLE_NORMAL);
+				SetButtonStyle(gui::BUTTONSTYLE_NORMAL);
 			
-			CModAPI_ClientGui_IconButton::Render();
+			gui::CIconButton::Render();
 		}
 		
 		virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
@@ -101,7 +104,7 @@ public:
 			if(m_Rect.IsInside(X, Y))
 				ShowHint(m_pHint);
 			
-			CModAPI_ClientGui_IconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
+			gui::CIconButton::OnMouseOver(X, Y, RelX, RelY, KeyState);
 		}
 	};
 	
@@ -145,7 +148,7 @@ protected:
 	};
 	
 protected:
-	CModAPI_AssetsEditor* m_pAssetsEditor;
+	CAssetsEditor* m_pAssetsEditor;
 	vec2 m_AimDir;
 	vec2 m_MotionDir;
 	vec2 m_StartPointPos;
@@ -164,14 +167,14 @@ protected:
 	
 	int m_DragType;
 	int m_CursorTool;
-	CModAPI_AssetPath m_SelectedAsset;
-	CModAPI_Asset_Skeleton::CSubPath m_SelectedBone;
+	CAssetPath m_SelectedAsset;
+	CAsset_Skeleton::CSubPath m_SelectedBone;
 	int m_SelectedGizmo;
 	CCursorToolButton* m_CursorToolButtons[NUM_CURSORTOOLS];
 	
 	int m_ToolbarHeight;
-	CModAPI_ClientGui_HListLayout* m_pToolbar;
-	CModAPI_ClientGui_Rect m_ViewRect;
+	gui::CHListLayout* m_pToolbar;
+	gui::CRect m_ViewRect;
 	
 	int m_LastEditedAssetType;
 	
@@ -181,6 +184,7 @@ public:
 	static const char* s_HintText[];
 	
 protected:
+	vec2 GetMapPosition();
 	vec2 GetTeePosition();
 	vec2 GetAimPosition();
 	vec2 GetMotionPosition();
@@ -198,11 +202,12 @@ protected:
 	void RenderCharacter();
 	void RenderCharacterPart();
 	void RenderWeapon();
+	void RenderMap();
 	void RenderGizmos();
 	
 public:
-	CModAPI_AssetsEditorGui_View(CModAPI_AssetsEditor* pAssetsEditor);
-	virtual ~CModAPI_AssetsEditorGui_View();
+	CAssetsEditorGui_View(CAssetsEditor* pAssetsEditor);
+	virtual ~CAssetsEditorGui_View();
 	virtual void Render();
 	virtual void Update();
 	virtual void OnButtonClick(int X, int Y, int Button);
@@ -213,5 +218,7 @@ public:
 	
 	inline void SetCursorTool(int CursorTool) { m_CursorTool = CursorTool; };
 };
+
+}
 
 #endif

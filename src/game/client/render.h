@@ -41,7 +41,7 @@ public:
 	};
 
 	vec4 m_aColors[6];
-	CModAPI_AssetPath m_aCharacterParts[6];
+	tu::CAssetPath m_aCharacterParts[6];
 	float m_Size;
 };
 

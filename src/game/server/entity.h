@@ -12,7 +12,7 @@
 	Class: Entity
 		Basic entity class.
 */
-class CEntity
+class CEntityCore
 {
 	MACRO_ALLOC_HEAP()
 
@@ -23,8 +23,8 @@ private:
 	/* Identity */
 	class CGameWorld *m_pGameWorld;
 
-	CEntity *m_pPrevTypeEntity;
-	CEntity *m_pNextTypeEntity;
+	CEntityCore *m_pPrevTypeEntity;
+	CEntityCore *m_pNextTypeEntity;
 
 	int m_ObjType;
 
@@ -48,10 +48,10 @@ protected:
 
 public:
 	/* Constructor */
-	CEntity(CGameWorld *pGameWorld, int Objtype, vec2 Pos, int ProximityRadius=0);
+	CEntityCore(CGameWorld *pGameWorld, int Objtype, vec2 Pos, int ProximityRadius=0);
 
 	/* Destructor */
-	virtual ~CEntity();
+	virtual ~CEntityCore();
 
 	/* Objects */
 	class CGameWorld *GameWorld()		{ return m_pGameWorld; }
@@ -59,8 +59,8 @@ public:
 	class IServer *Server()				{ return m_pGameWorld->Server(); }
 
 	/* Getters */
-	CEntity *TypeNext()					{ return m_pNextTypeEntity; }
-	CEntity *TypePrev()					{ return m_pPrevTypeEntity; }
+	CEntityCore *TypeNext()					{ return m_pNextTypeEntity; }
+	CEntityCore *TypePrev()					{ return m_pPrevTypeEntity; }
 	const vec2 &GetPos() const			{ return m_Pos; }
 	float GetProximityRadius() const	{ return m_ProximityRadius; }
 	bool IsMarkedForDestroy() const		{ return m_MarkedForDestroy; }
@@ -113,9 +113,9 @@ public:
 				snapshot of everything in the game for demo
 				recording.
 	*/
-	virtual void Snap06(int Snapshot, int SnappingClient) = 0;
-	virtual void Snap07(int Snapshot, int SnappingClient) = 0;
-	virtual void Snap07ModAPI(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TW06(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TW07(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TU07(int Snapshot, int SnappingClient) = 0;
 	
 	virtual void PostSnap() {}
 

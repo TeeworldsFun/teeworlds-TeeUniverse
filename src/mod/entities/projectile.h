@@ -5,7 +5,7 @@
 
 #include <modapi/server/entity.h>
 
-class CProjectile : public CModAPI_Entity
+class CProjectile : public tu::CEntity_TW
 {
 public:
 	CProjectile(CGameWorld *pGameWorld, int Type, int Owner, vec2 Pos, vec2 Dir, int Span,
@@ -17,8 +17,8 @@ public:
 	virtual void Reset();
 	virtual void Tick();
 	virtual void TickPaused();
-	virtual void Snap06(int Snapshot, int SnappingClient);
-	virtual void Snap07(int Snapshot, int SnappingClient);
+	virtual void Snap_TW06(int Snapshot, int SnappingClient);
+	virtual void Snap_TW07(int Snapshot, int SnappingClient);
 
 private:
 	vec2 m_Direction;

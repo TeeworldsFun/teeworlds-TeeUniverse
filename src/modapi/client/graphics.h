@@ -1,5 +1,5 @@
-#ifndef MODAPI_CLIENT_GRAPHICS_H
-#define MODAPI_CLIENT_GRAPHICS_H
+#ifndef TU_CLIENT_GRAPHICS_H
+#define TU_CLIENT_GRAPHICS_H
 
 #include <base/tl/array.h>
 #include <engine/graphics.h>
@@ -8,10 +8,14 @@
 #include <modapi/graphics.h>
 #include <modapi/client/assetsmanager.h>
 
-class IModAPI_AssetsFile;
 class CRenderTools;
 
-class CModAPI_SkeletonState
+namespace tu
+{
+	
+class IAssetsFile;
+
+class CSkeletonState
 {
 	class CBoneState
 	{
@@ -19,27 +23,29 @@ class CModAPI_SkeletonState
 	};
 };
 
-class CModAPI_Client_Graphics
+class CClient_Graphics
 {
 private:
 	IGraphics* m_pGraphics;
-	CModAPI_AssetManager* m_pAssetManager;
+	CAssetManager* m_pAssetManager;
 
 public:
-	CModAPI_Client_Graphics(IGraphics* pGraphics, CModAPI_AssetManager* pAssetManager);
+	CClient_Graphics(IGraphics* pGraphics, CAssetManager* pAssetManager);
 	void Init();
 	
 	IGraphics *Graphics() { return m_pGraphics; };
-	CModAPI_AssetManager *AssetManager() { return m_pAssetManager; };
+	CAssetManager *AssetManager() { return m_pAssetManager; };
 	
-	bool TextureSet(CModAPI_AssetPath AssetPath);
+	bool TextureSet(CAssetPath AssetPath);
 	
-	void DrawSprite(CModAPI_AssetPath AssetPath, vec2 Pos, vec2 Size, float Angle, int FlipFlag, vec4 Color);
-	void DrawSprite(CModAPI_AssetPath AssetPath, vec2 Pos, float Size, float Angle, int FlipFlag, vec4 Color);
-	void DrawSprite(CModAPI_AssetPath AssetPath, vec2 Pos, float Size, float Angle, int FlipFlag);
+	void DrawSprite(CAssetPath AssetPath, vec2 Pos, vec2 Size, float Angle, int FlipFlag, vec4 Color);
+	void DrawSprite(CAssetPath AssetPath, vec2 Pos, float Size, float Angle, int FlipFlag, vec4 Color);
+	void DrawSprite(CAssetPath AssetPath, vec2 Pos, float Size, float Angle, int FlipFlag);
 	void DrawText(ITextRender* pTextRender, const char *pText, vec2 Pos, vec4 Color, float Size, int Alignment);
 	
 	void GetTeeAlignAxis(int Align, vec2 Dir, vec2 Aim, vec2& PartDirX, vec2& PartDirY);
 };
+
+}
 
 #endif

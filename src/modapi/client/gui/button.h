@@ -1,9 +1,15 @@
-#ifndef MODAPI_CLIENT_GUI_BUTTON_H
-#define MODAPI_CLIENT_GUI_BUTTON_H
+#ifndef TU_CLIENT_GUI_BUTTON_H
+#define TU_CLIENT_GUI_BUTTON_H
 
 #include "widget.h"
 
-class CModAPI_ClientGui_AbstractButton : public CModAPI_ClientGui_Widget
+namespace tu
+{
+	
+namespace gui
+{
+
+class CAbstractButton : public CWidget
 {
 protected:
 	bool m_UnderMouse;
@@ -11,7 +17,7 @@ protected:
 	int m_ButtonStyle;
 	
 protected:
-	CModAPI_ClientGui_AbstractButton(class CModAPI_ClientGui_Config *pConfig);
+	CAbstractButton(class CConfig *pConfig);
 	
 	virtual void MouseClickAction() = 0;
 	
@@ -25,13 +31,13 @@ public:
 	void SetButtonStyle(int Style);
 };
 
-class CModAPI_ClientGui_IconButton : public CModAPI_ClientGui_AbstractButton
+class CIconButton : public CAbstractButton
 {
 protected:
 	int m_IconId;
 	
 protected:
-	CModAPI_ClientGui_IconButton(class CModAPI_ClientGui_Config *pConfig, int IconId);
+	CIconButton(class CConfig *pConfig, int IconId);
 	
 public:
 	virtual void Render();
@@ -39,7 +45,7 @@ public:
 	void SetIcon(int IconId);
 };
 
-class CModAPI_ClientGui_TextButton : public CModAPI_ClientGui_AbstractButton
+class CTextButton : public CAbstractButton
 {
 protected:
 	char m_aText[128];
@@ -47,7 +53,7 @@ protected:
 	bool m_Centered;
 	
 protected:
-	CModAPI_ClientGui_TextButton(class CModAPI_ClientGui_Config *pConfig, const char* pText = 0, int IconId = -1);
+	CTextButton(class CConfig *pConfig, const char* pText = 0, int IconId = -1);
 	
 	virtual void MouseClickAction() = 0;
 	
@@ -58,7 +64,7 @@ public:
 	void SetIcon(int IconId);
 };
 
-class CModAPI_ClientGui_ExternalTextButton : public CModAPI_ClientGui_AbstractButton
+class CExternalTextButton : public CAbstractButton
 {
 protected:
 	const char* m_pText;
@@ -66,7 +72,7 @@ protected:
 	bool m_Centered;
 	
 protected:
-	CModAPI_ClientGui_ExternalTextButton(class CModAPI_ClientGui_Config *pConfig, const char* pText, int IconId = -1);
+	CExternalTextButton(class CConfig *pConfig, const char* pText, int IconId = -1);
 	
 	virtual void MouseClickAction() = 0;
 	
@@ -75,5 +81,9 @@ public:
 	
 	void SetIcon(int IconId);
 };
+
+}
+
+}
 
 #endif

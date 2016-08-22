@@ -1,46 +1,51 @@
-#ifndef MODAPI_ENTITY_H
-#define MODAPI_ENTITY_H
+#ifndef TU_ENTITY_H
+#define TU_ENTITY_H
 
 #include <game/server/entity.h>
 #include <modapi/compatibility.h>
 
 #include <base/tl/array.h>
 
-class CModAPI_Entity : public CEntity
+namespace tu
+{
+
+class CEntity_TW : public CEntityCore
 {
 private:
 	int m_NbIdPerSnapshot;
 	array<int> m_IDList;
 	
 public:
-	CModAPI_Entity(CGameWorld *pGameWorld, int Objtype, vec2 Pos, int ProximityRadius=0, int NbIdPerSnapshot=1);
-	~CModAPI_Entity();
+	CEntity_TW(CGameWorld *pGameWorld, int Objtype, vec2 Pos, int ProximityRadius=0, int NbIdPerSnapshot=1);
+	~CEntity_TW();
 		
-	virtual void Snap06(int Snapshot, int SnappingClient) = 0;
-	virtual void Snap07(int Snapshot, int SnappingClient) = 0;
-	virtual void Snap07ModAPI(int Snapshot, int SnappingClient);
+	virtual void Snap_TW06(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TW07(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TU07(int Snapshot, int SnappingClient);
 
 protected:
 	int GetID(int Snapshot, int ID);
 };
 
-class CModAPI_Entity_SnapshotModAPI : public CEntity
+class CEntity : public CEntityCore
 {
 private:
-	array<int> m_IDList06;
-	array<int> m_IDList07;
-	array<int> m_IDList07ModAPI;
+	array<int> m_IDList_TW06;
+	array<int> m_IDList_TW07;
+	array<int> m_IDList_TU07;
 	
 public:
-	CModAPI_Entity_SnapshotModAPI(CGameWorld *pGameWorld, int Objtype, vec2 Pos, int ProximityRadius=0, int NbId06=1, int NbId07=1, int NbId07ModAPI=1);
-	~CModAPI_Entity_SnapshotModAPI();
+	CEntity(CGameWorld *pGameWorld, int Objtype, vec2 Pos, int ProximityRadius=0, int NbIdTW06=1, int NbIdTW07=1, int NbIdTU07=1);
+	~CEntity();
 		
-	virtual void Snap06(int Snapshot, int SnappingClient) = 0;
-	virtual void Snap07(int Snapshot, int SnappingClient) = 0;
-	virtual void Snap07ModAPI(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TW06(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TW07(int Snapshot, int SnappingClient) = 0;
+	virtual void Snap_TU07(int Snapshot, int SnappingClient) = 0;
 	
 protected:
 	int GetID(int Snapshot, int ID);
 };
+
+}
 
 #endif

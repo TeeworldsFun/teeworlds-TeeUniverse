@@ -4,7 +4,13 @@
 
 #include "widget.h"
 
-CModAPI_ClientGui_Rect::CModAPI_ClientGui_Rect() :
+namespace tu
+{
+	
+namespace gui
+{
+
+CRect::CRect() :
 	x(0),
 	y(0),
 	w(0),
@@ -13,7 +19,7 @@ CModAPI_ClientGui_Rect::CModAPI_ClientGui_Rect() :
 	
 }
 
-CModAPI_ClientGui_Rect::CModAPI_ClientGui_Rect(int X, int Y, int W, int H) :
+CRect::CRect(int X, int Y, int W, int H) :
 	x(X),
 	y(Y),
 	w(W),
@@ -22,41 +28,41 @@ CModAPI_ClientGui_Rect::CModAPI_ClientGui_Rect(int X, int Y, int W, int H) :
 	
 }
 
-void CModAPI_ClientGui_Rect::CenterIn(const CModAPI_ClientGui_Rect& Rect)
+void CRect::CenterIn(const CRect& Rect)
 {
 	x = Rect.x + Rect.w/2 - w/2;
 	y = Rect.y + Rect.h/2 - h/2;
 }
 
-bool CModAPI_ClientGui_Rect::IsInside(int X, int Y)
+bool CRect::IsInside(int X, int Y)
 {
 	return (X >= x && X <= x + w && Y >= y && Y <= y + h);
 }
 
-CModAPI_ClientGui_Widget::CModAPI_ClientGui_Widget(CModAPI_ClientGui_Config *pConfig) :
+CWidget::CWidget(CConfig *pConfig) :
 	m_pConfig(pConfig)
 {
 	
 }
 
-CModAPI_ClientGui_Widget::~CModAPI_ClientGui_Widget()
+CWidget::~CWidget()
 {
 	
 }
 
-void CModAPI_ClientGui_Widget::Update()
+void CWidget::Update()
 {
 	
 }
 
-void CModAPI_ClientGui_Widget::SetRect(const CModAPI_ClientGui_Rect& Rect)
+void CWidget::SetRect(const CRect& Rect)
 {
 	m_Rect = Rect;
 }
 
-void CModAPI_ClientGui_Widget::SetX(int x)
+void CWidget::SetX(int x)
 {
-	SetRect(CModAPI_ClientGui_Rect(
+	SetRect(CRect(
 		x,
 		m_Rect.y,
 		m_Rect.w,
@@ -64,9 +70,9 @@ void CModAPI_ClientGui_Widget::SetX(int x)
 	));
 }
 
-void CModAPI_ClientGui_Widget::SetY(int y)
+void CWidget::SetY(int y)
 {
-	SetRect(CModAPI_ClientGui_Rect(
+	SetRect(CRect(
 		m_Rect.x,
 		y,
 		m_Rect.w,
@@ -74,9 +80,9 @@ void CModAPI_ClientGui_Widget::SetY(int y)
 	));
 }
 
-void CModAPI_ClientGui_Widget::SetWidth(int w)
+void CWidget::SetWidth(int w)
 {
-	SetRect(CModAPI_ClientGui_Rect(
+	SetRect(CRect(
 		m_Rect.x,
 		m_Rect.y,
 		w,
@@ -84,9 +90,9 @@ void CModAPI_ClientGui_Widget::SetWidth(int w)
 	));
 }
 
-void CModAPI_ClientGui_Widget::SetHeight(int h)
+void CWidget::SetHeight(int h)
 {
-	SetRect(CModAPI_ClientGui_Rect(
+	SetRect(CRect(
 		m_Rect.x,
 		m_Rect.y,
 		m_Rect.w,	
@@ -94,29 +100,33 @@ void CModAPI_ClientGui_Widget::SetHeight(int h)
 	));
 }
 
-void CModAPI_ClientGui_Widget::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CWidget::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	
 }
 
-void CModAPI_ClientGui_Widget::OnButtonClick(int X, int Y, int Button)
+void CWidget::OnButtonClick(int X, int Y, int Button)
 {
 	
 }
 
-void CModAPI_ClientGui_Widget::OnButtonRelease(int Button)
+void CWidget::OnButtonRelease(int Button)
 {
 	
 }
 
-void CModAPI_ClientGui_Widget::OnInputEvent()
+void CWidget::OnInputEvent()
 {
 	
 }
 
-float CModAPI_ClientGui_Widget::s_LayoutOpacity = 0.25f;
-float CModAPI_ClientGui_Widget::s_LayoutCornerRadius = 5.0f;
+float CWidget::s_LayoutOpacity = 0.25f;
+float CWidget::s_LayoutCornerRadius = 5.0f;
 
-int CModAPI_ClientGui_Widget::s_ButtonInnerMargin = 5;
-float CModAPI_ClientGui_Widget::s_ButtonOpacity = 0.25f;
-float CModAPI_ClientGui_Widget::s_ButtonCornerRadius = 5.0f;
+int CWidget::s_ButtonInnerMargin = 5;
+float CWidget::s_ButtonOpacity = 0.25f;
+float CWidget::s_ButtonCornerRadius = 5.0f;
+
+}
+
+}
