@@ -7,7 +7,6 @@
 #include <base/vmath.h>
 
 #include <engine/config.h>
-#include <engine/editor.h>
 #include <engine/engine.h>
 #include <engine/friends.h>
 #include <engine/keys.h>
@@ -1760,19 +1759,19 @@ int CMenus::Render()
 			CUIRect Yes, No;
 
 			// additional info
-			if(m_pClient->Editor()->HasUnsavedData())
-			{
-				Box.HSplitTop(12.0f, 0, &Part);
-				UI()->DoLabel(&Part, pExtraText, ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
-				Part.HSplitTop(20.0f, 0, &Part);
-				Part.VMargin(5.0f, &Part);
-				UI()->DoLabel(&Part, Localize("There's an unsaved map in the editor, you might want to save it before you quit the game."), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT, Part.w);
-			}
-			else
-			{
+			//~ if(m_pClient->AssetsEditor()->HasUnsavedData())
+			//~ {
+				//~ Box.HSplitTop(12.0f, 0, &Part);
+				//~ UI()->DoLabel(&Part, pExtraText, ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
+				//~ Part.HSplitTop(20.0f, 0, &Part);
+				//~ Part.VMargin(5.0f, &Part);
+				//~ UI()->DoLabel(&Part, Localize("There's an unsaved map in the editor, you might want to save it before you quit the game."), ButtonHeight*ms_FontmodHeight*0.8f, CUI::ALIGN_LEFT, Part.w);
+			//~ }
+			//~ else
+			//~ {
 				Box.HSplitTop(27.0f, 0, &Box);
 				UI()->DoLabel(&Box, pExtraText, ButtonHeight*ms_FontmodHeight*0.8f, ExtraAlign);
-			}
+			//~ }
 
 			// buttons
 			BottomBar.VSplitMid(&No, &Yes);

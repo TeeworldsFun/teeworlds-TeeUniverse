@@ -335,11 +335,10 @@ function BuildClient(settings, family, platform)
 	local client = Compile(settings, Collect("src/engine/client/*.cpp"))
 	
 	local game_client = Compile(settings, CollectRecursive("src/game/client/*.cpp"), SharedClientFiles())
-	local game_editor = Compile(settings, Collect("src/game/editor/*.cpp"))
 	
 	local client_tu = Compile(settings, CollectRecursive("src/modapi/client/*.cpp"))
 	
-	Link(settings, "teeuniverses", libs["zlib"], libs["md5"], libs["wavpack"], libs["png"], libs["json"], client, game_client, game_editor, client_tu)
+	Link(settings, "teeuniverses", libs["zlib"], libs["md5"], libs["wavpack"], libs["png"], libs["json"], client, game_client, client_tu)
 end
 
 function BuildServer(settings, family, platform)
@@ -373,7 +372,7 @@ end
 
 function BuildContent(settings)
 	local content = {}
-	table.insert(content, CopyToDir(settings.link.Output(settings, "data"), CollectRecursive(content_src_dir .. "*.png", content_src_dir .. "*.wv", content_src_dir .. "*.ttf", content_src_dir .. "*.txt", content_src_dir .. "*.map", content_src_dir .. "*.rules", content_src_dir .. "*.json", content_src_dir .. "*.editor")))
+	table.insert(content, CopyToDir(settings.link.Output(settings, "data"), CollectRecursive(content_src_dir .. "*.png", content_src_dir .. "*.wv", content_src_dir .. "*.ttf", content_src_dir .. "*.txt", content_src_dir .. "*.map", content_src_dir .. "*.rules", content_src_dir .. "*.json")))
 	PseudoTarget(settings.link.Output(settings, "content") .. settings.link.extension, content)
 end
 

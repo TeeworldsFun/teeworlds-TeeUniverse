@@ -11,7 +11,6 @@
 #include <engine/client.h>
 #include <engine/config.h>
 #include <engine/console.h>
-#include <engine/editor.h>
 #include <engine/engine.h>
 #include <engine/graphics.h>
 #include <engine/input.h>
@@ -254,7 +253,6 @@ void CSmoothTime::Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustD
 
 CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotDelta)
 {
-	m_pEditor = 0;
 	m_pAssetsEditor = 0;
 	m_pInput = 0;
 	m_pGraphics = 0;
@@ -2505,9 +2503,7 @@ void CClient::InitInterfaces()
 {
 	// fetch interfaces
 	m_pEngine = Kernel()->RequestInterface<IEngine>();
-	m_pEditor = Kernel()->RequestInterface<IEditor>();
 	m_pAssetsEditor = Kernel()->RequestInterface<tu::IAssetsEditor>();
-	//m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pSound = Kernel()->RequestInterface<IEngineSound>();
 	m_pGameClient = Kernel()->RequestInterface<IGameClient>();
 	m_pInput = Kernel()->RequestInterface<IEngineInput>();
@@ -2628,10 +2624,6 @@ void CClient::Run()
 	// start refreshing addresses while we load
 	MasterServer()->RefreshAddresses(m_NetClient.NetType(tu::CMetaNetClient::DST_MASTER07));
 
-	// init the editor
-	m_pEditor->Init();
-
-
 	// load data
 	if(!LoadData())
 		return;
@@ -2729,15 +2721,6 @@ void CClient::Run()
 		if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_G, true))
 			g_Config.m_DbgGraphs ^= 1;
 
-		if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyIsPressed(KEY_LSHIFT) && Input()->KeyPress(KEY_E, true))
-		{
-			if(g_Config.m_ClMode == TU_CLIENTMODE_MAPEDITOR)
-				g_Config.m_ClMode = TU_CLIENTMODE_GAME;
-			else
-				g_Config.m_ClMode = TU_CLIENTMODE_MAPEDITOR;
-			Input()->MouseModeRelative();
-		}
-
 		// render
 		{
 			if(g_Config.m_ClMode != m_ClientMode)
@@ -2772,10 +2755,6 @@ void CClient::Run()
 				{
 					switch(m_ClientMode)
 					{
-						case TU_CLIENTMODE_MAPEDITOR:
-							m_pEditor->UpdateAndRender();
-							DebugRender();
-							break;
 						case TU_CLIENTMODE_ASSETSEDITOR:
 							GameClient()->DrawBackground();
 							m_pAssetsEditor->UpdateAndRender();
@@ -3268,7 +3247,6 @@ int main(int argc, const char **argv) // ignore_convention
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMasterServer*>(pEngineMasterServer)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMasterServer*>(pEngineMasterServer));
 
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateEditor());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(tu::CreateAssetsEditor());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateGameClient());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);

@@ -79,15 +79,6 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 
 	TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
 	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
-	static CButtonContainer s_MapEditorButton;
-	if(DoButton_Menu(&s_MapEditorButton, Localize("Map Editor"), 0, &Button, g_Config.m_ClShowStartMenuImages ? "editor" : 0, CUI::CORNER_ALL, 10.0f, 0.5f))
-	{
-		g_Config.m_ClMode = TU_CLIENTMODE_MAPEDITOR;
-		Input()->MouseModeRelative();
-	}
-
-	TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
-	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
 	static CButtonContainer s_PlayButton;
 	if(DoButton_Menu(&s_PlayButton, Localize("Play"), 0, &Button, g_Config.m_ClShowStartMenuImages ? "play_game" : 0, CUI::CORNER_ALL, 10.0f, 0.5f) || m_EnterPressed)
 		NewPage = g_Config.m_UiBrowserPage;
