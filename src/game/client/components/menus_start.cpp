@@ -11,7 +11,7 @@
 
 #include <generated/client_data.h>
 
-#include <modapi/client/clientmode.h>
+#include <tu/client/clientmode.h>
 
 #include "menus.h"
 

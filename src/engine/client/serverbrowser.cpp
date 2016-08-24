@@ -16,8 +16,8 @@
 
 #include <mastersrv/mastersrv.h>
 
-#include <modapi/compatibility.h>
-#include <modapi/client/metanetclient.h>
+#include <tu/compatibility.h>
+#include <tu/client/metanetclient.h>
 
 #include <tw06/network.h>
 

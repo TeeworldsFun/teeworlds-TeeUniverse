@@ -11,7 +11,7 @@
 #include <mod/weapons/grenade.h>
 #include <mod/weapons/laser.h>
 #include <mod/weapons/ninja.h>
-#include <modapi/server/event.h>
+#include <tu/server/event.h>
 #include <tw06/protocol.h>
 
 CPickup::CPickup(CGameWorld *pGameWorld, int Type, vec2 Pos)

@@ -1,7 +1,7 @@
 #ifndef MOD_SERVER_H
 #define MOD_SERVER_H
 
-#include <modapi/server/server.h>
+#include <tu/server/server.h>
 
 class CMod_Server : public tu::CServer
 {

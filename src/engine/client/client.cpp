@@ -40,14 +40,14 @@
 #include <versionsrv/versionsrv.h>
 
 //TU
-#include <modapi/compatibility.h>
-#include <modapi/shared/assetsfile.h>
-#include <modapi/client/assetseditor/assetseditor.h>
-#include <modapi/client/clientmode.h>
-#include <modapi/client/assetsmanager.h>
-#include <modapi/client/metanetclient.h>
-#include <modapi/client/netclient_tw06.h>
-#include <modapi/client/netclient_tw07.h>
+#include <tu/compatibility.h>
+#include <tu/shared/assetsfile.h>
+#include <tu/client/assetseditor/assetseditor.h>
+#include <tu/client/clientmode.h>
+#include <tu/client/assetsmanager.h>
+#include <tu/client/metanetclient.h>
+#include <tu/client/netclient_tw06.h>
+#include <tu/client/netclient_tw07.h>
 
 #include <tw06/network.h>
 
@@ -608,9 +608,9 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_pMap->Unload();
 	
 	//TU unload mod graphics
-	if(AssetManager())
+	if(AssetsManager())
 	{
-		AssetManager()->OnAssetsFileUnloaded();
+		AssetsManager()->OnAssetsFileUnloaded();
 	}
 
 	// disable all downloads
@@ -2503,7 +2503,7 @@ void CClient::InitInterfaces()
 {
 	// fetch interfaces
 	m_pEngine = Kernel()->RequestInterface<IEngine>();
-	m_pAssetsEditor = Kernel()->RequestInterface<tu::IAssetsEditor>();
+	m_pAssetsEditor = Kernel()->RequestInterface<tu::assetseditor::IAssetsEditor>();
 	m_pSound = Kernel()->RequestInterface<IEngineSound>();
 	m_pGameClient = Kernel()->RequestInterface<IGameClient>();
 	m_pInput = Kernel()->RequestInterface<IEngineInput>();
@@ -2549,8 +2549,8 @@ void CClient::Run()
 			return;
 		}
 		
-		m_pAssetManager = new tu::CAssetManager(Graphics(), Storage());
-		m_pTUGraphics = new tu::CClient_Graphics(Graphics(), AssetManager());
+		m_pAssetsManager = new tu::CAssetsManager(Graphics(), Storage());
+		m_pTUGraphics = new tu::CClient_Graphics(Graphics(), AssetsManager());
 	}
 
 	// init sound, allowed to fail
@@ -2630,8 +2630,8 @@ void CClient::Run()
 
 	GameClient()->OnInit();
 	
-	m_pAssetManager->Init(Storage());
-	m_pAssetsEditor->Init(m_pAssetManager, m_pTUGraphics);
+	m_pAssetsManager->Init(Storage());
+	m_pAssetsEditor->Init(m_pAssetsManager, m_pTUGraphics);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "version %s", GameClient()->NetVersion());
@@ -2733,6 +2733,8 @@ void CClient::Run()
 				m_ClientMode = g_Config.m_ClMode;
 			}
 
+			AssetsManager()->UpdateAssets();
+		
 			Update();
 			
 			if(!g_Config.m_GfxAsyncRender || m_pGraphics->IsIdle())
@@ -2756,7 +2758,7 @@ void CClient::Run()
 					switch(m_ClientMode)
 					{
 						case TU_CLIENTMODE_ASSETSEDITOR:
-							GameClient()->DrawBackground();
+							//GameClient()->DrawBackground();
 							m_pAssetsEditor->UpdateAndRender();
 							break;
 						case TU_CLIENTMODE_GAME:
@@ -3247,7 +3249,7 @@ int main(int argc, const char **argv) // ignore_convention
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMasterServer*>(pEngineMasterServer)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMasterServer*>(pEngineMasterServer));
 
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(tu::CreateAssetsEditor());
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(tu::assetseditor::CreateAssetsEditor());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateGameClient());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);
 
@@ -3319,9 +3321,9 @@ void CClient::LoadAssetsFile(const char* pFileName)
 	{
 		DemoRecorder_Stop();
 		
-		if(AssetManager())
+		if(AssetsManager())
 		{
-			AssetManager()->OnAssetsFileLoaded(m_pAssetsFile);
+			AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile);
 		}
 	}
 }
@@ -3358,9 +3360,9 @@ const char *CClient::LoadMod(const char *pName, const char *pFilename, unsigned 
 	str_copy(m_aCurrentMod, pName, sizeof(m_aCurrentMod));
 	m_CurrentModCrc = m_pAssetsFile->Crc();
 
-	if(AssetManager())
+	if(AssetsManager())
 	{
-		AssetManager()->OnAssetsFileLoaded(m_pAssetsFile);
+		AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile);
 	}
 
 	return 0x0;

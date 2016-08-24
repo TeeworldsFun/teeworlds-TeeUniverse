@@ -11,8 +11,8 @@
 #include <game/gamecore.h>
 #include <game/version.h>
 
-#include <modapi/mapitem.h>
-#include <modapi/server/event.h>
+#include <tu/mapitem.h>
+#include <tu/server/event.h>
 
 #include "gamecontext.h"
 #include "player.h"

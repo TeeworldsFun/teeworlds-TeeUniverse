@@ -43,7 +43,7 @@ int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 	}
 
 	CSkinPart Part;
-	Part.m_OrgTexture = pSelf->Graphics()->LoadTextureRaw(Info.m_Width, Info.m_Height, Info.m_Format, Info.m_pData, Info.m_Format, 0);
+	Part.m_OrgTexture = pSelf->Graphics()->LoadTextureRaw(Info.m_Width, Info.m_Height, 1, 1, Info.m_Format, Info.m_pData, Info.m_Format, 0);
 	Part.m_BloodColor = vec3(1.0f, 1.0f, 1.0f);
 
 	unsigned char *d = (unsigned char *)Info.m_pData;
@@ -84,7 +84,7 @@ int CSkins::SkinPartScan(const char *pName, int IsDir, int DirType, void *pUser)
 		d[i*Step+2] = v;
 	}
 
-	Part.m_ColorTexture = pSelf->Graphics()->LoadTextureRaw(Info.m_Width, Info.m_Height, Info.m_Format, Info.m_pData, Info.m_Format, 0);
+	Part.m_ColorTexture = pSelf->Graphics()->LoadTextureRaw(Info.m_Width, Info.m_Height, 1, 1, Info.m_Format, Info.m_pData, Info.m_Format, 0);
 	mem_free(Info.m_pData);
 
 	// set skin part data

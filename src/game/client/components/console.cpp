@@ -26,7 +26,7 @@
 #include <game/client/components/controls.h>
 #include <game/client/components/menus.h>
 
-#include <modapi/client/clientmode.h>
+#include <tu/client/clientmode.h>
 
 #include "console.h"
 

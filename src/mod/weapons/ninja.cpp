@@ -3,7 +3,7 @@
 #include <game/server/player.h>
 #include <generated/server_data.h>
 
-#include <modapi/server/event.h>
+#include <tu/server/event.h>
 
 #include <mod/entities/character.h>
 

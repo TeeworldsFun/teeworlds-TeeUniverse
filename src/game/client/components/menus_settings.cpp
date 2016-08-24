@@ -20,7 +20,7 @@
 #include <game/client/gameclient.h>
 #include <game/client/animstate.h>
 
-#include <modapi/client/skeletonrenderer.h>
+#include <tu/client/skeletonrenderer.h>
 
 #include "binds.h"
 #include "countryflags.h"
@@ -435,8 +435,8 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 			CTeeRenderInfo Info;
 			for(int p = 0; p < NUM_SKINPARTS; p++)
 			{
-				Info.m_aCharacterParts[p] = AssetManager()->FindSkinPart(
-					tu::CAssetPath::Internal(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
+				Info.m_aCharacterParts[p] = AssetsManager()->FindSkinPart(
+					tu::CAssetPath::Universe(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
 					tu::CAsset_Character::CSubPath::Part(p),
 					s->m_aName
 				);
@@ -464,14 +464,14 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 
 void CMenus::RenderTee(CUIRect Rect, CTeeRenderInfo& Info)
 {	
-	tu::CSkeletonRenderer SkeletonRenderer(Graphics(), AssetManager());
+	tu::CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
 	SkeletonRenderer.SetAim(vec2(1.0f, 0.0f));
 	
 	tu::CAsset_CharacterPart* pCharacterPart[6];
 	tu::CAssetPath CharacterPath;
 	for(int p=0; p<6; p++)
 	{
-		pCharacterPart[p] = AssetManager()->GetAsset<tu::CAsset_CharacterPart>(Info.m_aCharacterParts[p]);
+		pCharacterPart[p] = AssetsManager()->GetAsset<tu::CAsset_CharacterPart>(Info.m_aCharacterParts[p]);
 		if(pCharacterPart[p])
 		{
 			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart[p]->m_SkeletonSkinPath, Info.m_aColors[p]);
@@ -480,7 +480,7 @@ void CMenus::RenderTee(CUIRect Rect, CTeeRenderInfo& Info)
 		}
 	}
 	
-	tu::CAsset_Character* pCharacter = AssetManager()->GetAsset<tu::CAsset_Character>(CharacterPath);
+	tu::CAsset_Character* pCharacter = AssetsManager()->GetAsset<tu::CAsset_Character>(CharacterPath);
 	if(pCharacter)
 		SkeletonRenderer.ApplyAnimation(pCharacter->m_IdlePath, 0.0f);
 	
@@ -530,8 +530,8 @@ void CMenus::RenderSkinPartSelection(CUIRect MainView)
 			
 			for(int p = 0; p < NUM_SKINPARTS; p++)
 			{
-				Info.m_aCharacterParts[p] = AssetManager()->FindSkinPart(
-					tu::CAssetPath::Internal(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
+				Info.m_aCharacterParts[p] = AssetsManager()->FindSkinPart(
+					tu::CAssetPath::Universe(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
 					tu::CAsset_Character::CSubPath::Part(p),
 					(p == m_TeePartSelected) ? s->m_aName : CSkins::ms_apSkinVariables[p]
 				);
@@ -1031,8 +1031,8 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 		CTeeRenderInfo OwnSkinInfo;
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
-			OwnSkinInfo.m_aCharacterParts[p] = AssetManager()->FindSkinPart(
-				tu::CAssetPath::Internal(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
+			OwnSkinInfo.m_aCharacterParts[p] = AssetsManager()->FindSkinPart(
+				tu::CAssetPath::Universe(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
 				tu::CAsset_Character::CSubPath::Part(p),
 				CSkins::ms_apSkinVariables[p]
 			);

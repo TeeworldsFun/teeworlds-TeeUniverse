@@ -11,8 +11,8 @@
 #include "laser.h"
 #include "projectile.h"
 
-#include <modapi/server/weapon.h>
-#include <modapi/server/event.h>
+#include <tu/server/weapon.h>
+#include <tu/server/event.h>
 #include <tw06/protocol.h>
 
 //input count

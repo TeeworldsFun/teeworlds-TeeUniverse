@@ -277,6 +277,8 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 {
 	int Width = pCommand->m_Width;
 	int Height = pCommand->m_Height;
+	int GridWidth = pCommand->m_GridWidth;
+	int GridHeight = pCommand->m_GridHeight;
 	int Depth = 1;
 	void *pTexData = pCommand->m_pData;
 
@@ -307,7 +309,7 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 			mem_free(pTexData);
 			pTexData = pTmpData;
 		}
-		else if(Width > 16 && Height > 16 && (pCommand->m_Flags&CCommandBuffer::TEXFLAG_QUALITY) == 0)
+		else if(Width > GridWidth && Height > GridHeight && (pCommand->m_Flags&CCommandBuffer::TEXFLAG_QUALITY) == 0)
 		{
 			Width>>=1;
 			Height>>=1;
@@ -381,9 +383,9 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 	// 3D texture
 	if(pCommand->m_Flags&CCommandBuffer::TEXFLAG_TEXTURE3D)
 	{
-		Width /= 16;
-		Height /= 16;
-		Depth = 256;
+		Width /= GridWidth;
+		Height /= GridHeight;
+		Depth = GridWidth*GridHeight;
 
 		// copy and reorder texture data
 		int MemSize = Width*Height*Depth*pCommand->m_PixelSize;
@@ -391,13 +393,13 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 
 		const int TileSize = (Height * Width) * pCommand->m_PixelSize;
 		const int TileRowSize = Width * pCommand->m_PixelSize;
-		const int ImagePitch = Width*16 * pCommand->m_PixelSize;
+		const int ImagePitch = Width*GridWidth * pCommand->m_PixelSize;
 		mem_zero(pTmpData, MemSize);
-		for(int i = 0; i < 256; i++)
+		for(int i = 0; i < Depth; i++)
 		{
-			const int px = (i%16) * Width;
-			const int py = (i/16) * Height;
-			const char *pTileData = (const char *)pTexData + (py * Width*16 + px) * pCommand->m_PixelSize;
+			const int px = (i%GridWidth) * Width;
+			const int py = (i/GridWidth) * Height;
+			const char *pTileData = (const char *)pTexData + (py * Width*GridWidth + px) * pCommand->m_PixelSize;
 			for(int y = 0; y < Height; y++)
 				mem_copy(pTmpData + i*TileSize + y*TileRowSize, pTileData + y * ImagePitch, TileRowSize);
 		}

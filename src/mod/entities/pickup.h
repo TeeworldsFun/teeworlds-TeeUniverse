@@ -3,7 +3,7 @@
 #ifndef GAME_SERVER_ENTITIES_PICKUP_H
 #define GAME_SERVER_ENTITIES_PICKUP_H
 
-#include <modapi/server/entity.h>
+#include <tu/server/entity.h>
 
 const int PickupPhysSize = 14;
 

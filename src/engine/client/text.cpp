@@ -156,7 +156,7 @@ class CTextRender : public IEngineTextRender
 				FontMemoryUsage -= pSizeData->m_TextureWidth*pSizeData->m_TextureHeight;
 			}
 
-			pSizeData->m_aTextures[i] = Graphics()->LoadTextureRaw(Width, Height, CImageInfo::FORMAT_ALPHA, pMem, CImageInfo::FORMAT_ALPHA, IGraphics::TEXLOAD_NOMIPMAPS);
+			pSizeData->m_aTextures[i] = Graphics()->LoadTextureRaw(Width, Height, 1, 1, CImageInfo::FORMAT_ALPHA, pMem, CImageInfo::FORMAT_ALPHA, IGraphics::TEXLOAD_NOMIPMAPS);
 			FontMemoryUsage += Width*Height;
 		}
 

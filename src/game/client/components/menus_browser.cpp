@@ -16,7 +16,7 @@
 #include <game/client/ui.h>
 #include <game/client/components/countryflags.h>
 
-#include <modapi/compatibility.h>
+#include <tu/compatibility.h>
 
 #include "menus.h"
 

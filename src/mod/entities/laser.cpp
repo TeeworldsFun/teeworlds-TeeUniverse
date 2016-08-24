@@ -2,7 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <generated/server_data.h>
 #include <game/server/gamecontext.h>
-#include <modapi/server/event.h>
+#include <tu/server/event.h>
 #include <tw06/protocol.h>
 
 #include "character.h"

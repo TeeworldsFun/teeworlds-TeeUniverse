@@ -7,7 +7,7 @@
 #include <game/client/gameclient.h>
 #include <game/client/components/camera.h>
 #include <game/client/components/menus.h>
-#include <modapi/client/clientmode.h>
+#include <tu/client/clientmode.h>
 #include "sounds.h"
 
 

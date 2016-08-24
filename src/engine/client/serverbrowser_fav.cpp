@@ -16,7 +16,7 @@
 
 #include <mastersrv/mastersrv.h>
 
-#include <modapi/client/metanetclient.h>
+#include <tu/client/metanetclient.h>
 
 #include "serverbrowser_fav.h"
 

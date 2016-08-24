@@ -56,7 +56,7 @@ void CMapImages::LoadMapImages(IMap *pMap, class CLayers *pLayers, int MapType)
 		else
 		{
 			void *pData = pMap->GetData(pImg->m_ImageData);
-			m_Info[MapType].m_aTextures[i] = Graphics()->LoadTextureRaw(pImg->m_Width, pImg->m_Height, pImg->m_Version == 1 ? CImageInfo::FORMAT_RGBA : pImg->m_Format, pData, CImageInfo::FORMAT_RGBA, TextureFlags);
+			m_Info[MapType].m_aTextures[i] = Graphics()->LoadTextureRaw(pImg->m_Width, pImg->m_Height, 16, 16, pImg->m_Version == 1 ? CImageInfo::FORMAT_RGBA : pImg->m_Format, pData, CImageInfo::FORMAT_RGBA, TextureFlags);
 			pMap->UnloadData(pImg->m_ImageData);
 		}
 	}

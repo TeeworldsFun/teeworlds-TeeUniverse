@@ -3,7 +3,7 @@
 #ifndef ENGINE_CLIENT_CLIENT_H
 #define ENGINE_CLIENT_CLIENT_H
 
-#include <modapi/client/metanetclient.h>
+#include <tu/client/metanetclient.h>
 
 class CGraph
 {
@@ -56,7 +56,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 {
 	// needed interfaces
 	IEngine *m_pEngine;
-	tu::IAssetsEditor *m_pAssetsEditor;
+	tu::assetseditor::IAssetsEditor *m_pAssetsEditor;
 	IEngineInput *m_pInput;
 	IEngineGraphics *m_pGraphics;
 	IEngineSound *m_pSound;
@@ -333,7 +333,7 @@ public:
 	
 	//TU
 	tu::CClient_Graphics* m_pTUGraphics;
-	tu::CAssetManager* m_pAssetManager;
+	tu::CAssetsManager* m_pAssetsManager;
 	char m_aCurrentMod[256];
 	unsigned m_CurrentModCrc;
 
@@ -351,7 +351,7 @@ public:
 	const char *LoadModSearch(const char *pModName, int WantedCrc);
 	
 	virtual tu::CClient_Graphics *TUGraphics() const { return m_pTUGraphics; }
-	virtual tu::CAssetManager *AssetManager() const { return m_pAssetManager; }
+	virtual tu::CAssetsManager *AssetsManager() const { return m_pAssetsManager; }
 
 	int m_ClientMode;
 	

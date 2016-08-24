@@ -2,7 +2,7 @@
 #define MOD_WEAPON_NINJA_H
 
 #include <base/vmath.h>
-#include <modapi/server/weapon.h>
+#include <tu/server/weapon.h>
 
 class CMod_Weapon_Ninja : public tu::CWeapon
 {

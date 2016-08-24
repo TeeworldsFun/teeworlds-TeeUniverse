@@ -5,7 +5,7 @@
 #include "gamecontroller.h"
 #include "player.h"
 
-#include <modapi/server/event.h>
+#include <tu/server/event.h>
 
 #include <mod/entities/character.h>
 #include <mod/defines.h>

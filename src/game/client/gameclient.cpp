@@ -15,7 +15,7 @@
 #include <generated/protocol.h>
 #include <generated/client_data.h>
 
-#include <modapi/client/clientmode.h>
+#include <tu/client/clientmode.h>
 
 #include <game/version.h>
 #include "localization.h"
@@ -51,7 +51,7 @@
 #include "components/spectator.h"
 #include "components/voting.h"
 
-#include <modapi/client/components/items.h>
+#include <tu/client/components/items.h>
 
 // instanciate all systems
 static CKillMessages gs_KillMessages;
@@ -1311,8 +1311,8 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
-			tu::CAssetPath CharacterPartPath = pGameClient->AssetManager()->FindSkinPart(
-				tu::CAssetPath::Internal(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
+			tu::CAssetPath CharacterPartPath = pGameClient->AssetsManager()->FindSkinPart(
+				tu::CAssetPath::Universe(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
 				tu::CAsset_Character::CSubPath::Part(p),
 				m_aaSkinPartNames[p]
 			);

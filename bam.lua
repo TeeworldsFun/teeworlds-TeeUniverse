@@ -324,7 +324,7 @@ function BuildGameCommon(settings)
 end
 
 function BuildTUCommon(settings)
-	settings.link.extrafiles:Merge(Compile(settings, Collect("src/modapi/shared/*.cpp"), Collect("src/tw06/*.cpp")))
+	settings.link.extrafiles:Merge(Compile(settings, Collect("src/tu/shared/*.cpp"), Collect("src/tw06/*.cpp")))
 end
 
 
@@ -336,7 +336,7 @@ function BuildClient(settings, family, platform)
 	
 	local game_client = Compile(settings, CollectRecursive("src/game/client/*.cpp"), SharedClientFiles())
 	
-	local client_tu = Compile(settings, CollectRecursive("src/modapi/client/*.cpp"))
+	local client_tu = Compile(settings, CollectRecursive("src/tu/client/*.cpp"))
 	
 	Link(settings, "teeuniverses", libs["zlib"], libs["md5"], libs["wavpack"], libs["png"], libs["json"], client, game_client, client_tu)
 end
@@ -346,7 +346,7 @@ function BuildServer(settings, family, platform)
 	
 	local game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), SharedServerFiles())
 		
-	local server_tu = Compile(settings, Collect("src/modapi/server/*.cpp"))
+	local server_tu = Compile(settings, Collect("src/tu/server/*.cpp"))
 	
 	local server_mod = Compile(settings, CollectRecursive("src/mod/*.cpp"))
 	

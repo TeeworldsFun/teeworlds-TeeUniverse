@@ -222,6 +222,8 @@ public:
 
 		int m_Width;
 		int m_Height;
+		int m_GridWidth;
+		int m_GridHeight;
 		int m_PixelSize;
 		int m_Format;
 		int m_StoreFormat;
@@ -407,7 +409,7 @@ public:
 	virtual void LinesDraw(const CLineItem *pArray, int Num);
 
 	virtual int UnloadTexture(IGraphics::CTextureHandle *Index);
-	virtual IGraphics::CTextureHandle LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags);
+	virtual IGraphics::CTextureHandle LoadTextureRaw(int Width, int Height, int GridWidth, int GridHeight, int Format, const void *pData, int StoreFormat, int Flags);
 	virtual int LoadTextureRawSub(IGraphics::CTextureHandle TextureID, int x, int y, int Width, int Height, int Format, const void *pData);
 
 	// simple uncompressed RGBA loaders
@@ -427,6 +429,9 @@ public:
 	virtual void SetColorVertex(const CColorVertex *pArray, int Num);
 	virtual void SetColor(float r, float g, float b, float a);
 	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight);
+	
+	virtual void SetColor(vec4 rgba, bool AlphaBlend);
+	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight, bool AlphaBlend);
 
 	virtual void QuadsSetSubset(float TlU, float TlV, float BrU, float BrV, int TextureIndex = -1);
 	virtual void QuadsSetSubsetFree(

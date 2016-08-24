@@ -4,13 +4,13 @@
 
 #include <game/mapitems.h>
 
-#include <modapi/mapitem.h>
+#include <tu/mapitem.h>
 
 #include "gamecontext.h"
 #include "gamecontroller.h"
 #include "player.h"
 
-#include <modapi/server/weapon.h>
+#include <tu/server/weapon.h>
 
 #include <mod/entities/character.h>
 #include <mod/entities/pickup.h>

@@ -3,7 +3,7 @@
 #ifndef GAME_SERVER_ENTITIES_PROJECTILE_H
 #define GAME_SERVER_ENTITIES_PROJECTILE_H
 
-#include <modapi/server/entity.h>
+#include <tu/server/entity.h>
 
 class CProjectile : public tu::CEntity_TW
 {

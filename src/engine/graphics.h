@@ -116,7 +116,7 @@ public:
 	virtual int LoadPNG(CImageInfo *pImg, const char *pFilename, int StorageType) = 0;
 
 	virtual int UnloadTexture(CTextureHandle *Index) = 0;
-	virtual CTextureHandle LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags) = 0;
+	virtual CTextureHandle LoadTextureRaw(int Width, int Height, int GridWidth, int GridHeight, int Format, const void *pData, int StoreFormat, int Flags) = 0;
 	virtual int LoadTextureRawSub(CTextureHandle TextureID, int x, int y, int Width, int Height, int Format, const void *pData) = 0;
 	virtual CTextureHandle LoadTexture(const char *pFilename, int StorageType, int StoreFormat, int Flags) = 0;
 	virtual void TextureSet(CTextureHandle Texture) = 0;
@@ -166,7 +166,9 @@ public:
 	};
 	virtual void SetColorVertex(const CColorVertex *pArray, int Num) = 0;
 	virtual void SetColor(float r, float g, float b, float a) = 0;
+	virtual void SetColor(vec4 rgba, bool AlphaBlend) = 0;
 	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight) = 0;
+	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight, bool AlphaBlend) = 0;
 
 	virtual void ReadBackbuffer(unsigned char **ppPixels, int x, int y, int w, int h) = 0;
 	virtual void TakeScreenshot(const char *pFilename) = 0;

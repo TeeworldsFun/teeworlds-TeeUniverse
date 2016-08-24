@@ -3,7 +3,7 @@
 #ifndef GAME_SERVER_ENTITIES_FLAG_H
 #define GAME_SERVER_ENTITIES_FLAG_H
 
-#include <modapi/server/entity.h>
+#include <tu/server/entity.h>
 
 class CFlag : public tu::CEntity_TW
 {

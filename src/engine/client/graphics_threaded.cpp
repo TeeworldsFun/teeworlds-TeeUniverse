@@ -325,7 +325,7 @@ int CGraphics_Threaded::LoadTextureRawSub(CTextureHandle TextureID, int x, int y
 	return 0;
 }
 
-IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(int Width, int Height, int Format, const void *pData, int StoreFormat, int Flags)
+IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(int Width, int Height, int GridWidth, int GridHeight, int Format, const void *pData, int StoreFormat, int Flags)
 {
 	// don't waste memory on texture if we are stress testing
 	if(g_Config.m_DbgStress)
@@ -340,6 +340,8 @@ IGraphics::CTextureHandle CGraphics_Threaded::LoadTextureRaw(int Width, int Heig
 	Cmd.m_Slot = Tex;
 	Cmd.m_Width = Width;
 	Cmd.m_Height = Height;
+	Cmd.m_GridWidth = GridWidth;
+	Cmd.m_GridHeight = GridHeight;
 	Cmd.m_PixelSize = ImageFormatToPixelSize(Format);
 	Cmd.m_Format = ImageFormatToTexFormat(Format);
 	Cmd.m_StoreFormat = ImageFormatToTexFormat(StoreFormat);
@@ -389,7 +391,15 @@ IGraphics::CTextureHandle CGraphics_Threaded::LoadTexture(const char *pFilename,
 		if (StoreFormat == CImageInfo::FORMAT_AUTO)
 			StoreFormat = Img.m_Format;
 
-		ID = LoadTextureRaw(Img.m_Width, Img.m_Height, Img.m_Format, Img.m_pData, StoreFormat, Flags);
+		int GridWidth = 1;
+		int GridHeight = 1;
+		if(Flags&IGraphics::TEXLOAD_MULTI_DIMENSION || Flags&IGraphics::TEXLOAD_ARRAY_256)
+		{
+			GridWidth = 16;
+			GridHeight = 16;
+		}
+
+		ID = LoadTextureRaw(Img.m_Width, Img.m_Height, GridWidth, GridHeight, Img.m_Format, Img.m_pData, StoreFormat, Flags);
 		mem_free(Img.m_pData);
 		if(ID.Id() != m_InvalidTexture.Id() && g_Config.m_Debug)
 			dbg_msg("graphics/texture", "loaded %s", pFilename);
@@ -557,6 +567,52 @@ void CGraphics_Threaded::SetColor(float r, float g, float b, float a)
 		CColorVertex(2, r, g, b, a),
 		CColorVertex(3, r, g, b, a)};
 	SetColorVertex(Array, 4);
+}
+
+void CGraphics_Threaded::SetColor(vec4 rgba, bool AlphaBlend)
+{
+	dbg_assert(m_Drawing != 0, "called Graphics()->SetColor without begin");
+	if(AlphaBlend)
+	{
+		CColorVertex Array[4] = {
+			CColorVertex(0, rgba.r*rgba.a, rgba.g*rgba.a, rgba.b*rgba.a, rgba.a),
+			CColorVertex(1, rgba.r*rgba.a, rgba.g*rgba.a, rgba.b*rgba.a, rgba.a),
+			CColorVertex(2, rgba.r*rgba.a, rgba.g*rgba.a, rgba.b*rgba.a, rgba.a),
+			CColorVertex(3, rgba.r*rgba.a, rgba.g*rgba.a, rgba.b*rgba.a, rgba.a)};
+		SetColorVertex(Array, 4);
+	}
+	else
+	{
+		CColorVertex Array[4] = {
+			CColorVertex(0, rgba.r, rgba.g, rgba.b, rgba.a),
+			CColorVertex(1, rgba.r, rgba.g, rgba.b, rgba.a),
+			CColorVertex(2, rgba.r, rgba.g, rgba.b, rgba.a),
+			CColorVertex(3, rgba.r, rgba.g, rgba.b, rgba.a)};
+		SetColorVertex(Array, 4);
+	}
+}
+
+void CGraphics_Threaded::SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight, bool AlphaBlend)
+{
+	dbg_assert(m_Drawing != 0, "called Graphics()->SetColor without begin");
+	if(AlphaBlend)
+	{
+		CColorVertex Array[4] = {
+			CColorVertex(0, TopLeft.r*TopLeft.a, TopLeft.g*TopLeft.a, TopLeft.b*TopLeft.a, TopLeft.a),
+			CColorVertex(1, TopRight.r*TopRight.a, TopRight.g*TopRight.a, TopRight.b*TopRight.a, TopRight.a),
+			CColorVertex(2, BottomRight.r*BottomRight.a, BottomRight.g*BottomRight.a, BottomRight.b*BottomRight.a, BottomRight.a),
+			CColorVertex(3, BottomLeft.r*BottomLeft.a, BottomLeft.g*BottomLeft.a, BottomLeft.b*BottomLeft.a, BottomLeft.a)};
+		SetColorVertex(Array, 4);
+	}
+	else
+	{
+		CColorVertex Array[4] = {
+			CColorVertex(0, TopLeft.r, TopLeft.g, TopLeft.b, TopLeft.a),
+			CColorVertex(1, TopRight.r, TopRight.g, TopRight.b, TopRight.a),
+			CColorVertex(2, BottomRight.r, BottomRight.g, BottomRight.b, BottomRight.a),
+			CColorVertex(3, BottomLeft.r, BottomLeft.g, BottomLeft.b, BottomLeft.a)};
+		SetColorVertex(Array, 4);
+	}
 }
 
 void CGraphics_Threaded::SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight)
@@ -821,7 +877,7 @@ int CGraphics_Threaded::Init()
 			aNullTextureData[4*(y*32+x)+3] = 255;
 		}
 
-	m_InvalidTexture = LoadTextureRaw(32,32,CImageInfo::FORMAT_RGBA,aNullTextureData,CImageInfo::FORMAT_RGBA,TEXLOAD_NORESAMPLE|TEXLOAD_MULTI_DIMENSION);
+	m_InvalidTexture = LoadTextureRaw(32,32,1,1,CImageInfo::FORMAT_RGBA,aNullTextureData,CImageInfo::FORMAT_RGBA,TEXLOAD_NORESAMPLE|TEXLOAD_MULTI_DIMENSION);
 	return 0;
 }
 

@@ -6,8 +6,8 @@
 #include <generated/protocol.h>
 
 #include <game/gamecore.h>
-#include <modapi/server/entity.h>
-#include <modapi/server/weapon.h>
+#include <tu/server/entity.h>
+#include <tu/server/weapon.h>
 
 #include <mod/defines.h>
 

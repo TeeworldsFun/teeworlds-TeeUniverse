@@ -3,7 +3,7 @@
 #ifndef GAME_SERVER_ENTITIES_LASER_H
 #define GAME_SERVER_ENTITIES_LASER_H
 
-#include <modapi/server/entity.h>
+#include <tu/server/entity.h>
 
 class CLaser : public tu::CEntity_TW
 {

@@ -4,7 +4,7 @@
 #define ENGINE_SERVER_SERVER_H
 
 #include <engine/server.h>
-#include <modapi/server/metanetserver.h>
+#include <tu/server/metanetserver.h>
 
 
 class CSnapIDPool

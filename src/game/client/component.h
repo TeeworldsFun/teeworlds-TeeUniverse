@@ -32,7 +32,7 @@ protected:
 	
 	//TU
 	class tu::CClient_Graphics *TUGraphics() const { return m_pClient->TUGraphics(); }
-	class tu::CAssetManager *AssetManager() const { return m_pClient->AssetManager(); }
+	class tu::CAssetsManager *AssetsManager() const { return m_pClient->AssetsManager(); }
 	
 public:
 	virtual ~CComponent() {}

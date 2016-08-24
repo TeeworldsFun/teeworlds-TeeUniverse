@@ -5,7 +5,7 @@
 #include "character.h"
 #include "projectile.h"
 
-#include <modapi/server/event.h>
+#include <tu/server/event.h>
 #include <tw06/protocol.h>
 
 CProjectile::CProjectile(CGameWorld *pGameWorld, int Type, int Owner, vec2 Pos, vec2 Dir, int Span,

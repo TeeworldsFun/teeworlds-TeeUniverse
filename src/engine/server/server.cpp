@@ -28,11 +28,11 @@
 #include <mastersrv/mastersrv.h>
 
 //TU
-#include <modapi/shared/assetsfile.h>
-#include <modapi/compatibility.h> 
-#include <modapi/server/server.h>
-#include <modapi/server/netserver_tw06.h>
-#include <modapi/server/netserver_tw07.h>
+#include <tu/shared/assetsfile.h>
+#include <tu/compatibility.h> 
+#include <tu/server/server.h>
+#include <tu/server/netserver_tw06.h>
+#include <tu/server/netserver_tw07.h>
 
 //Mod
 #include <mod/server.h>

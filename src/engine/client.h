@@ -7,9 +7,9 @@
 #include "message.h"
 #include "graphics.h"
 
-#include <modapi/client/graphics.h>
-#include <modapi/client/assetsmanager.h>
-#include <modapi/client/metanetclient.h>
+#include <tu/client/graphics.h>
+#include <tu/client/assetsmanager.h>
+#include <tu/client/metanetclient.h>
 
 class IClient : public IInterface
 {
@@ -165,7 +165,7 @@ public:
 	//TU
 public:
 	virtual tu::CClient_Graphics *TUGraphics() const = 0;
-	virtual tu::CAssetManager *AssetManager() const = 0;
+	virtual tu::CAssetsManager *AssetsManager() const = 0;
 	virtual void LoadAssetsFile(const char* pFileName) = 0;
 };
 
