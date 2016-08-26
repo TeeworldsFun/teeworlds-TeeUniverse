@@ -61,7 +61,7 @@ public:
 		char m_aName[128];
 		CAssetPath m_DefaultPath;
 	
-	public:
+	public:		
 		inline CPart& Name(const char* pText)
 		{
 			str_copy(m_aName, pText, sizeof(m_aName));

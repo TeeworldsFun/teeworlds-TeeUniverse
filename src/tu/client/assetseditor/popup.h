@@ -123,6 +123,7 @@ protected:
 		{
 			m_pAssetsEditor->AssetsManager()->SetAssetValue<CAssetPath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, m_FieldAssetPath);
 			m_pAssetsEditor->RefreshAssetsEditor();
+			m_pAssetsEditor->RefreshAssetList();
 		}
 		
 	public:
@@ -136,10 +137,11 @@ protected:
 			m_FieldAssetPath(FieldAssetPath)
 		{
 			m_Centered = false;
+			SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 			
 			if(m_FieldAssetPath.IsNull())
 			{
-				SetText("None");
+				SetText("Unset value");
 			}
 			else
 			{
@@ -224,32 +226,40 @@ public:
 	
 	virtual void Update()
 	{
-		#define POPUP_ASSET_EDIT_LIST(TypeName, TypeHeader) case TypeName::TypeId:\
-			m_Layout->Add(new gui::CLabel(m_pConfig, TypeHeader, gui::TEXTSTYLE_HEADER));\
-			for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<TypeName>(CAssetPath::SRC_UNIVERSE); i++)\
-				AddListElement(CAssetPath::Universe(TypeName::TypeId, i));\
-			m_Layout->AddSeparator();\
-			m_Layout->Add(new gui::CLabel(m_pConfig, TypeHeader, gui::TEXTSTYLE_HEADER));\
-			for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<TypeName>(CAssetPath::SRC_WORLD); i++)\
-				AddListElement(CAssetPath::World(TypeName::TypeId, i));\
+		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
+			m_Layout->Add(new gui::CLabel(m_pConfig, AssetTypeName, gui::TEXTSTYLE_HEADER));\
 			break;
 		
-		AddListElement(CAssetPath::Null());
 		switch(m_FieldAssetType)
 		{
-			//Search Tag: TAG_NEW_ASSET
-			POPUP_ASSET_EDIT_LIST(CAsset_Image, "Images")
-			POPUP_ASSET_EDIT_LIST(CAsset_Sprite, "Sprites")
-			POPUP_ASSET_EDIT_LIST(CAsset_Skeleton, "Skeletons")
-			POPUP_ASSET_EDIT_LIST(CAsset_SkeletonSkin, "Skeleton Skins")
-			POPUP_ASSET_EDIT_LIST(CAsset_SkeletonAnimation, "Skeleton Animations")
-			POPUP_ASSET_EDIT_LIST(CAsset_Character, "Characters")
-			POPUP_ASSET_EDIT_LIST(CAsset_CharacterPart, "Character Parts")
-			POPUP_ASSET_EDIT_LIST(CAsset_Weapon, "Weapons")
-			POPUP_ASSET_EDIT_LIST(CAsset_MapGroup, "Groups")
-			POPUP_ASSET_EDIT_LIST(CAsset_MapLayerTiles, "Tile Layers")
-			POPUP_ASSET_EDIT_LIST(CAsset_MapLayerQuads, "Quad Layers")
+			#include <tu/client/assetsmacro.h>
 		}
+		
+		#undef TU_MACRO_ASSETTYPE
+		
+		AddListElement(CAssetPath::Null());
+		
+		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
+			m_Layout->AddSeparator();\
+			m_Layout->Add(new gui::CLabel(m_pConfig, "Universe", gui::TEXTSTYLE_HEADER2));\
+			for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_UNIVERSE); i++)\
+				AddListElement(CAssetPath::Universe(ClassName::TypeId, i));\
+			m_Layout->AddSeparator();\
+			m_Layout->Add(new gui::CLabel(m_pConfig, "World", gui::TEXTSTYLE_HEADER2));\
+			for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_WORLD); i++)\
+				AddListElement(CAssetPath::World(ClassName::TypeId, i));\
+			m_Layout->AddSeparator();\
+			m_Layout->Add(new gui::CLabel(m_pConfig, "Land", gui::TEXTSTYLE_HEADER2));\
+			for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_LAND); i++)\
+				AddListElement(CAssetPath::World(ClassName::TypeId, i));\
+			break;
+		
+		switch(m_FieldAssetType)
+		{
+			#include <tu/client/assetsmacro.h>
+		}
+		
+		#undef TU_MACRO_ASSETTYPE
 		
 		gui::CPopup::Update();
 	}

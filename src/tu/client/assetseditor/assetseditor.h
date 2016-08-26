@@ -210,6 +210,7 @@ public:
 	void EditAssetPrevFrame();
 	void EditAssetNextFrame();
 	void DisplayAsset(CAssetPath AssetPath);
+	void DuplicateAsset(CAssetPath AssetPath);
 	void DeleteAsset(CAssetPath AssetPath);
 	void NewAsset(CAssetPath AssetPath);
 	

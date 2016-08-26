@@ -1327,14 +1327,24 @@ void CAssetsEditor::NewAsset(CAssetPath AssetPath)
 	EditAsset(AssetPath);
 }
 
+void CAssetsEditor::DuplicateAsset(CAssetPath AssetPath)
+{
+	CAssetPath NewAssetPath = AssetsManager()->DuplicateAsset(AssetPath, AssetPath.GetSource());
+	
+	m_EditedAssetPath = NewAssetPath;
+	m_ViewedAssetPath = NewAssetPath;
+	
+	RefreshAssetList();
+}
+
 void CAssetsEditor::DeleteAsset(CAssetPath AssetPath)
 {
 	AssetsManager()->DeleteAsset(AssetPath);
 	
-	RefreshAssetList();
-	
 	m_EditedAssetPath = CAssetPath::Null();
 	m_ViewedAssetPath = CAssetPath::Null();
+	
+	RefreshAssetList();
 }
 
 void CAssetsEditor::SetPause(bool Pause)

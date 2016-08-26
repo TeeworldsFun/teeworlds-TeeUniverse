@@ -637,6 +637,23 @@ public:
 		}
 	};
 
+	class CDuplicateAsset : public gui::CTextButton
+	{
+	protected:
+		CAssetsEditor* m_pAssetsEditor;
+		CAssetPath m_AssetPath;
+		
+	protected:
+		virtual void MouseClickAction() { m_pAssetsEditor->DuplicateAsset(m_AssetPath); }
+
+	public:
+		CDuplicateAsset(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath) :
+			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Duplicate", CAssetsEditor::ICON_DUPLICATE),
+			m_pAssetsEditor(pAssetsEditor),
+			m_AssetPath(AssetPath)
+		{ }
+	};
+
 	class CDeleteAsset : public gui::CTextButton
 	{
 	protected:
@@ -644,19 +661,14 @@ public:
 		CAssetPath m_AssetPath;
 		
 	protected:
-		virtual void MouseClickAction()
-		{
-			m_pAssetsEditor->DeleteAsset(m_AssetPath);
-		}
+		virtual void MouseClickAction() { m_pAssetsEditor->DeleteAsset(m_AssetPath); }
 
 	public:
 		CDeleteAsset(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath) :
 			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Delete", CAssetsEditor::ICON_DELETE),
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(AssetPath)
-		{
-			
-		}
+		{ }
 	};
 
 	class CDeleteSubItem : public gui::CIconButton

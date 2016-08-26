@@ -191,9 +191,35 @@ CEditor::CEditor(CAssetsEditor* pAssetsEditor) :
 void CEditor::AddAssetTabCommons(gui::CVListLayout* pList)
 {
 	pList->Clear();
-	AddTextField(pList, CAsset::NAME, -1, sizeof(CAsset::m_aName), "Asset name:");
+	AddTextField(pList, CAsset::NAME, -1, sizeof(CAsset::m_aName), "Name:");
+	{
+		gui::CLabel* pLabel;
+		char aBuf[64];
+		
+		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
+			str_format(aBuf, sizeof(aBuf), "%s #%d", AssetTypeName, m_pAssetsEditor->m_EditedAssetPath.GetId());\
+			break;
+
+		switch(m_pAssetsEditor->m_EditedAssetPath.GetType())
+		{
+			#include <tu/client/assetsmacro.h>
+		}
+		
+		#undef TU_MACRO_ASSETTYPE
+		
+		pLabel = new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, aBuf);
+		AddField(pList, pLabel, "Asset reference");
+	}
 	
-	pList->Add(new CEditor::CDeleteAsset(m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath));
+	{
+		
+		gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
+		pLayout->SetHeight(m_pConfig->m_ButtonHeight);
+		pList->Add(pLayout);
+		
+		pLayout->Add(new CEditor::CDuplicateAsset(m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath));
+		pLayout->Add(new CEditor::CDeleteAsset(m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath));
+	}
 	
 	pList->AddSeparator();
 }

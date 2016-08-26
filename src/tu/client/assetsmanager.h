@@ -35,7 +35,7 @@ private:
 	IGraphics* m_pGraphics;
 	class IStorage* m_pStorage;
 	
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CAssetCatalog<ClassName> CatalogName;
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CAssetCatalog<ClassName> CatalogName;
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 
@@ -58,7 +58,8 @@ public:
 	class IStorage *Storage() { return m_pStorage; };
 	
 	CAssetPath AddImage(int StorageType, const char* pFilename, int Source);
-	void DeleteAsset(int Type, CAssetPath Path);
+	CAssetPath DuplicateAsset(const CAssetPath& Path, int Source);
+	void DeleteAsset(const CAssetPath& Path);
 	
 	void UpdateAssets();
 	int SaveInAssetsFile(const char *pFileName, int Source);
@@ -97,7 +98,7 @@ public:
 	template<typename T>
 	T GetAssetValue(CAssetPath AssetPath, int FieldType, int FieldPath, T DefaultValue)
 	{
-		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
+		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 		{\
 			ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
 			if(pAsset)\
@@ -119,7 +120,7 @@ public:
 	template<typename T>
 	bool SetAssetValue(CAssetPath AssetPath, int FieldType, int FieldPath, const T& Value)
 	{
-		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
+		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 		{\
 			ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
 			if(pAsset)\
@@ -136,8 +137,6 @@ public:
 		
 		return false;
 	}
-	
-	void DeleteAsset(const CAssetPath& Path);
 };
 
 }

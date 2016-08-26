@@ -20,7 +20,7 @@ CAssetsManager::CAssetsManager(IGraphics* pGraphics, IStorage* pStorage)
 	m_pStorage = pStorage;
 }
 
-#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) template<>\
+#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) template<>\
 CAssetCatalog<ClassName>* CAssetsManager::GetAssetCatalog<ClassName>()\
 {\
 	return &CatalogName;\
@@ -1347,7 +1347,7 @@ CAssetPath CAssetsManager::AddImage(int StorageType, const char* pFilename, int 
 void CAssetsManager::UpdateAssets()
 {
 	//TODO: Do it only for images
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.Update();
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Update();
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 }
@@ -1369,7 +1369,7 @@ int CAssetsManager::SaveInAssetsFile(const char *pFileName, int Source)
 		df.AddItem(CAsset_Image::TypeId, 0, sizeof(CStorageType), &Item);
 	}
 	
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.SaveInAssetsFile(&df, Source);
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.SaveInAssetsFile(&df, Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 	
@@ -1390,7 +1390,7 @@ int CAssetsManager::OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile)
 		Source = pItem->m_Source % CAssetPath::NUM_SOURCES;
 	}
 	
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.LoadFromAssetsFile(this, pAssetsFile, Source);
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.LoadFromAssetsFile(this, pAssetsFile, Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 	
@@ -1639,25 +1639,75 @@ int CAssetsManager::OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile)
 
 int CAssetsManager::OnAssetsFileUnloaded()
 {
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.Unload();
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Unload();
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 }
 	
+CAssetPath CAssetsManager::DuplicateAsset(const CAssetPath& Path, int Source)
+{
+	CAssetPath NewAssetPath;
+	char aBuf[128];
+	
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
+	{\
+		if(!GetAsset<ClassName>(Path))\
+			return CAssetPath::Null();\
+		ClassName* pNewAsset = CatalogName.NewAsset(&NewAssetPath, Source);\
+		if(!pNewAsset)\
+			return CAssetPath::Null();\
+		ClassName* pOldAsset = GetAsset<ClassName>(Path);\
+		*pNewAsset = *pOldAsset;\
+		\
+		int DuplicateNum = ((Source == Path.GetSource()) ? 1 : 0);\
+		bool NameFound;\
+		do\
+		{\
+			NameFound = false;\
+			DuplicateNum++;\
+			if(DuplicateNum < 2)\
+				str_copy(aBuf, pOldAsset->m_aName, sizeof(aBuf));\
+			else\
+				str_format(aBuf, sizeof(aBuf), "%s (%d)", pOldAsset->m_aName, DuplicateNum);\
+			for(int i=0; i<CatalogName.m_Assets[Source].size(); i++)\
+			{\
+				if(str_comp(CatalogName.m_Assets[Source][i].m_aName, aBuf) == 0)\
+				{\
+					NameFound = true;\
+					break;\
+				}\
+			}\
+		}\
+		while(NameFound);\
+		pNewAsset->SetName(aBuf);\
+		break;\
+	}
+	
+	switch(Path.GetType())
+	{
+		//~ #include <tu/client/assetsmacro.h>
+		TU_MACRO_ASSETTYPE(tu::CAsset_Character, m_CharactersCatalog, "Character", "character")
+	}
+	
+	#undef TU_MACRO_ASSETTYPE
+	
+	return NewAssetPath;
+}
+	
 void CAssetsManager::DeleteAsset(const CAssetPath& Path)
 {
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.DeleteAsset(Path);
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.DeleteAsset(Path);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 	
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.OnAssetDeleted(Path);
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.OnAssetDeleted(Path);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 }
 	
 int CAssetsManager::AddSubItem(CAssetPath AssetPath, int SubItemType)
 {
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 	{\
 		ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
 		if(pAsset)\
@@ -1678,7 +1728,7 @@ int CAssetsManager::AddSubItem(CAssetPath AssetPath, int SubItemType)
 	
 void CAssetsManager::DeleteSubItem(CAssetPath AssetPath, int SubPath)
 {
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 	{\
 		ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
 		if(pAsset)\
@@ -1692,7 +1742,7 @@ void CAssetsManager::DeleteSubItem(CAssetPath AssetPath, int SubPath)
 	}
 	#undef TU_MACRO_ASSETTYPE
 	
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.OnSubItemDeleted(AssetPath, SubPath);
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.OnSubItemDeleted(AssetPath, SubPath);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 }
