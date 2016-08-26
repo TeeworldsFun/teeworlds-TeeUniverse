@@ -42,11 +42,11 @@ public:
 		CView* m_pView;
 		int m_CursorToolID;
 		
-	protected:
+	public:
 		virtual void MouseClickAction();
 		
 	protected:
-		CButtonCore(CView* pView, int Icon, int CursorToolID);
+		CButtonCore(CView* pView, int Icon, int CursorToolID, bool DefaultCursorTool);
 		virtual ~CButtonCore() {}
 		virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
 		virtual void Render();
@@ -82,8 +82,8 @@ public:
 #define CURSORTOOL_BUTTON(TypeName, IconID) class CButton : public CButtonCore\
 	{\
 	public:\
-		CButton(CView* pView, int CursorToolID) :\
-			CButtonCore(pView, CAssetsEditor::IconID, CursorToolID)\
+		CButton(CView* pView, int CursorToolID, bool DefaultCursorTool = false) :\
+			CButtonCore(pView, CAssetsEditor::IconID, CursorToolID, DefaultCursorTool)\
 		{ }\
 		\
 		virtual CView_CursorTool* CreateCursorTool()\

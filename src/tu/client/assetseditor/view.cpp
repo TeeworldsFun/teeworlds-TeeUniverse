@@ -88,6 +88,8 @@ CView::~CView()
 void CView::RefreshToolBar()
 {
 	m_pToolbar->Clear();
+	m_pDefaultCursorToolButton = 0;
+	m_CursorToolFound = false;
 	
 	gui::CLabel* pZoomLabel = new gui::CLabel(m_pConfig, "Zoom:");
 	pZoomLabel->SetRect(gui::CRect(
@@ -119,10 +121,10 @@ void CView::RefreshToolBar()
 			m_pToolbar->AddSeparator();
 			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
 			
+			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_ROTATE, true));
 			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateXY::CButton(this, CURSORTOOL_TRANSLATE));
 			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateX::CButton(this, CURSORTOOL_TRANSLATE_X));
 			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateY::CButton(this, CURSORTOOL_TRANSLATE_Y));
-			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_ROTATE));
 			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleXY::CButton(this, CURSORTOOL_SCALE));
 			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleX::CButton(this, CURSORTOOL_SCALE_X));
 			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleY::CButton(this, CURSORTOOL_SCALE_Y));
@@ -141,10 +143,10 @@ void CView::RefreshToolBar()
 			m_pToolbar->AddSeparator();
 			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
 			
+			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_ROTATE, true));
 			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateXY::CButton(this, CURSORTOOL_TRANSLATE));
 			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateX::CButton(this, CURSORTOOL_TRANSLATE_X));
 			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateY::CButton(this, CURSORTOOL_TRANSLATE_Y));
-			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_ROTATE));
 			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleXY::CButton(this, CURSORTOOL_SCALE));
 			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleX::CButton(this, CURSORTOOL_SCALE_X));
 			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleY::CButton(this, CURSORTOOL_SCALE_Y));
@@ -161,13 +163,16 @@ void CView::RefreshToolBar()
 			m_pToolbar->AddSeparator();
 			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
 			
-			m_pToolbar->Add(new CView_CursorTool_MapLayerTiles_SelectionStamp::CButton(this, CURSORTOOL_SELECTIONSTAMP));
+			m_pToolbar->Add(new CView_CursorTool_MapLayerTiles_SelectionStamp::CButton(this, CURSORTOOL_SELECTIONSTAMP, true));
 			break;
 		}
 	}
 	
 	if(m_pCursorTool)
 		m_pCursorTool->RefreshToolBar();
+	
+	if(m_pDefaultCursorToolButton && !m_CursorToolFound)
+		m_pDefaultCursorToolButton->MouseClickAction();
 	
 	m_pToolbar->Update();
 }

@@ -10,12 +10,17 @@ namespace tu
 namespace assetseditor
 {
 	
-CView_CursorTool::CButtonCore::CButtonCore(CView* pView, int Icon, int CursorToolID) :
+CView_CursorTool::CButtonCore::CButtonCore(CView* pView, int Icon, int CursorToolID, bool DefaultCursorTool) :
 	gui::CIconButton(pView->m_pConfig, Icon),
 	m_pView(pView),
 	m_CursorToolID(CursorToolID)
 {
+	if(DefaultCursorTool)
+		m_pView->SetDefaultCursorToolButton(this);
 	
+	CView_CursorTool* pCursorTool = m_pView->GetCursorTool();
+	if(pCursorTool && pCursorTool->GetCursorToolID() == m_CursorToolID)
+		m_pView->CursorToolFound();
 }
 
 void CView_CursorTool::CButtonCore::MouseClickAction()

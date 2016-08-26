@@ -192,6 +192,8 @@ protected:
 	
 	//Cursor Tools
 	CView_CursorTool* m_pCursorTool;
+	CView_CursorTool::CButtonCore* m_pDefaultCursorToolButton;
+	bool m_CursorToolFound;
 	
 	//Object View
 	float m_ObjectZoom;
@@ -260,6 +262,11 @@ public:
 		m_pCursorTool = pCursorTool;
 		RefreshToolBar();
 	}
+	inline void SetDefaultCursorToolButton(CView_CursorTool::CButtonCore* pCursorToolButton)
+	{
+		m_pDefaultCursorToolButton = pCursorToolButton;
+	}
+	inline void CursorToolFound() { m_CursorToolFound = true; }
 	
 	inline void SetDragType(int Type) { m_DragType = Type; }
 };
