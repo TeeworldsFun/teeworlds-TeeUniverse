@@ -25,6 +25,8 @@ class CPopup_AddImage : public gui::CPopup
 protected:
 	CAssetsEditor* m_pAssetsEditor;
 	gui::CVListLayout* m_Layout;
+	char m_aDirectory[256];
+	bool m_NeedRefresh;
 	
 protected:
 	class CItem : public gui::CTextButton
@@ -39,9 +41,21 @@ protected:
 	protected:
 		virtual void MouseClickAction()
 		{
-			if(!m_IsDirectory)
+			if(m_IsDirectory)
 			{
-				CAssetPath Path = m_pAssetsEditor->AssetsManager()->AddImage(m_StorageType, m_aFilename, CAssetPath::SRC_WORLD);
+				char* pDirectory = m_pPopup->m_aDirectory;
+				pDirectory += str_length(pDirectory);
+				*pDirectory = '/';
+				pDirectory++;
+				str_copy(pDirectory, m_aFilename, (m_pPopup->m_aDirectory+sizeof(m_pPopup->m_aDirectory))-pDirectory);
+				
+				m_pPopup->m_NeedRefresh = true;
+			}
+			else
+			{
+				char aBuf[512];
+				str_format(aBuf, sizeof(aBuf), "%s/%s", m_pPopup->m_aDirectory, m_aFilename);
+				CAssetPath Path = m_pAssetsEditor->AssetsManager()->AddImage(m_StorageType, aBuf, CAssetPath::SRC_WORLD);
 				if(!Path.IsNull())
 				{
 					m_pAssetsEditor->NewAsset(Path);
@@ -52,7 +66,7 @@ protected:
 		
 	public:
 		CItem(CPopup_AddImage* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_IMAGE),
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, IsDir ? CAssetsEditor::ICON_MAPGROUP : CAssetsEditor::ICON_IMAGE),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -66,11 +80,15 @@ protected:
 	
 public:
 	CPopup_AddImage(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment) :
-		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 250, 500, Alignment),
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 300, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor)
-	{		
+	{	
+		str_copy(m_aDirectory, ".", sizeof(m_aDirectory));
+			
 		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
 		Add(m_Layout);
+		
+		m_NeedRefresh = true;
 		
 		Update();
 	}
@@ -83,7 +101,7 @@ public:
 		if(pName[0] == '.' && (pName[1] == 0))
 			return 0;
 		
-		if(Length < 4 || str_comp(pName+Length-4, ".png"))
+		if(!IsDir && (Length < 4 || str_comp(pName+Length-4, ".png")))
 			return 0;
 
 		CPopup_AddImage::CItem* pItem = new CPopup_AddImage::CItem(pAddImageView, pName, StorageType, IsDir);
@@ -94,9 +112,19 @@ public:
 	
 	virtual void Update()
 	{
-		m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, ".", FileListFetchCallback, this);
-		
+		dbg_msg("TeeUniv", "Directory:%s", m_aDirectory);
+		m_Layout->Clear();
+		m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, m_aDirectory, FileListFetchCallback, this);
 		gui::CPopup::Update();
+		m_NeedRefresh = false;
+	}
+	
+	virtual void Render()
+	{
+		if(m_NeedRefresh)
+			Update();
+		
+		gui::CPopup::Render();
 	}
 };
 
@@ -1614,6 +1642,113 @@ public:
 			m_AssetMember,
 			m_AssetSubPath,
 			vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
+};
+
+/* NEW ASSET ***************************************************/
+
+class CPopup_NewAsset : public gui::CPopup
+{	
+protected:
+	
+	class CItem : public gui::CTextButton
+	{
+	protected:
+		CPopup_NewAsset* m_pPopup;
+		CAssetsEditor* m_pAssetsEditor;
+		int m_AssetType;
+		
+	protected:
+		virtual void MouseClickAction()
+		{
+			m_pPopup->CreateAsset(m_AssetType);
+		}
+		
+	public:
+		CItem(CPopup_NewAsset* pPopup, const char* pText, int IconId, int AssetType) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pText, IconId),
+			m_pPopup(pPopup),
+			m_pAssetsEditor(pPopup->m_pAssetsEditor),
+			m_AssetType(AssetType)
+		{
+			m_Centered = false;
+			SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+		}
+	};
+	
+protected:
+	CAssetsEditor* m_pAssetsEditor;
+	int m_Source;
+	gui::CRect m_CreatorRect;
+	int m_Alignment;
+	
+public:
+	CPopup_NewAsset(CAssetsEditor* pAssetsEditor, int Source, const gui::CRect& CreatorRect, int Alignment) :
+		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 200, 400, Alignment),
+		m_pAssetsEditor(pAssetsEditor),
+		m_Source(Source),
+		m_CreatorRect(CreatorRect),
+		m_Alignment(Alignment)
+	{
+		gui::CVListLayout* pLayout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_DEFAULT);
+		Add(pLayout);
+				
+		pLayout->Add(new CItem(this, "Image", CAssetsEditor::ICON_IMAGE, CAssetPath::TYPE_IMAGE));
+		pLayout->Add(new CItem(this, "Sprite", CAssetsEditor::ICON_SPRITE, CAssetPath::TYPE_SPRITE));
+		pLayout->AddSeparator();
+		pLayout->Add(new CItem(this, "Map group", CAssetsEditor::ICON_MAPGROUP, CAssetPath::TYPE_MAPGROUP));
+		pLayout->Add(new CItem(this, "Map tiles layer", CAssetsEditor::ICON_MAPLAYERTILES, CAssetPath::TYPE_MAPLAYERTILES));
+		pLayout->Add(new CItem(this, "Map quads layer", CAssetsEditor::ICON_MAPLAYERQUADS, CAssetPath::TYPE_MAPLAYERQUADS));
+		pLayout->AddSeparator();
+		pLayout->Add(new CItem(this, "Skeleton", CAssetsEditor::ICON_SKELETON, CAssetPath::TYPE_SKELETON));
+		pLayout->Add(new CItem(this, "Skeleton animation", CAssetsEditor::ICON_SKELETONANIMATION, CAssetPath::TYPE_SKELETONANIMATION));
+		pLayout->Add(new CItem(this, "Skeleton skin", CAssetsEditor::ICON_SKELETONSKIN, CAssetPath::TYPE_SKELETONSKIN));
+		pLayout->AddSeparator();
+		pLayout->Add(new CItem(this, "Charater", CAssetsEditor::ICON_CHARACTER, CAssetPath::TYPE_CHARACTER));
+		pLayout->Add(new CItem(this, "Charater part", CAssetsEditor::ICON_CHARACTERPART, CAssetPath::TYPE_CHARACTERPART));
+		pLayout->Add(new CItem(this, "Weapon", CAssetsEditor::ICON_WEAPON, CAssetPath::TYPE_WEAPON));
+		
+		Update();
+	}
+	
+	void CreateAsset(int AssetType)
+	{
+		#define ON_NEW_ASSET(TypeName, AssetName) case TypeName::TypeId:\
+		{\
+			TypeName* pAsset = m_pAssetsEditor->AssetsManager()->GetAssetCatalog<TypeName>()->NewAsset(&NewAssetPath, m_Source);\
+			char aBuf[128];\
+			str_format(aBuf, sizeof(aBuf), AssetName, NewAssetPath.GetId());\
+			pAsset->SetName(aBuf);\
+			m_pAssetsEditor->NewAsset(NewAssetPath);\
+			break;\
+		}
+			
+		CAssetPath NewAssetPath;
+		
+		switch(AssetType)
+		{
+			case CAssetPath::TYPE_IMAGE:
+			{
+				Close();
+				m_pAssetsEditor->DisplayPopup(new CPopup_AddImage(
+					m_pAssetsEditor, m_CreatorRect, m_Alignment
+				));
+				break;
+			}
+			//Search Tag: TAG_NEW_ASSET
+			ON_NEW_ASSET(CAsset_Sprite, "sprite%d")
+			ON_NEW_ASSET(CAsset_Skeleton, "skeleton%d")
+			ON_NEW_ASSET(CAsset_SkeletonSkin, "skin%d")
+			ON_NEW_ASSET(CAsset_SkeletonAnimation, "animation%d")
+			ON_NEW_ASSET(CAsset_Character, "character%d")
+			ON_NEW_ASSET(CAsset_CharacterPart, "characterpart%d")
+			ON_NEW_ASSET(CAsset_Weapon, "weapon%d")
+			ON_NEW_ASSET(CAsset_MapGroup, "group%d")
+			ON_NEW_ASSET(CAsset_MapLayerTiles, "tilelayer%d")
+			ON_NEW_ASSET(CAsset_MapLayerQuads, "quadlayer%d")
+		}
+		
+		Close();
 	}
 };
 

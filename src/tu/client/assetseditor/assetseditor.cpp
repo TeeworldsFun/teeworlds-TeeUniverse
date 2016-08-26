@@ -63,105 +63,6 @@ public:
 
 /* ITEM LIST **********************************************************/
 
-//~ class CAssetListHeader : public gui::CHListLayout
-//~ {
-//~ protected:
-	//~ class CAddButton : public gui::CIconButton
-	//~ {
-	//~ protected:
-		//~ CAssetListHeader* m_pAssetListHeader;
-	
-	//~ protected:
-		//~ virtual void MouseClickAction()
-		//~ {
-			//~ m_pAssetListHeader->AddAsset();
-		//~ }
-		
-	//~ public:
-		//~ CAddButton(CAssetListHeader* pAssetListHeader) :
-			//~ gui::CIconButton(pAssetListHeader->m_pConfig, CAssetsEditor::ICON_INCREASE),
-			//~ m_pAssetListHeader(pAssetListHeader)
-		//~ {
-			
-		//~ }
-	//~ };
-	
-//~ protected:
-	//~ CAssetsEditor* m_pAssetsEditor;
-	//~ int m_AssetType;
-	//~ int m_Source;
-
-//~ public:
-	//~ CAssetListHeader(CAssetsEditor* pAssetsEditor, int AssetType, int Source) :
-		//~ gui::CHListLayout(pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_FIRST),
-		//~ m_pAssetsEditor(pAssetsEditor),
-		//~ m_AssetType(AssetType),
-		//~ m_Source(Source)
-	//~ {		
-		//~ SetHeight(m_pConfig->m_ButtonHeight);
-		
-		//~ #define ADD_ASSETTYPE_HEADER(TypeCode, TypeHeader) case TypeCode:\
-			//~ Add(new gui::CLabel(m_pConfig, TypeHeader, gui::TEXTSTYLE_HEADER2));\
-			//~ break;
-		
-		//~ switch(m_AssetType)
-		//~ {
-			//~ //Search Tag: TAG_NEW_ASSET
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_IMAGE, "Images")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_SPRITE, "Sprites")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_SKELETON, "Skeletons")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_SKELETONSKIN, "Skeleton Skins")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_SKELETONANIMATION, "Skeleton Animations")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_CHARACTER, "Characters")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_CHARACTERPART, "Character Parts")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_WEAPON, "Weapons")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_MAPGROUP, "Groups")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_MAPLAYERTILES, "Tile Layers")
-			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_MAPLAYERQUADS, "Quad Layers")
-		//~ }
-		//~ Add(new CAddButton(this));
-		
-		//~ Update();
-	//~ }
-	
-	//~ void AddAsset()
-	//~ {
-		//~ #define ON_NEW_ASSET(TypeName, AssetName) case TypeName::TypeId:\
-		//~ {\
-			//~ TypeName* pAsset = m_pAssetsEditor->AssetsManager()->GetAssetCatalog<TypeName>()->NewAsset(&NewAssetPath, m_Source);\
-			//~ char aBuf[128];\
-			//~ str_format(aBuf, sizeof(aBuf), AssetName, NewAssetPath.GetId());\
-			//~ pAsset->SetName(aBuf);\
-			//~ m_pAssetsEditor->NewAsset(NewAssetPath);\
-			//~ break;\
-		//~ }
-			
-		//~ CAssetPath NewAssetPath;
-		
-		//~ switch(m_AssetType)
-		//~ {
-			//~ case CAssetPath::TYPE_IMAGE:
-			//~ {
-				//~ m_pAssetsEditor->DisplayPopup(new CPopup_AddImage(
-					//~ m_pAssetsEditor, m_Rect, gui::CPopup::ALIGNMENT_RIGHT
-				//~ ));
-				//~ break;
-			//~ }
-			//~ //Search Tag: TAG_NEW_ASSET
-			//~ ON_NEW_ASSET(CAsset_Sprite, "sprite%d")
-			//~ ON_NEW_ASSET(CAsset_Skeleton, "skeleton%d")
-			//~ ON_NEW_ASSET(CAsset_SkeletonSkin, "skin%d")
-			//~ ON_NEW_ASSET(CAsset_SkeletonAnimation, "animation%d")
-			//~ ON_NEW_ASSET(CAsset_Character, "character%d")
-			//~ ON_NEW_ASSET(CAsset_CharacterPart, "characterpart%d")
-			//~ ON_NEW_ASSET(CAsset_Weapon, "weapon%d")
-			//~ ON_NEW_ASSET(CAsset_MapGroup, "group%d")
-			//~ ON_NEW_ASSET(CAsset_MapLayerTiles, "tilelayer%d")
-			//~ ON_NEW_ASSET(CAsset_MapLayerQuads, "quadlayer%d")
-		//~ }
-	//~ }
-//~ };
-
 class CAssetListTitle : public gui::CExternalTextButton
 {
 protected:
@@ -597,17 +498,21 @@ class CNewAssetButton : public gui::CTextButton
 {
 protected:
 	CAssetsEditor* m_pAssetsEditor;
+	int m_Source;
 	
 protected:
 	virtual void MouseClickAction()
 	{
-	
+		m_pAssetsEditor->DisplayPopup(new CPopup_NewAsset(
+			m_pAssetsEditor, m_Source, m_Rect, gui::CPopup::ALIGNMENT_RIGHT
+		));
 	}
 
 public:
-	CNewAssetButton(CAssetsEditor* pAssetsEditor) :
+	CNewAssetButton(CAssetsEditor* pAssetsEditor, int Source) :
 		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "New asset", CAssetsEditor::ICON_INCREASE),
-		m_pAssetsEditor(pAssetsEditor)
+		m_pAssetsEditor(pAssetsEditor),
+		m_Source(Source)
 	{ }
 };
 
@@ -655,7 +560,7 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pGuiConfig->m_fShowHint = CAssetsEditor::ShowHint;
 	m_pGuiConfig->m_pShowHintData = (void*) this;
 	
-	int Margin = 5;
+	int Margin = 3;
 	
 	int MenuBarHeight = 26;
 	int PanelWidth = 250;
@@ -746,7 +651,6 @@ void CAssetsEditor::RefreshAssetsList(int Source)
 			break;
 	}
 	
-	//New asset button
 	{
 		gui::CHListLayout* pLayout = new gui::CHListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 		pLayout->SetHeight(m_pGuiConfig->m_ButtonHeight);
@@ -755,7 +659,7 @@ void CAssetsEditor::RefreshAssetsList(int Source)
 		pLayout->Add(new CLoadAssetsButton(this, Source));
 		pLayout->Add(new CSaveAssetsButton(this, Source));
 	}
-	m_pGuiAssetList[Source]->Add(new CNewAssetButton(this));
+	m_pGuiAssetList[Source]->Add(new CNewAssetButton(this, Source));
 	
 	//AntiDoubleEntries
 	bool MapLayerTilesFound[1024];
