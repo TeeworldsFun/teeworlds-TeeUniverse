@@ -565,7 +565,7 @@ protected:
 
 public:
 	CLoadAssetsButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Load", -1),
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Load", CAssetsEditor::ICON_LOAD),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -587,7 +587,7 @@ protected:
 
 public:
 	CSaveAssetsButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Save", -1),
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Save", CAssetsEditor::ICON_SAVE),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -671,16 +671,16 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pGuiAssetListTabs = new gui::CTabs(m_pGuiConfig);
 	m_pGuiAssetListTabs->SetRect(AssetListRect);
 	
-	m_pGuiAssetList[CAssetPath::SRC_UNIVERSE] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+	m_pGuiAssetList[CAssetPath::SRC_UNIVERSE] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_UNIVERSE], CAssetsEditor::ICON_INTERNAL_ASSET, "Universe");
 	
-	m_pGuiAssetList[CAssetPath::SRC_WORLD] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+	m_pGuiAssetList[CAssetPath::SRC_WORLD] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_WORLD], CAssetsEditor::ICON_EXTERNAL_ASSET, "World");
 	
-	m_pGuiAssetList[CAssetPath::SRC_LAND] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+	m_pGuiAssetList[CAssetPath::SRC_LAND] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_LAND], CAssetsEditor::ICON_MAP_ASSET, "Land");
 	
-	m_pGuiAssetList[CAssetPath::SRC_SKIN] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+	m_pGuiAssetList[CAssetPath::SRC_SKIN] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_SKIN], CAssetsEditor::ICON_SKIN_ASSET, "Skins");
 	
 	m_pGuiAssetListTabs->Update();

@@ -961,38 +961,38 @@ void CEditor::Refresh(int Tab)
 		}
 		
 		//Add main tab
-		m_pTabs[TAB_ASSET] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+		m_pTabs[TAB_ASSET] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 		AddTab(m_pTabs[TAB_ASSET], CAssetsEditor::ICON_ASSET, "Asset properties");
 		
 		//Add asset-specific tabs
 		switch(m_pAssetsEditor->m_EditedAssetPath.GetType())
 		{
 			case CAssetPath::TYPE_SKELETON:
-				m_pTabs[TAB_SKELETON_BONES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_SKELETON_BONES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_SKELETON_BONES], CAssetsEditor::ICON_BONE, "Bones: create, edit and remove bones from the skeleton");
-				m_pTabs[TAB_SKELETON_LAYERS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_SKELETON_LAYERS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_SKELETON_LAYERS], CAssetsEditor::ICON_LAYERS, "Layers: create, edit and remove layers from the skeleton");
 				break;
 			case CAssetPath::TYPE_SKELETONSKIN:
-				m_pTabs[TAB_SKELETONSKIN_SPRITES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_SKELETONSKIN_SPRITES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_SKELETONSKIN_SPRITES], CAssetsEditor::ICON_SPRITE, "Sprites: create, edit and remove sprites from the skin");
 				break;
 			case CAssetPath::TYPE_SKELETONANIMATION:
-				m_pTabs[TAB_SKELETONANIMATION_ANIMATIONS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_SKELETONANIMATION_ANIMATIONS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_SKELETONANIMATION_ANIMATIONS], CAssetsEditor::ICON_SKELETONANIMATION, "Animations: set propeties for bone and layer animations");
-				m_pTabs[TAB_SKELETONANIMATION_KEYFRAMES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_SKELETONANIMATION_KEYFRAMES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_SKELETONANIMATION_KEYFRAMES], CAssetsEditor::ICON_FRAMES, "Key Frames: edit properties of key frames");
 				break;
 			case CAssetPath::TYPE_CHARACTER:
-				m_pTabs[TAB_CHARACTER_PARTS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_CHARACTER_PARTS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_CHARACTER_PARTS], CAssetsEditor::ICON_CHARACTERPART, "Parts: create, edit and remove parts of a character");
 				break;
 			case CAssetPath::TYPE_MAPGROUP:
-				m_pTabs[TAB_MAPGROUP_LAYERS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_MAPGROUP_LAYERS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_MAPGROUP_LAYERS], CAssetsEditor::ICON_LAYERS, "Layers: organize layers in the group");
 				break;
 			case CAssetPath::TYPE_MAPLAYERQUADS:
-				m_pTabs[TAB_MAPLAYERQUADS_QUADS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
+				m_pTabs[TAB_MAPLAYERQUADS_QUADS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
 				AddTab(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAssetsEditor::ICON_LAYERS, "Quads: organize and edit quads");
 				break;
 		}

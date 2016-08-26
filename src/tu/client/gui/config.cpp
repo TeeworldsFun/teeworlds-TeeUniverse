@@ -59,7 +59,10 @@ CConfig::CConfig(CClient_Graphics *pTUGraphics, CRenderTools *pRenderTools, ITex
 	m_LayoutStyles[LAYOUTSTYLE_DEFAULT].m_Padding = 4;
 	m_LayoutStyles[LAYOUTSTYLE_DEFAULT].m_Spacing = 4;
 	
-	//Layout Styles
+	m_LayoutStyles[LAYOUTSTYLE_INVISIBLE].m_StylePath = CAssetPath::Null();
+	m_LayoutStyles[LAYOUTSTYLE_INVISIBLE].m_Padding = 4;
+	m_LayoutStyles[LAYOUTSTYLE_INVISIBLE].m_Spacing = 4;
+	
 	m_LayoutStyles[LAYOUTSTYLE_NONE].m_StylePath = CAssetPath::Null();
 	m_LayoutStyles[LAYOUTSTYLE_NONE].m_Padding = 0;
 	m_LayoutStyles[LAYOUTSTYLE_NONE].m_Spacing = 4;

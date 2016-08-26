@@ -395,6 +395,7 @@ void CVListLayout::Update_FillingNone()
 
 void CVListLayout::Update()
 {
+	int Padding = m_pConfig->m_LayoutStyles[m_Style].m_Padding;
 	int Spacing = m_pConfig->m_LayoutStyles[m_Style].m_Spacing;
 	
 	for(int i=0; i<m_Childs.size(); i++)
@@ -421,10 +422,10 @@ void CVListLayout::Update()
 		m_ScrollValue = 0;
 		
 		m_pSlider->SetRect(CRect(
-			m_Rect.x + m_Rect.w - m_pSlider->m_Rect.w,
-			m_Rect.y,
+			m_Rect.x + m_Rect.w - m_pSlider->m_Rect.w-Padding,
+			m_Rect.y+Padding,
 			m_pSlider->m_Rect.w,
-			m_Rect.h
+			m_Rect.h-2*Padding
 		));
 		
 		m_pSlider->Update();
