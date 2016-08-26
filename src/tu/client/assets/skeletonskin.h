@@ -220,14 +220,14 @@ public:
 		}
 	}
 	
-	void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath)
+	void OnSubItemDeleted(const CAssetPath& Path, int SubPathInt)
 	{
 		if(Path.GetType() == CAssetPath::TYPE_SKELETON)
 		{
 			if(!(Path == m_SkeletonPath))
 				return;
 			
-			CAsset_Skeleton::CSubPath SubPath(SubItemPath);
+			CAsset_Skeleton::CSubPath SubPath(SubPathInt);
 			
 			if(SubPath.GetType() == CAsset_Skeleton::SUBITEM_BONE)
 			{
@@ -235,9 +235,9 @@ public:
 				{
 					if(m_Sprites[i].m_BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
 					{
-						int CurrentId = m_Sprites[i].m_BonePath.GetId();
-						if(CurrentId >=  SubPath.GetId())
-							m_Sprites[i].m_BonePath.SetId(CurrentId-1);
+						CAsset_Skeleton::CSubPath TmpPath = CAsset_Skeleton::CSubPath::Bone(m_Sprites[i].m_BonePath.GetId());
+						TmpPath.OnIdDeleted(SubPath);
+						m_Sprites[i].m_BonePath.SetId(TmpPath.GetId());
 					}
 				}
 			}
@@ -247,9 +247,9 @@ public:
 				{
 					if(m_Sprites[i].m_LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
 					{
-						int CurrentId = m_Sprites[i].m_LayerPath.GetId();
-						if(CurrentId >=  SubPath.GetId())
-							m_Sprites[i].m_BonePath.SetId(CurrentId-1);
+						CAsset_Skeleton::CSubPath TmpPath = CAsset_Skeleton::CSubPath::Layer(m_Sprites[i].m_LayerPath.GetId());
+						TmpPath.OnIdDeleted(SubPath);
+						m_Sprites[i].m_LayerPath.SetId(TmpPath.GetId());
 					}
 				}
 			}

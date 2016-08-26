@@ -46,6 +46,20 @@ public:
 	};
 	
 	TU_ASSET_GETSET_FUNC()
+	
+/* EDITOR *************************************************************/
+public:
+	void OnAssetDeleted(const CAssetPath& Path)
+	{
+		m_CharacterPath.OnIdDeleted(Path);
+		m_SkeletonSkinPath.OnIdDeleted(Path);
+	}
+	
+	void OnSubItemDeleted(const CAssetPath& Path, int SubPathInt)
+	{
+		if(Path.GetId() == CAsset_Character::TypeId)
+			m_CharacterPart.OnIdDeleted(SubPathInt);
+	}
 };
 
 }

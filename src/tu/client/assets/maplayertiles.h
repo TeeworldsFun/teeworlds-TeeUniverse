@@ -94,6 +94,13 @@ public:
 	};
 	
 	TU_ASSET_GETSET_FUNC()
+	
+/* EDITOR *************************************************************/
+public:
+	void OnAssetDeleted(const CAssetPath& Path)
+	{
+		m_ImagePath.OnIdDeleted(Path);
+	}
 };
 
 }

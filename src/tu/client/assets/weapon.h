@@ -48,6 +48,16 @@ public:
 	};
 	
 	TU_ASSET_GETSET_FUNC()
+	
+/* EDITOR *************************************************************/
+public:
+	void OnAssetDeleted(const CAssetPath& Path)
+	{
+		m_CharacterPath.OnIdDeleted(Path);
+		m_CursorPath.OnIdDeleted(Path);
+		m_SkinPath.OnIdDeleted(Path);
+		m_AttackAnimationPath.OnIdDeleted(Path);
+	}
 };
 
 }

@@ -70,6 +70,16 @@ public:
 	};
 	
 	TU_ASSET_GETSET_FUNC()
+	
+/* EDITOR *************************************************************/
+public:
+	void OnAssetDeleted(const CAssetPath& Path)
+	{
+		for(int i=0; i<m_Layers.size(); i++)
+		{
+			m_Layers[i].OnIdDeleted(Path);
+		}
+	}
 };
 
 }

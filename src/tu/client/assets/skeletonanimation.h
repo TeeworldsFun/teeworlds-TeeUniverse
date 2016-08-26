@@ -389,6 +389,11 @@ public:
 	
 /* EDITOR *************************************************************/
 public:
+	void OnAssetDeleted(const CAssetPath& Path)
+	{
+		m_SkeletonPath.OnIdDeleted(Path);
+	}
+	
 	bool DeleteSubItem(CSubPath SubItemPath)
 	{
 		switch(SubItemPath.GetType())
@@ -432,10 +437,13 @@ public:
 		return false;
 	}
 	
-	void OnAssetDeleted(const CAssetPath& Path)
+	void OnSubItemDeleted(const CAssetPath& Path, int SubPathInt)
 	{
-		m_SkeletonPath.OnIdDeleted(Path);
+		//TODO Check for bones and layers
 	}
+	
+/* EDITOR *************************************************************/
+public:
 };
 
 }

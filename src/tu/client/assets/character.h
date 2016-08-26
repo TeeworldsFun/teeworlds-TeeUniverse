@@ -105,6 +105,18 @@ public:
 	
 /* EDITOR *************************************************************/
 public:
+	void OnAssetDeleted(const CAssetPath& Path)
+	{
+		for(int i=0; i<m_Parts.size(); i++)
+		{
+			m_Parts[i].m_DefaultPath.OnIdDeleted(Path);
+		}
+		m_IdlePath.OnIdDeleted(Path);
+		m_WalkPath.OnIdDeleted(Path);
+		m_ControlledJumpPath.OnIdDeleted(Path);
+		m_UncontrolledJumpPath.OnIdDeleted(Path);
+	}
+	
 	int AddSubItem(int SubItemType)
 	{
 		switch(SubItemType)

@@ -266,12 +266,9 @@ public:
 				{
 					if(m_Bones[i].m_ParentPath.GetSource() == CBonePath::SRC_LOCAL)
 					{
-						int CurrentId = m_Bones[i].m_ParentPath.GetId();
-						int DeletedId = SubItemPath.GetId();
-						if(CurrentId == DeletedId)
-							m_Bones[i].m_ParentPath = CBonePath::Null();
-						else if(CurrentId > DeletedId)
-							m_Bones[i].m_ParentPath.SetId(CurrentId-1);
+						CSubPath TmpPath = CSubPath::Bone(m_Bones[i].m_ParentPath.GetId());
+						TmpPath.OnIdDeleted(SubItemPath);
+						m_Bones[i].m_ParentPath.SetId(TmpPath.GetId());
 					}
 				}
 				return true;
@@ -283,14 +280,14 @@ public:
 		return false;
 	}
 	
-	void OnSubItemDeleted(const CAssetPath& Path, int SubItemPath)
+	void OnSubItemDeleted(const CAssetPath& Path, int SubPathInt)
 	{
 		if(Path.GetType() == CAssetPath::TYPE_SKELETON)
 		{
 			if(!(Path == m_ParentPath))
 				return;
 			
-			CSubPath SubPath(SubItemPath);
+			CSubPath SubPath(SubPathInt);
 			if(SubPath.GetType() != SUBITEM_BONE)
 				return;
 			
@@ -298,12 +295,9 @@ public:
 			{
 				if(m_Bones[i].m_ParentPath.GetSource() == CBonePath::SRC_PARENT)
 				{
-					int CurrentId = m_Bones[i].m_ParentPath.GetId();
-					int DeletedId = SubPath.GetId();
-					if(CurrentId == DeletedId)
-						m_Bones[i].m_ParentPath = CBonePath::Null();
-					else if(CurrentId > DeletedId)
-						m_Bones[i].m_ParentPath.SetId(CurrentId-1);
+					CSubPath TmpPath = CSubPath::Bone(m_Bones[i].m_ParentPath.GetId());
+					TmpPath.OnIdDeleted(SubPath);
+					m_Bones[i].m_ParentPath.SetId(TmpPath.GetId());
 				}
 			}
 		}

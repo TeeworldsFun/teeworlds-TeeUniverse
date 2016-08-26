@@ -45,24 +45,27 @@ public:
 	inline int GetSource() const { return (m_Path & MASK_SRC) >> SRC_SHIFT; }
 	inline int GetFlags() const { return (m_Path & MASK_FLAGS) >> FLAGS_SHIFT; }
 	
-	inline void SetId(int Id) { m_Path = m_Path & ~MASK_ID + (Id << ID_SHIFT); }
-	inline void SetId2(int Id) { m_Path = m_Path & ~MASK_ID2 + (Id << ID2_SHIFT); }
+	inline void SetId(int Id) { m_Path = (m_Path & ~MASK_ID) + (Id << ID_SHIFT); }
+	inline void SetId2(int Id) { m_Path = (m_Path & ~MASK_ID2) + (Id << ID2_SHIFT); }
 	
 	inline bool IsNull() const { return m_Path == UNDEFINED; }
 	inline bool operator==(const CGenericPath& path) const { return path.m_Path == m_Path; }
 	
 	inline void OnIdDeleted(const CGenericPath& Path)
 	{
-		if(!IsNull() && (m_Path & ~MASK_ID) == (Path.m_Path & ~MASK_ID))
-		{
-			int DeletedId = Path.GetId();
-			int CurrentId = GetId();
-			
-			if(CurrentId == DeletedId)
-				m_Path = UNDEFINED;
-			else if(CurrentId > DeletedId)
-				SetId(CurrentId-1);
-		}
+		if(IsNull() || Path.IsNull())
+			return;
+		
+		if((m_Path & ~MASK_ID) != (Path.m_Path & ~MASK_ID))
+			return;
+		
+		int DeletedId = Path.GetId();
+		int CurrentId = GetId();
+		
+		if(CurrentId == DeletedId)
+			m_Path = UNDEFINED;
+		else if(CurrentId > DeletedId)
+			SetId(CurrentId-1);
 	}
 };
 
