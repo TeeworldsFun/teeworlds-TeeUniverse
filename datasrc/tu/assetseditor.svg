@@ -919,8 +919,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="16"
-     inkscape:cx="169.68005"
-     inkscape:cy="229.64992"
+     inkscape:cx="29.818262"
+     inkscape:cy="242.88245"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -2460,6 +2460,16 @@
        width="13"
        id="rect4323"
        style="fill:none;stroke:#ffffff;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1.00000002, 1.00000002;stroke-dashoffset:0" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ffffff;fill-opacity:1;stroke:none"
+       id="path4325"
+       sodipodi:cx="24"
+       sodipodi:cy="8"
+       sodipodi:rx="5"
+       sodipodi:ry="5"
+       d="M 29,8 A 5,5 0 1 1 19,8 5,5 0 1 1 29,8 z"
+       transform="matrix(0.5625,0,0,0.5625,10.5,799.86218)" />
   </g>
   <rect
      style="fill:#ffffff;fill-opacity:1;stroke:none"

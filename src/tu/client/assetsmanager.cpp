@@ -1378,12 +1378,11 @@ int CAssetsManager::SaveInAssetsFile(const char *pFileName, int Source)
 	return 1;
 }
 
-int CAssetsManager::OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile)
+int CAssetsManager::OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile, int Source)
 {
 	int Start, Num;
 	pAssetsFile->GetType(0, &Start, &Num);
 	
-	int Source = CAssetPath::SRC_WORLD;
 	if(Num > 0)
 	{
 		CStorageType* pItem = (CStorageType*) pAssetsFile->GetItem(Start, 0, 0);
@@ -1397,7 +1396,7 @@ int CAssetsManager::OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile)
 	return 1;
 }
 
-int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
+int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Source)
 {
 	CMapItemVersion *pItem = (CMapItemVersion *)pAssetsFile->FindItem(MAPITEMTYPE_VERSION, 0);
 	if(!pItem)
@@ -1424,7 +1423,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 			{
 				CAsset_Image* pImage = GetAssetCatalog<CAsset_Image>()->NewAsset(
 					pImagePath+i,
-					CAssetPath::SRC_LAND
+					Source
 				);
 				pImage->SetAssetsManager(this);
 				
@@ -1486,7 +1485,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 			CAssetPath MapGroupPath;
 			CAsset_MapGroup* pMapGroup = GetAssetCatalog<CAsset_MapGroup>()->NewAsset(
 				&MapGroupPath,
-				CAssetPath::SRC_LAND
+				Source
 			);
 
 			pMapGroup->m_Position = vec2(pGItem->m_OffsetX, pGItem->m_OffsetY);
@@ -1528,7 +1527,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 					CAssetPath MapLayerPath;
 					CAsset_MapLayerTiles* pMapLayer = GetAssetCatalog<CAsset_MapLayerTiles>()->NewAsset(
 						&MapLayerPath,
-						CAssetPath::SRC_LAND
+						Source
 					);
 					
 					pMapGroup->m_Layers.add(MapLayerPath);
@@ -1579,7 +1578,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 					CAssetPath MapLayerPath;
 					CAsset_MapLayerQuads* pMapLayer = GetAssetCatalog<CAsset_MapLayerQuads>()->NewAsset(
 						&MapLayerPath,
-						CAssetPath::SRC_LAND
+						Source
 					);
 					pMapGroup->m_Layers.add(MapLayerPath);
 					
@@ -1629,17 +1628,23 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 	return 1;
 }
 
-int CAssetsManager::OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile)
+int CAssetsManager::OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile, int Source)
 {
+	//Remove previous assets
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Unload(Source);
+	#include <tu/client/assetsmacro.h>
+	#undef TU_MACRO_ASSETTYPE
+	
+	//Load
 	if(pAssetsFile->GetDataFileType() == DATAFILE_TYPE_ASSET)
-		return OnAssetsFileLoaded_Asset(pAssetsFile);
+		return OnAssetsFileLoaded_Asset(pAssetsFile, Source);
 	else
-		return OnAssetsFileLoaded_Map(pAssetsFile);
+		return OnAssetsFileLoaded_Map(pAssetsFile, Source);
 }
 
-int CAssetsManager::OnAssetsFileUnloaded()
+int CAssetsManager::OnAssetsFileUnloaded(int Source)
 {
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Unload();
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Unload(Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 }

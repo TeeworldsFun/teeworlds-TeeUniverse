@@ -63,10 +63,10 @@ public:
 	
 	void UpdateAssets();
 	int SaveInAssetsFile(const char *pFileName, int Source);
-	int OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile);
-	int OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile);
-	int OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile);
-	int OnAssetsFileUnloaded();
+	int OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile, int Source);
+	int OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Source);
+	int OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile, int Source);
+	int OnAssetsFileUnloaded(int Source);
 	
 	template<class ASSETTYPE>
 	CAssetCatalog<ASSETTYPE>* GetAssetCatalog()

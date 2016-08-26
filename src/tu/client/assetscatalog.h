@@ -88,13 +88,13 @@ public:
 		}
 	}
 	
-	void Unload()
+	void Unload(int Source)
 	{
-		for(int i=0; i<m_Assets[CAssetPath::SRC_WORLD].size(); i++)
+		for(int i=0; i<m_Assets[Source].size(); i++)
 		{
-			m_Assets[CAssetPath::SRC_WORLD][i].Unload();
+			m_Assets[Source][i].Unload();
 		}
-		m_Assets[CAssetPath::SRC_WORLD].clear();
+		m_Assets[Source].clear();
 	}
 	
 	void DeleteAsset(const CAssetPath& Path)

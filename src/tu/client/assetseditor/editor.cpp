@@ -212,7 +212,6 @@ void CEditor::AddAssetTabCommons(gui::CVListLayout* pList)
 	}
 	
 	{
-		
 		gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 		pLayout->SetHeight(m_pConfig->m_ButtonHeight);
 		pList->Add(pLayout);

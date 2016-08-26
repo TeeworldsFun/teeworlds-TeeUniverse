@@ -123,7 +123,7 @@ protected:
 		{
 			m_pAssetsEditor->AssetsManager()->SetAssetValue<CAssetPath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, m_FieldAssetPath);
 			m_pAssetsEditor->RefreshAssetsEditor();
-			m_pAssetsEditor->RefreshAssetList();
+			m_pAssetsEditor->RefreshAssetsList();
 		}
 		
 	public:
@@ -1617,18 +1617,18 @@ public:
 	}
 };
 
-/* SAVE ASSETS ********************************************************/
+/* SAVE/LOAD ASSETS ***************************************************/
 
-class CPopup_SaveAssets : public gui::CPopup
+class CPopup_SaveLoadAssets : public gui::CPopup
 {	
-protected:
+protected:	
 	class CSave : public gui::CTextButton
 	{
 	protected:
-		CPopup_SaveAssets* m_pPopup;
+		CPopup_SaveLoadAssets* m_pPopup;
 		
 	public:
-		CSave(CPopup_SaveAssets* pPopup) :
+		CSave(CPopup_SaveLoadAssets* pPopup) :
 			gui::CTextButton(pPopup->m_pConfig, "Save"),
 			m_pPopup(pPopup)
 		{ SetWidth(120); }
@@ -1636,121 +1636,10 @@ protected:
 		virtual void MouseClickAction() { m_pPopup->Save(); }
 	};
 	
-	class CItem : public gui::CTextButton
+	class CItem_Load : public gui::CTextButton
 	{
 	protected:
-		CPopup_SaveAssets* m_pPopup;
-		CAssetsEditor* m_pAssetsEditor;
-		char m_aFilename[128];
-		int m_StorageType;
-		int m_IsDirectory;
-		
-	protected:
-		virtual void MouseClickAction()
-		{
-			if(!m_IsDirectory)
-			{
-				m_pPopup->SetFilename(m_aFilename);
-			}
-		}
-		
-	public:
-		CItem(CPopup_SaveAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_ASSET),
-			m_pPopup(pPopup),
-			m_pAssetsEditor(pPopup->m_pAssetsEditor)
-		{
-			m_Centered = false;
-			
-			str_copy(m_aFilename, pFilename, sizeof(m_aFilename));
-			m_StorageType = StorageType;
-			m_IsDirectory = IsDir;
-		}
-	};
-	
-protected:
-	CAssetsEditor* m_pAssetsEditor;
-	gui::CVListLayout* m_Layout;
-	gui::CVListLayout* m_Filelist;
-	char m_aFilename[256];
-	
-public:
-	CPopup_SaveAssets(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment) :
-		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 500, 500, Alignment),
-		m_pAssetsEditor(pAssetsEditor)
-	{
-		str_copy(m_aFilename, "myassets.assets", sizeof(m_aFilename));
-		
-		m_Layout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
-		Add(m_Layout);
-		
-		m_Filelist = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
-		m_Layout->Add(m_Filelist);
-		
-		{
-			gui::CHListLayout* pHLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_FIRST);
-			pHLayout->SetHeight(m_pConfig->m_ButtonHeight);
-			m_Layout->Add(pHLayout);
-			
-			gui::CExternalTextEdit* pTextEdit = new gui::CExternalTextEdit(m_pAssetsEditor->m_pGuiConfig, m_aFilename, sizeof(m_aFilename));
-			pHLayout->Add(pTextEdit);
-			
-			pHLayout->Add(new CSave(this));
-		}
-			
-		
-		gui::CPopup::Update();
-		m_Filelist->SetHeight(m_Layout->m_Rect.h - 2*m_pConfig->m_LayoutSpacing - m_pConfig->m_ButtonHeight);
-		Update();
-	}
-	
-	static int FileListFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser)
-	{
-		CPopup_SaveAssets* pPopup = static_cast<CPopup_SaveAssets*>(pUser);
-		
-		int Length = str_length(pName);
-		if(pName[0] == '.' && (pName[1] == 0))
-			return 0;
-		
-		if(Length < 7 || str_comp(pName+Length-7, ".assets"))
-			return 0;
-
-		CItem* pItem = new CItem(pPopup, pName, StorageType, IsDir);
-		pPopup->m_Filelist->Add(pItem);
-
-		return 0;
-	}
-	
-	virtual void Update()
-	{
-		m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets", FileListFetchCallback, this);
-		
-		gui::CPopup::Update();
-	}
-	
-	void SetFilename(const char* pFilename)
-	{
-		str_copy(m_aFilename, pFilename, sizeof(m_aFilename));
-	}
-	
-	void Save()
-	{
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "assets/%s", m_aFilename);
-		m_pAssetsEditor->AssetsManager()->SaveInAssetsFile(aBuf, CAssetPath::SRC_WORLD);
-		Close();
-	}
-};
-
-/* LOAD ASSETS ********************************************************/
-
-class CPopup_LoadAssets : public gui::CPopup
-{	
-protected:	
-	class CItem : public gui::CTextButton
-	{
-	protected:
-		CPopup_LoadAssets* m_pPopup;
+		CPopup_SaveLoadAssets* m_pPopup;
 		CAssetsEditor* m_pAssetsEditor;
 		char m_aFilename[256];
 		int m_StorageType;
@@ -1761,13 +1650,13 @@ protected:
 		{
 			if(!m_IsDirectory)
 			{
-				m_pAssetsEditor->LoadAssetsFile(m_aFilename);
+				m_pAssetsEditor->LoadAssetsFile(m_aFilename, m_pPopup->m_Source);
 				m_pPopup->Close();
 			}
 		}
 		
 	public:
-		CItem(CPopup_LoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
+		CItem_Load(CPopup_SaveLoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
 			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_ASSET),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
@@ -1781,37 +1670,103 @@ protected:
 		}
 	};
 	
+	class CItem_Save : public gui::CTextButton
+	{
+	protected:
+		CPopup_SaveLoadAssets* m_pPopup;
+		CAssetsEditor* m_pAssetsEditor;
+		char m_aFilename[256];
+		int m_StorageType;
+		int m_IsDirectory;
+		
+	protected:
+		virtual void MouseClickAction()
+		{
+			if(!m_IsDirectory)
+			{
+				m_pPopup->SetFilename(m_aFilename);
+			}
+		}
+		
+	public:
+		CItem_Save(CPopup_SaveLoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_ASSET),
+			m_pPopup(pPopup),
+			m_pAssetsEditor(pPopup->m_pAssetsEditor)
+		{
+			m_Centered = false;
+			SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			
+			str_copy(m_aFilename, pFilename, sizeof(m_aFilename));
+			m_StorageType = StorageType;
+			m_IsDirectory = IsDir;
+		}
+	};
+
+public:
+	enum
+	{
+		MODE_SAVE=0,
+		MODE_LOAD,
+	};
+	
 protected:
 	CAssetsEditor* m_pAssetsEditor;
-	gui::CTabs* m_Tabs;
-	gui::CVListLayout* m_TabExternal;
-	gui::CVListLayout* m_TabMap;
-	gui::CVListLayout* m_Filelist;
+	char m_aFilename[256];
+	int m_Source;
+	int m_Mode;
+	gui::CVListLayout* m_pFilelist;
 	
 public:
-	CPopup_LoadAssets(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment) :
+	CPopup_SaveLoadAssets(CAssetsEditor* pAssetsEditor, int Source, int Mode, const gui::CRect& CreatorRect, int Alignment) :
 		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 500, 500, Alignment),
 		m_pAssetsEditor(pAssetsEditor),
-		m_TabExternal(0),
-		m_TabMap(0)
-	{		
-		m_Tabs = new gui::CTabs(pAssetsEditor->m_pGuiConfig);
-		Add(m_Tabs);
+		m_Source(Source),
+		m_Mode(Mode),
+		m_pFilelist(0)
+	{
+		gui::CVListLayout* pLayout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_DEFAULT, gui::LAYOUTFILLING_LAST);
+		Add(pLayout);
 		
-		Update();
+		if(m_Mode == MODE_SAVE)
+		{
+			switch(m_Source)
+			{
+				case CAssetPath::SRC_UNIVERSE:
+					str_copy(m_aFilename, "myuniverse.assets", sizeof(m_aFilename));
+					break;
+				case CAssetPath::SRC_WORLD:
+					str_copy(m_aFilename, "myworld.assets", sizeof(m_aFilename));
+					break;
+				case CAssetPath::SRC_LAND:
+					str_copy(m_aFilename, "myland.assets", sizeof(m_aFilename));
+					break;
+				case CAssetPath::SRC_SKIN:
+					str_copy(m_aFilename, "myskin.assets", sizeof(m_aFilename));
+					break;
+			}
 		
-		m_TabExternal = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabExternal, CAssetsEditor::ICON_EXTERNAL_ASSET, "Universes");
+			{
+				gui::CHListLayout* pHLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_FIRST);
+				pHLayout->SetHeight(m_pConfig->m_ButtonHeight);
+				pLayout->Add(pHLayout);
+				
+				gui::CExternalTextEdit* pTextEdit = new gui::CExternalTextEdit(m_pAssetsEditor->m_pGuiConfig, m_aFilename, sizeof(m_aFilename));
+				pHLayout->Add(pTextEdit);
+				
+				pHLayout->Add(new CSave(this));
+			}
+		}
 		
-		m_TabMap = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabMap, CAssetsEditor::ICON_MAP_ASSET, "Lands");
+		m_pFilelist = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
+		pLayout->Add(m_pFilelist);
 		
 		Update();
 	}
 	
-	static int FileListFetchCallback_External(const char *pName, int IsDir, int StorageType, void *pUser)
+	static int FileListFetchCallback_Universe(const char *pName, int IsDir, int StorageType, void *pUser)
 	{
-		CPopup_LoadAssets* pPopup = static_cast<CPopup_LoadAssets*>(pUser);
+		CPopup_SaveLoadAssets* pPopup = static_cast<CPopup_SaveLoadAssets*>(pUser);
 		
 		int Length = str_length(pName);
 		if(pName[0] == '.' && (pName[1] == 0))
@@ -1821,17 +1776,41 @@ public:
 			return 0;
 
 		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "assets/%s", pName);
+		str_format(aBuf, sizeof(aBuf), "assets/universes/%s", pName);
 		
-		CItem* pItem = new CItem(pPopup, aBuf, StorageType, IsDir);
-		pPopup->m_TabExternal->Add(pItem);
+		if(pPopup->m_Mode == MODE_SAVE)
+			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, aBuf, StorageType, IsDir));
+		else
+			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, aBuf, StorageType, IsDir));
+		
+		return 0;
+	}
+	
+	static int FileListFetchCallback_World(const char *pName, int IsDir, int StorageType, void *pUser)
+	{
+		CPopup_SaveLoadAssets* pPopup = static_cast<CPopup_SaveLoadAssets*>(pUser);
+		
+		int Length = str_length(pName);
+		if(pName[0] == '.' && (pName[1] == 0))
+			return 0;
+		
+		if(Length < 7 || str_comp(pName+Length-7, ".assets"))
+			return 0;
+
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "assets/worlds/%s", pName);
+		
+		if(pPopup->m_Mode == MODE_SAVE)
+			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, aBuf, StorageType, IsDir));
+		else
+			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, aBuf, StorageType, IsDir));
 
 		return 0;
 	}
 	
-	static int FileListFetchCallback_Map(const char *pName, int IsDir, int StorageType, void *pUser)
+	static int FileListFetchCallback_Land(const char *pName, int IsDir, int StorageType, void *pUser)
 	{
-		CPopup_LoadAssets* pPopup = static_cast<CPopup_LoadAssets*>(pUser);
+		CPopup_SaveLoadAssets* pPopup = static_cast<CPopup_SaveLoadAssets*>(pUser);
 				
 		int Length = str_length(pName);
 		if(pName[0] == '.' && (pName[1] == 0))
@@ -1843,21 +1822,55 @@ public:
 		char aBuf[256];
 		str_format(aBuf, sizeof(aBuf), "maps/%s", pName);
 		
-		CItem* pItem = new CItem(pPopup, aBuf, StorageType, IsDir);
-		pPopup->m_TabMap->Add(pItem);
+		if(pPopup->m_Mode == MODE_SAVE)
+			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, aBuf, StorageType, IsDir));
+		else
+			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, aBuf, StorageType, IsDir));
 
 		return 0;
 	}
 	
 	virtual void Update()
 	{
-		if(m_TabExternal)
-			m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets", FileListFetchCallback_External, this);
-		
-		if(m_TabMap)
-			m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "maps", FileListFetchCallback_Map, this);
+		switch(m_Source)
+		{
+			case CAssetPath::SRC_UNIVERSE:
+				m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets/universes", FileListFetchCallback_Universe, this);
+				break;
+			case CAssetPath::SRC_WORLD:
+				m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets/worlds", FileListFetchCallback_World, this);
+				break;
+			case CAssetPath::SRC_LAND:
+				m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "maps", FileListFetchCallback_Land, this);
+				break;
+		}
 		
 		gui::CPopup::Update();
+	}
+	
+	void SetFilename(const char* pFilename)
+	{
+		str_copy(m_aFilename, pFilename, sizeof(m_aFilename));
+	}
+	
+	void Save()
+	{
+		char aBuf[256];
+		switch(m_Source)
+		{
+			case CAssetPath::SRC_UNIVERSE:
+				str_format(aBuf, sizeof(aBuf), "assets/universes/%s", m_aFilename);
+				break;
+			case CAssetPath::SRC_WORLD:
+				str_format(aBuf, sizeof(aBuf), "assets/worlds/%s", m_aFilename);
+				break;
+			case CAssetPath::SRC_LAND:
+				str_format(aBuf, sizeof(aBuf), "maps/%s", m_aFilename);
+				break;
+		}
+		
+		m_pAssetsEditor->AssetsManager()->SaveInAssetsFile(aBuf, m_Source);
+		Close();
 	}
 };
 

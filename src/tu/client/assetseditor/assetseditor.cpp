@@ -61,58 +61,6 @@ public:
 	}
 };
 
-class CButton_ToolbarExit : public CTextButton
-{
-protected:
-	virtual void MouseClickAction()
-	{
-		m_pAssetsEditor->CloseEditor();
-	}
-
-public:
-	CButton_ToolbarExit(CAssetsEditor* pAssetsEditor) :
-		CTextButton(pAssetsEditor, "Exit", -1)
-	{
-		SetWidth(100);
-	}
-};
-
-class CButton_ToolbarLoad : public CTextButton
-{	
-protected:
-	virtual void MouseClickAction()
-	{
-		m_pAssetsEditor->DisplayPopup(new CPopup_LoadAssets(
-			m_pAssetsEditor, m_Rect, gui::CPopup::ALIGNMENT_RIGHT
-		));
-	}
-
-public:
-	CButton_ToolbarLoad(CAssetsEditor* pAssetsEditor) :
-		CTextButton(pAssetsEditor, "Load", -1)
-	{
-		SetWidth(100);
-	}
-};
-
-class CButton_ToolbarSave : public CTextButton
-{	
-protected:
-	virtual void MouseClickAction()
-	{
-		m_pAssetsEditor->DisplayPopup(new CPopup_SaveAssets(
-			m_pAssetsEditor, m_Rect, gui::CPopup::ALIGNMENT_RIGHT
-		));
-	}
-
-public:
-	CButton_ToolbarSave(CAssetsEditor* pAssetsEditor) :
-		CTextButton(pAssetsEditor, "Save", -1)
-	{
-		SetWidth(100);
-	}
-};
-
 /* ITEM LIST **********************************************************/
 
 //~ class CAssetListHeader : public gui::CHListLayout
@@ -456,7 +404,7 @@ public:
 		SetHeight(m_pConfig->m_ButtonHeight);
 		
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset_Character::PART_NAME, SubPath.ConvertToInteger(), 0);
-		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, -1);
+		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_DEFAULT);
 		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 		m_Button->SetSubPath(m_SubPath.ConvertToInteger(), CEditor::TAB_CHARACTER_PARTS);
 		SetTitle(m_Button);
@@ -601,6 +549,68 @@ public:
 	}
 };
 
+class CLoadAssetsButton : public gui::CTextButton
+{
+protected:
+	CAssetsEditor* m_pAssetsEditor;
+	int m_Source;
+	
+protected:
+	virtual void MouseClickAction()
+	{
+		m_pAssetsEditor->DisplayPopup(new CPopup_SaveLoadAssets(
+			m_pAssetsEditor, m_Source, CPopup_SaveLoadAssets::MODE_LOAD, m_Rect, gui::CPopup::ALIGNMENT_RIGHT
+		));
+	}
+
+public:
+	CLoadAssetsButton(CAssetsEditor* pAssetsEditor, int Source) :
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Load", -1),
+		m_pAssetsEditor(pAssetsEditor),
+		m_Source(Source)
+	{ }
+};
+
+class CSaveAssetsButton : public gui::CTextButton
+{
+protected:
+	CAssetsEditor* m_pAssetsEditor;
+	int m_Source;
+	
+protected:
+	virtual void MouseClickAction()
+	{
+		m_pAssetsEditor->DisplayPopup(new CPopup_SaveLoadAssets(
+			m_pAssetsEditor, m_Source, CPopup_SaveLoadAssets::MODE_SAVE, m_Rect, gui::CPopup::ALIGNMENT_RIGHT
+		));
+	}
+
+public:
+	CSaveAssetsButton(CAssetsEditor* pAssetsEditor, int Source) :
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Save", -1),
+		m_pAssetsEditor(pAssetsEditor),
+		m_Source(Source)
+	{ }
+};
+
+class CNewAssetButton : public gui::CTextButton
+{
+protected:
+	CAssetsEditor* m_pAssetsEditor;
+	
+protected:
+	virtual void MouseClickAction()
+	{
+	
+	}
+
+public:
+	CNewAssetButton(CAssetsEditor* pAssetsEditor) :
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "New asset", CAssetsEditor::ICON_INCREASE),
+		m_pAssetsEditor(pAssetsEditor)
+	{ }
+};
+
 /* ASSETS EDITOR ******************************************************/
 
 IAssetsEditor *CreateAssetsEditor() { return new CAssetsEditor; }
@@ -647,24 +657,16 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	
 	int Margin = 5;
 	
-	int MenuBarHeight = 30;
+	int MenuBarHeight = 26;
 	int PanelWidth = 250;
 	int PanelHeight = 250;
-	gui::CRect ToolbarRect(Margin, Margin, Graphics()->ScreenWidth()-2*Margin, MenuBarHeight);
-	gui::CRect AssetListRect(Margin, ToolbarRect.y+ToolbarRect.h+Margin, PanelWidth, Graphics()->ScreenHeight()-3*Margin-ToolbarRect.h);
+	gui::CRect ToolbarRect(Margin, Graphics()->ScreenHeight()-MenuBarHeight-Margin, Graphics()->ScreenWidth()-2*Margin, MenuBarHeight);
+	gui::CRect AssetListRect(Margin, Margin, PanelWidth, Graphics()->ScreenHeight()-3*Margin-ToolbarRect.h);
 	gui::CRect ViewRect(AssetListRect.x + AssetListRect.w + Margin, AssetListRect.y, Graphics()->ScreenWidth() - 2*PanelWidth - 4*Margin, Graphics()->ScreenHeight() - 4*Margin - PanelHeight - MenuBarHeight);
 	gui::CRect AssetsEditorRect(ViewRect.x + ViewRect.w + Margin, AssetListRect.y, PanelWidth, AssetListRect.h);
 	gui::CRect TimelineRect(AssetListRect.x + AssetListRect.w + Margin, ViewRect.y + ViewRect.h + Margin, ViewRect.w, PanelHeight);
 	
 	m_pHintLabel = new gui::CLabel(m_pGuiConfig, "");
-	
-	m_pGuiToolbar = new gui::CHListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_DEFAULT, gui::LAYOUTFILLING_LAST);
-	m_pGuiToolbar->SetRect(ToolbarRect);
-	m_pGuiToolbar->Add(new CButton_ToolbarLoad(this));
-	m_pGuiToolbar->Add(new CButton_ToolbarSave(this));
-	m_pGuiToolbar->Add(new CButton_ToolbarExit(this));
-	m_pGuiToolbar->Add(m_pHintLabel);
-	m_pGuiToolbar->Update();
 	
 	m_pGuiAssetListTabs = new gui::CTabs(m_pGuiConfig);
 	m_pGuiAssetListTabs->SetRect(AssetListRect);
@@ -682,7 +684,7 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_SKIN], CAssetsEditor::ICON_SKIN_ASSET, "Skins");
 	
 	m_pGuiAssetListTabs->Update();
-	RefreshAssetList();
+	RefreshAssetsList();
 	
 	m_pGuiView = new CView(this);
 	m_pGuiView->SetRect(ViewRect);
@@ -695,6 +697,11 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pGuiAssetsEditor = new CEditor(this);
 	m_pGuiAssetsEditor->SetRect(AssetsEditorRect);
 	m_pGuiAssetsEditor->Update();
+	
+	m_pGuiToolbar = new gui::CHListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_DEFAULT, gui::LAYOUTFILLING_LAST);
+	m_pGuiToolbar->SetRect(ToolbarRect);
+	m_pGuiToolbar->Add(m_pHintLabel);
+	m_pGuiToolbar->Update();
 	
 	m_RefreshAssetsEditor = false;
 	m_EditorTab = -1;
@@ -719,7 +726,7 @@ void CAssetsEditor::ShowHint(const char* pText, void* pData)
 	}
 }
 
-void CAssetsEditor::RefreshAssetList(int Source)
+void CAssetsEditor::RefreshAssetsList(int Source)
 {
 	m_pGuiAssetList[Source]->Clear();
 	
@@ -739,7 +746,18 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			break;
 	}
 	
-	//AntiDoubleeEntries
+	//New asset button
+	{
+		gui::CHListLayout* pLayout = new gui::CHListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
+		pLayout->SetHeight(m_pGuiConfig->m_ButtonHeight);
+		m_pGuiAssetList[Source]->Add(pLayout);
+		
+		pLayout->Add(new CLoadAssetsButton(this, Source));
+		pLayout->Add(new CSaveAssetsButton(this, Source));
+	}
+	m_pGuiAssetList[Source]->Add(new CNewAssetButton(this));
+	
+	//AntiDoubleEntries
 	bool MapLayerTilesFound[1024];
 	bool MapLayerQuadsFound[1024];
 	
@@ -933,12 +951,12 @@ void CAssetsEditor::RefreshAssetList(int Source)
 	m_pGuiAssetList[Source]->Update();
 }
 
-void CAssetsEditor::RefreshAssetList()
+void CAssetsEditor::RefreshAssetsList()
 {
-	RefreshAssetList(CAssetPath::SRC_UNIVERSE);
-	RefreshAssetList(CAssetPath::SRC_WORLD);
-	RefreshAssetList(CAssetPath::SRC_LAND);
-	RefreshAssetList(CAssetPath::SRC_SKIN);
+	RefreshAssetsList(CAssetPath::SRC_UNIVERSE);
+	RefreshAssetsList(CAssetPath::SRC_WORLD);
+	RefreshAssetsList(CAssetPath::SRC_LAND);
+	RefreshAssetsList(CAssetPath::SRC_SKIN);
 }
 
 void CAssetsEditor::RefreshAssetsEditor(int Tab)
@@ -1161,6 +1179,11 @@ bool CAssetsEditor::IsEditedAsset(CAssetPath AssetPath)
 	return (m_EditedAssetPath == AssetPath);
 }
 
+bool CAssetsEditor::IsEditedSubItem(CAssetPath AssetPath, int SubPath)
+{
+	return (m_EditedAssetPath == AssetPath && m_EditedAssetSubPath == SubPath);
+}
+
 bool CAssetsEditor::IsDisplayedAsset(CAssetPath AssetPath)
 {
 	return (m_ViewedAssetPath == AssetPath);
@@ -1322,7 +1345,7 @@ void CAssetsEditor::DisplayAsset(CAssetPath AssetPath)
 
 void CAssetsEditor::NewAsset(CAssetPath AssetPath)
 {
-	RefreshAssetList();
+	RefreshAssetsList();
 	DisplayAsset(AssetPath);
 	EditAsset(AssetPath);
 }
@@ -1334,7 +1357,7 @@ void CAssetsEditor::DuplicateAsset(CAssetPath AssetPath)
 	m_EditedAssetPath = NewAssetPath;
 	m_ViewedAssetPath = NewAssetPath;
 	
-	RefreshAssetList();
+	RefreshAssetsList();
 }
 
 void CAssetsEditor::DeleteAsset(CAssetPath AssetPath)
@@ -1344,7 +1367,7 @@ void CAssetsEditor::DeleteAsset(CAssetPath AssetPath)
 	m_EditedAssetPath = CAssetPath::Null();
 	m_ViewedAssetPath = CAssetPath::Null();
 	
-	RefreshAssetList();
+	RefreshAssetsList();
 }
 
 void CAssetsEditor::SetPause(bool Pause)
@@ -1377,10 +1400,10 @@ void CAssetsEditor::CloseEditor()
 	g_Config.m_ClMode = TU_CLIENTMODE_GAME;
 }
 
-void CAssetsEditor::LoadAssetsFile(const char* pFilename)
+void CAssetsEditor::LoadAssetsFile(const char* pFilename, int Source)
 {
-	Client()->LoadAssetsFile(pFilename);
-	RefreshAssetList();
+	Client()->LoadAssetsFile(pFilename, Source);
+	RefreshAssetsList();
 }
 
 }

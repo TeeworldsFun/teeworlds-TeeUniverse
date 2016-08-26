@@ -85,12 +85,17 @@ protected:
 	array<CWidget*> m_Childs;
 	int m_ChildrenHeight;
 	int m_Style;
+	int m_Model;
 	
 	bool m_ShowScrollBar;
 	int m_ScrollValue;
+
+protected:
+	void Update_FillingNone();
+	void Update_FillingLast();
 	
 public:
-	CVListLayout(class CConfig *pConfig, int Style = CConfig::LAYOUTSTYLE_DEFAULT);
+	CVListLayout(class CConfig *pConfig, int Style = CConfig::LAYOUTSTYLE_DEFAULT, int Model = LAYOUTFILLING_NONE);
 	virtual ~CVListLayout();
 	
 	virtual void Clear();

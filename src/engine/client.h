@@ -166,7 +166,7 @@ public:
 public:
 	virtual tu::CClient_Graphics *TUGraphics() const = 0;
 	virtual tu::CAssetsManager *AssetsManager() const = 0;
-	virtual void LoadAssetsFile(const char* pFileName) = 0;
+	virtual void LoadAssetsFile(const char* pFileName, int Source) = 0;
 };
 
 class IGameClient : public IInterface

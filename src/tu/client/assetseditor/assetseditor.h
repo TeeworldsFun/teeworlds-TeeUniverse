@@ -44,7 +44,8 @@ class CAssetsEditor : public IAssetsEditor
 public:
 	enum
 	{
-		ICON_DECREASE=2,
+		ICON_DEFAULT=1,
+		ICON_DECREASE,
 		ICON_INCREASE,
 		ICON_DELETE,
 		ICON_ROTATION,
@@ -193,11 +194,11 @@ public:
 	
 	vec2 GetCursorPos() const;
 	
-	void LoadAssetsFile(const char* pFilename);
+	void LoadAssetsFile(const char* pFilename, int Source);
 	void CloseEditor();
 	
-	void RefreshAssetList(int Source);
-	void RefreshAssetList();
+	void RefreshAssetsList(int Source);
+	void RefreshAssetsList();
 	void RefreshAssetsEditor(int Tab=-1);
 	void DisplayPopup();
 	void ShowCursor();
@@ -215,6 +216,7 @@ public:
 	void NewAsset(CAssetPath AssetPath);
 	
 	bool IsEditedAsset(CAssetPath AssetPath);
+	bool IsEditedSubItem(CAssetPath AssetPath, int SubPath);
 	bool IsDisplayedAsset(CAssetPath AssetPath);
 	
 	static void ShowHint(const char* pText, void* pData);

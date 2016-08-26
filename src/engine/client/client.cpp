@@ -610,7 +610,7 @@ void CClient::DisconnectWithReason(const char *pReason)
 	//TU unload mod graphics
 	if(AssetsManager())
 	{
-		AssetsManager()->OnAssetsFileUnloaded();
+		AssetsManager()->OnAssetsFileUnloaded(tu::CAssetPath::SRC_WORLD);
 	}
 
 	// disable all downloads
@@ -1370,7 +1370,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 				m_ModDownloadFinished = true;
 
 				// load mod
-				const char *pError = LoadMod(m_aModdownloadName, m_aModdownloadFilename, m_ModdownloadCrc);
+				const char *pError = LoadWorld(m_aModdownloadName, m_aModdownloadFilename, m_ModdownloadCrc);
 				if(!pError)
 				{
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
@@ -1733,7 +1733,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 			{
 				m_TUServer = true;
 				
-				pError = LoadModSearch(pMod, ModCrc);
+				pError = LoadWorldSearch(pMod, ModCrc);
 
 				if(!pError)
 				{
@@ -1922,7 +1922,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 				m_ModDownloadFinished = true;
 
 				// load mod
-				const char *pError = LoadMod(m_aModdownloadName, m_aModdownloadFilename, m_ModdownloadCrc);
+				const char *pError = LoadWorld(m_aModdownloadName, m_aModdownloadFilename, m_ModdownloadCrc);
 				if(!pError)
 				{
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
@@ -3314,21 +3314,20 @@ int main(int argc, const char **argv) // ignore_convention
 
 //TU
 
-void CClient::LoadAssetsFile(const char* pFileName)
+void CClient::LoadAssetsFile(const char* pFileName, int Source)
 {
-	//.map or .assets detection
 	if(m_pAssetsFile->Load(pFileName))
 	{
 		DemoRecorder_Stop();
 		
 		if(AssetsManager())
 		{
-			AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile);
+			AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile, Source);
 		}
 	}
 }
 
-const char *CClient::LoadMod(const char *pName, const char *pFilename, unsigned WantedCrc)
+const char *CClient::LoadWorld(const char *pName, const char *pFilename, unsigned WantedCrc)
 {
 	static char aErrorMsg[128];
 
@@ -3362,13 +3361,13 @@ const char *CClient::LoadMod(const char *pName, const char *pFilename, unsigned 
 
 	if(AssetsManager())
 	{
-		AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile);
+		AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile, tu::CAssetPath::SRC_WORLD);
 	}
 
 	return 0x0;
 }
 
-const char *CClient::LoadModSearch(const char *pModName, int WantedCrc)
+const char *CClient::LoadWorldSearch(const char *pModName, int WantedCrc)
 {
 	const char *pError = 0;
 	char aBuf[512];
@@ -3377,14 +3376,14 @@ const char *CClient::LoadModSearch(const char *pModName, int WantedCrc)
 	SetState(IClient::STATE_LOADING);
 
 	// try the normal maps folder
-	str_format(aBuf, sizeof(aBuf), "assets/%s.assets", pModName);
-	pError = LoadMod(pModName, aBuf, WantedCrc);
+	str_format(aBuf, sizeof(aBuf), "assets/worlds/%s.assets", pModName);
+	pError = LoadWorld(pModName, aBuf, WantedCrc);
 	if(!pError)
 		return pError;
 
 	// try the downloaded maps
-	str_format(aBuf, sizeof(aBuf), "downloadedassets/%s_%08x.assets", pModName, WantedCrc);
-	pError = LoadMod(pModName, aBuf, WantedCrc);
+	str_format(aBuf, sizeof(aBuf), "downloadedassets/worlds/%s_%08x.assets", pModName, WantedCrc);
+	pError = LoadWorld(pModName, aBuf, WantedCrc);
 	if(!pError)
 		return pError;
 
@@ -3392,7 +3391,7 @@ const char *CClient::LoadModSearch(const char *pModName, int WantedCrc)
 	char aFilename[128];
 	str_format(aFilename, sizeof(aFilename), "%s.assets", pModName);
 	if(Storage()->FindFile(aFilename, "assets", IStorage::TYPE_ALL, aBuf, sizeof(aBuf)))
-		pError = LoadMod(pModName, aBuf, WantedCrc);
+		pError = LoadWorld(pModName, aBuf, WantedCrc);
 
 	return pError;
 }

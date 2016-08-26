@@ -65,9 +65,15 @@ public:
 					fs_makedir(GetPath(TYPE_SAVE, "maps", aPath, sizeof(aPath)));
 					fs_makedir(GetPath(TYPE_SAVE, "downloadedmaps", aPath, sizeof(aPath)));
 					fs_makedir(GetPath(TYPE_SAVE, "downloadedassets", aPath, sizeof(aPath)));
+					fs_makedir(GetPath(TYPE_SAVE, "downloadedassets/universes", aPath, sizeof(aPath)));
+					fs_makedir(GetPath(TYPE_SAVE, "downloadedassets/worlds", aPath, sizeof(aPath)));
+					fs_makedir(GetPath(TYPE_SAVE, "downloadedassets/lands", aPath, sizeof(aPath)));
 					fs_makedir(GetPath(TYPE_SAVE, "skins", aPath, sizeof(aPath)));
 				}
 				fs_makedir(GetPath(TYPE_SAVE, "assets", aPath, sizeof(aPath)));
+				fs_makedir(GetPath(TYPE_SAVE, "assets/universes", aPath, sizeof(aPath)));
+				fs_makedir(GetPath(TYPE_SAVE, "assets/worlds", aPath, sizeof(aPath)));
+				fs_makedir(GetPath(TYPE_SAVE, "assets/lands", aPath, sizeof(aPath)));
 				fs_makedir(GetPath(TYPE_SAVE, "editorresources", aPath, sizeof(aPath)));
 				fs_makedir(GetPath(TYPE_SAVE, "dumps", aPath, sizeof(aPath)));
 				fs_makedir(GetPath(TYPE_SAVE, "demos", aPath, sizeof(aPath)));

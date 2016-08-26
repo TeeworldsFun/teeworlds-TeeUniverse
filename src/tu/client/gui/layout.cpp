@@ -304,9 +304,10 @@ void CVListLayout::CSlider::OnNewPosition(float Pos)
 	m_pLayout->OnNewScrollPos(Pos);
 }
 
-CVListLayout::CVListLayout(CConfig *pConfig, int Style) :
+CVListLayout::CVListLayout(CConfig *pConfig, int Style, int Model) :
 	CWidget(pConfig),
-	m_Style(Style)
+	m_Style(Style),
+	m_Model(Model)
 {
 	m_pSlider = new CVListLayout::CSlider(this);
 	m_ShowScrollBar = false;
@@ -333,8 +334,118 @@ void CVListLayout::Clear()
 	Update();
 }
 
+void CVListLayout::Update_FillingLast()
+{
+	if(m_Childs.size() == 0)
+		return;
+	
+	int Padding = m_pConfig->m_LayoutStyles[m_Style].m_Padding;
+	int Spacing = m_pConfig->m_LayoutStyles[m_Style].m_Spacing;
+	int AvailableSpace = m_Rect.h - 2*Padding;
+		
+	if(m_Childs.size() > 1)
+		AvailableSpace -= Spacing * (m_Childs.size() - 1);
+		
+	for(int i=0; i<m_Childs.size()-1; i++)
+	{
+		AvailableSpace -= m_Childs[i]->m_Rect.h;
+	}
+	
+	int PosY = m_Rect.y + Padding;
+	for(int i=0; i<m_Childs.size()-1; i++)
+	{
+		m_Childs[i]->SetRect(CRect(
+			m_Rect.x + Padding,
+			PosY,
+			m_Rect.w - Padding*2,
+			m_Childs[i]->m_Rect.h
+		));
+		
+		m_ChildrenHeight += m_Childs[i]->m_Rect.h + Spacing;
+		PosY += m_Childs[i]->m_Rect.h + Spacing;
+	}
+	
+	m_Childs[m_Childs.size()-1]->SetRect(CRect(
+		m_Rect.x + Padding,
+		PosY,
+		m_Rect.w - Padding*2,
+		AvailableSpace
+	));
+}
+
+void CVListLayout::Update_FillingNone()
+{	
+	int Padding = m_pConfig->m_LayoutStyles[m_Style].m_Padding;
+	int Spacing = m_pConfig->m_LayoutStyles[m_Style].m_Spacing;
+	
+	int PosY = m_Rect.y + Padding;
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		m_Childs[i]->SetRect(CRect(
+			m_Rect.x + Padding,
+			PosY,
+			m_Rect.w - Padding*2,
+			m_Childs[i]->m_Rect.h
+		));
+		
+		m_ChildrenHeight += m_Childs[i]->m_Rect.h + Spacing;
+		PosY += m_Childs[i]->m_Rect.h + Spacing;
+	}
+}
+
 void CVListLayout::Update()
 {
+	int Spacing = m_pConfig->m_LayoutStyles[m_Style].m_Spacing;
+	
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		m_Childs[i]->Update();
+	}
+	
+	m_ChildrenHeight = 0;
+	
+	switch(m_Model)
+	{
+		case LAYOUTFILLING_NONE:
+			Update_FillingNone();
+			break;
+		case LAYOUTFILLING_LAST:
+			Update_FillingLast();
+			break;
+	}
+	
+	//Add scrole bar
+	if(m_ChildrenHeight > m_Rect.h)
+	{
+		m_ShowScrollBar = true;
+		m_ScrollValue = 0;
+		
+		m_pSlider->SetRect(CRect(
+			m_Rect.x + m_Rect.w - m_pSlider->m_Rect.w,
+			m_Rect.y,
+			m_pSlider->m_Rect.w,
+			m_Rect.h
+		));
+		
+		m_pSlider->Update();
+		
+		for(int i=0; i<m_Childs.size(); i++)
+		{
+			m_Childs[i]->SetWidth(m_Rect.w - Spacing*3 - m_pSlider->m_Rect.w);
+		}
+	}
+	else
+	{
+		m_ShowScrollBar = false;
+		m_ScrollValue = 0;
+	}
+	
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		m_Childs[i]->Update();
+	}
+
+	/*
 	int Spacing = m_pConfig->m_LayoutStyles[m_Style].m_Spacing;
 	
 	m_ChildrenHeight = 0;
@@ -387,6 +498,7 @@ void CVListLayout::Update()
 	{
 		m_Childs[i]->Update();
 	}
+	*/
 }
 	
 void CVListLayout::Render()

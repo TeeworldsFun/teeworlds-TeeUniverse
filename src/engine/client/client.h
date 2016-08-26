@@ -276,7 +276,7 @@ public:
 	virtual const char *ModDownloadName() const { return m_aModdownloadName; }
 	virtual int ModDownloadAmount() const { return m_ModdownloadAmount; }
 	virtual int ModDownloadTotalsize() const { return m_ModdownloadTotalsize; }
-	virtual void LoadAssetsFile(const char* pFileName);
+	virtual void LoadAssetsFile(const char* pFileName, int Source);
 
 	void PumpNetwork();
 
@@ -347,8 +347,8 @@ public:
 	int m_ModdownloadAmount;
 	int m_ModdownloadTotalsize;
 	
-	const char *LoadMod(const char *pName, const char *pFilename, unsigned WantedCrc);
-	const char *LoadModSearch(const char *pModName, int WantedCrc);
+	const char *LoadWorld(const char *pName, const char *pFilename, unsigned WantedCrc);
+	const char *LoadWorldSearch(const char *pModName, int WantedCrc);
 	
 	virtual tu::CClient_Graphics *TUGraphics() const { return m_pTUGraphics; }
 	virtual tu::CAssetsManager *AssetsManager() const { return m_pAssetsManager; }
