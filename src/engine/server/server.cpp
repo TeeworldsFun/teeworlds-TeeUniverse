@@ -2370,7 +2370,7 @@ void CServer::SendInitialData(int ClientID)
 	SendMsg(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH, ClientID);
 }
 
-bool CServer::GetClientProtocol(int ClientID) const
+int CServer::GetClientProtocol(int ClientID) const
 {
 	return m_aClients[ClientID].m_Protocol;
 }

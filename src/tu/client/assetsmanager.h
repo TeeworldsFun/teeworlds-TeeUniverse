@@ -30,11 +30,11 @@ private:
 		int m_Version;
 		int m_Source;
 	};
-	
+
 private:
 	IGraphics* m_pGraphics;
 	class IStorage* m_pStorage;
-	
+
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CAssetCatalog<ClassName> CatalogName;
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
@@ -44,56 +44,56 @@ public:
 	void Init(IStorage* pStorage);
 	void LoadInteralAssets();
 	void LoadSkinAssets(class IStorage* pStorage);
-	
+
 	static int LoadSkinAssets_BodyScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_FootScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_EyeScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_HandsScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_MarkingScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_DecorationScan(const char *pName, int IsDir, int DirType, void *pUser);
-	
+
 	CAssetPath FindSkinPart(CAssetPath CharacterPath, CAsset_Character::CSubPath CharacterPart, const char* pName);
-	
+
 	class IGraphics *Graphics() { return m_pGraphics; };
 	class IStorage *Storage() { return m_pStorage; };
-	
+
 	CAssetPath AddImage(int StorageType, const char* pFilename, int Source);
 	void DeleteAsset(int Type, CAssetPath Path);
-	
+
 	void UpdateAssets();
 	int SaveInAssetsFile(const char *pFileName, int Source);
 	int OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile);
 	int OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile);
 	int OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile);
 	int OnAssetsFileUnloaded();
-	
+
 	template<class ASSETTYPE>
 	CAssetCatalog<ASSETTYPE>* GetAssetCatalog()
 	{
 		return 0;
 	}
-	
+
 	template<class ASSETTYPE>
 	ASSETTYPE* GetAsset(CAssetPath AssetPath)
 	{
 		return GetAssetCatalog<ASSETTYPE>()->GetAsset(AssetPath);
 	}
-	
+
 	template<class ASSETTYPE>
 	int GetNumAssets(int Source)
 	{
 		return GetAssetCatalog<ASSETTYPE>()->m_Assets[Source].size();
 	}
-	
+
 	template<class ASSETTYPE>
 	int GetNumLists(int Source)
 	{
 		return GetAssetCatalog<ASSETTYPE>()->m_Lists[Source].size();
 	}
-	
+
 	int AddSubItem(CAssetPath AssetPath, int SubItemType);
 	void DeleteSubItem(CAssetPath AssetPath, int SubPath);
-			
+
 	template<typename T>
 	T GetAssetValue(CAssetPath AssetPath, int FieldType, int FieldPath, T DefaultValue)
 	{
@@ -105,17 +105,17 @@ public:
 			else\
 				return DefaultValue;\
 		}
-	
+
 		switch(AssetPath.GetType())
 		{
 			#include <tu/client/assetsmacro.h>
 		}
-		
+
 		#undef TU_MACRO_ASSETTYPE
-		
+
 		return DefaultValue;
 	}
-	
+
 	template<typename T>
 	bool SetAssetValue(CAssetPath AssetPath, int FieldType, int FieldPath, const T& Value)
 	{
@@ -126,19 +126,31 @@ public:
 				return pAsset->SetValue<T>(FieldType, FieldPath, Value);\
 			break;\
 		}
-		
+
 		switch(AssetPath.GetType())
 		{
 			#include <tu/client/assetsmacro.h>
 		}
-		
+
 		#undef TU_MACRO_ASSETTYPE
-		
+
 		return false;
 	}
-	
+
 	void DeleteAsset(const CAssetPath& Path);
 };
+
+// http://stackoverflow.com/questions/59331/visibility-of-template-specialization-of-c-function
+// http://stackoverflow.com/questions/2498435/declaration-of-template-class-member-specialization
+
+// make sure all calls to GetAssetCatalog are aware of template-specializations
+
+#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) template<>\
+CAssetCatalog<ClassName>* CAssetsManager::GetAssetCatalog<ClassName>();
+
+#include <tu/client/assetsmacro.h>
+
+#undef TU_MACRO_ASSETTYPE
 
 }
 

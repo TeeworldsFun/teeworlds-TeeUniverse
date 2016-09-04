@@ -43,7 +43,7 @@ public:
 		gui::CTextButton(pAssetsEditor->m_pGuiConfig, pText, IconId),
 		m_pAssetsEditor(pAssetsEditor)
 	{
-		
+
 	}
 };
 
@@ -57,7 +57,7 @@ public:
 		gui::CIconButton(pAssetsEditor->m_pGuiConfig, IconId),
 		m_pAssetsEditor(pAssetsEditor)
 	{
-		
+
 	}
 };
 
@@ -78,7 +78,7 @@ public:
 };
 
 class CButton_ToolbarLoad : public CTextButton
-{	
+{
 protected:
 	virtual void MouseClickAction()
 	{
@@ -96,7 +96,7 @@ public:
 };
 
 class CButton_ToolbarSave : public CTextButton
-{	
+{
 protected:
 	virtual void MouseClickAction()
 	{
@@ -122,22 +122,22 @@ public:
 	//~ {
 	//~ protected:
 		//~ CAssetListHeader* m_pAssetListHeader;
-	
+
 	//~ protected:
 		//~ virtual void MouseClickAction()
 		//~ {
 			//~ m_pAssetListHeader->AddAsset();
 		//~ }
-		
+
 	//~ public:
 		//~ CAddButton(CAssetListHeader* pAssetListHeader) :
 			//~ gui::CIconButton(pAssetListHeader->m_pConfig, CAssetsEditor::ICON_INCREASE),
 			//~ m_pAssetListHeader(pAssetListHeader)
 		//~ {
-			
+
 		//~ }
 	//~ };
-	
+
 //~ protected:
 	//~ CAssetsEditor* m_pAssetsEditor;
 	//~ int m_AssetType;
@@ -149,13 +149,13 @@ public:
 		//~ m_pAssetsEditor(pAssetsEditor),
 		//~ m_AssetType(AssetType),
 		//~ m_Source(Source)
-	//~ {		
+	//~ {
 		//~ SetHeight(m_pConfig->m_ButtonHeight);
-		
+
 		//~ #define ADD_ASSETTYPE_HEADER(TypeCode, TypeHeader) case TypeCode:\
 			//~ Add(new gui::CLabel(m_pConfig, TypeHeader, gui::TEXTSTYLE_HEADER2));\
 			//~ break;
-		
+
 		//~ switch(m_AssetType)
 		//~ {
 			//~ //Search Tag: TAG_NEW_ASSET
@@ -172,10 +172,10 @@ public:
 			//~ ADD_ASSETTYPE_HEADER(CAssetPath::TYPE_MAPLAYERQUADS, "Quad Layers")
 		//~ }
 		//~ Add(new CAddButton(this));
-		
+
 		//~ Update();
 	//~ }
-	
+
 	//~ void AddAsset()
 	//~ {
 		//~ #define ON_NEW_ASSET(TypeName, AssetName) case TypeName::TypeId:\
@@ -187,9 +187,9 @@ public:
 			//~ m_pAssetsEditor->NewAsset(NewAssetPath);\
 			//~ break;\
 		//~ }
-			
+
 		//~ CAssetPath NewAssetPath;
-		
+
 		//~ switch(m_AssetType)
 		//~ {
 			//~ case CAssetPath::TYPE_IMAGE:
@@ -229,10 +229,10 @@ protected:
 			m_pAssetsEditor->EditAssetSubItem(m_AssetPath, m_AssetSubPath, m_Tab);
 		else
 			m_pAssetsEditor->EditAsset(m_AssetPath);
-		
+
 		m_pAssetsEditor->DisplayAsset(m_AssetPath);
 	}
-	
+
 public:
 	CAssetListTitle(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, char* pText, int IconId) :
 		gui::CExternalTextButton(pAssetsEditor->m_pGuiConfig, pText, IconId),
@@ -243,20 +243,20 @@ public:
 	{
 		m_Centered = false;
 	}
-	
+
 	void SetSubPath(int SubPath, int Tab)
 	{
 		m_AssetSubPath = SubPath;
 		m_Tab = Tab;
 	}
-	
+
 	virtual void Render()
 	{
 		if(m_pAssetsEditor->IsEditedAsset(m_AssetPath))
 			SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK_HIGHLIGHT);
 		else
 			SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
-		
+
 		gui::CExternalTextButton::Render();
 	}
 };
@@ -275,9 +275,9 @@ public:
 		m_pAssetsEditor(pAssetsEditor),
 		m_AssetPath(AssetPath),
 		m_Source(Source)
-	{		
+	{
 		SetHeight(m_pConfig->m_ButtonHeight);
-		
+
 		int IconId = -1;
 		switch(AssetPath.GetType())
 		{
@@ -315,21 +315,21 @@ public:
 				IconId = CAssetsEditor::ICON_MAPLAYERQUADS;
 				break;
 		}
-		
+
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
 		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, IconId);
 		Add(m_Button);
-		
+
 		Update();
 	}
-	
+
 	virtual void Render()
 	{
 		if(m_pAssetsEditor->IsEditedAsset(m_AssetPath))
 			m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK_HIGHLIGHT);
 		else
 			m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
-		
+
 		gui::CHListLayout::Render();
 	}
 };
@@ -350,14 +350,14 @@ public:
 		m_AssetPath(AssetPath),
 		m_Source(Source),
 		m_SourceFound(false)
-	{		
+	{
 		SetHeight(m_pConfig->m_ButtonHeight);
-		
+
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
 		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_IMAGE);
 		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 		SetTitle(m_Button);
-		
+
 		for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<CAsset_Sprite>(m_Source); i++)
 		{
 			CAssetPath SpritePath = CAssetPath::Asset(CAsset_Sprite::TypeId, m_Source, i);
@@ -369,10 +369,10 @@ public:
 				m_SourceFound = true;
 			}
 		}
-		
+
 		Update();
 	}
-	
+
 	bool SourceFound()
 	{
 		return m_SourceFound || (m_AssetPath.GetSource() == m_Source);
@@ -395,14 +395,14 @@ public:
 		m_AssetPath(AssetPath),
 		m_Source(Source),
 		m_SourceFound(false)
-	{		
+	{
 		SetHeight(m_pConfig->m_ButtonHeight);
-		
+
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
 		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_SKELETON);
 		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 		SetTitle(m_Button);
-		
+
 		for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<CAsset_SkeletonSkin>(m_Source); i++)
 		{
 			CAssetPath SkeletonSkinPath = CAssetPath::Asset(CAsset_SkeletonSkin::TypeId, m_Source, i);
@@ -413,7 +413,7 @@ public:
 				m_SourceFound = true;
 			}
 		}
-		
+
 		for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<CAsset_SkeletonAnimation>(m_Source); i++)
 		{
 			CAssetPath SkeletonAnimationPath = CAssetPath::Asset(CAsset_SkeletonAnimation::TypeId, m_Source, i);
@@ -424,10 +424,10 @@ public:
 				m_SourceFound = true;
 			}
 		}
-		
+
 		Update();
 	}
-	
+
 	bool SourceFound()
 	{
 		return m_SourceFound || (m_AssetPath.GetSource() == m_Source);
@@ -454,13 +454,13 @@ public:
 		m_SourceFound(false)
 	{
 		SetHeight(m_pConfig->m_ButtonHeight);
-		
+
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset_Character::PART_NAME, SubPath.ConvertToInteger(), 0);
 		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, -1);
 		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 		m_Button->SetSubPath(m_SubPath.ConvertToInteger(), CEditor::TAB_CHARACTER_PARTS);
 		SetTitle(m_Button);
-		
+
 		for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<CAsset_CharacterPart>(m_Source); i++)
 		{
 			CAssetPath CharacterPartPath = CAssetPath::Asset(CAsset_CharacterPart::TypeId, m_Source, i);
@@ -472,10 +472,10 @@ public:
 				m_SourceFound = true;
 			}
 		}
-		
+
 		Update();
 	}
-	
+
 	bool SourceFound()
 	{
 		return m_SourceFound || (m_AssetPath.GetSource() == m_Source);
@@ -498,21 +498,21 @@ public:
 		m_AssetPath(AssetPath),
 		m_Source(Source),
 		m_SourceFound(AssetPath.GetSource() == Source)
-	{		
+	{
 		SetHeight(m_pConfig->m_ButtonHeight);
-		
+
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
 		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_CHARACTER);
 		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 		SetTitle(m_Button);
-		
+
 		CAsset_Character* pCharacter = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Character>(m_AssetPath);
 		if(pCharacter)
 		{
 			for(int i=0; i<pCharacter->m_Parts.size(); i++)
 			{
 				CAssetListCharacterPartType* pItem = new CAssetListCharacterPartType(m_pAssetsEditor, m_AssetPath, CAsset_Character::CSubPath::Part(i), m_Source);
-				
+
 				if(pItem->SourceFound())
 				{
 					Add(pItem);
@@ -522,10 +522,10 @@ public:
 					delete pItem;
 			}
 		}
-		
+
 		Update();
 	}
-	
+
 	bool SourceFound()
 	{
 		return m_SourceFound || (m_AssetPath.GetSource() == m_Source);
@@ -554,21 +554,21 @@ public:
 		m_AssetPath(AssetPath),
 		m_Source(Source),
 		m_SourceFound(false)
-	{		
+	{
 		SetHeight(m_pConfig->m_ButtonHeight);
-		
+
 		CAsset_MapGroup* pMapGroup = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_MapGroup>(m_AssetPath);
 		if(pMapGroup)
-		{			
+		{
 			char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
 			m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_MAPGROUP);
 			m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 			SetTitle(m_Button);
-			
+
 			for(int i=0; i<pMapGroup->m_Layers.size(); i++)
 			{
 				bool AddItem = false;
-				
+
 				if(pMapGroup->m_Layers[i].GetSource() == m_Source)
 				{
 					if(pMapGroup->m_Layers[i].GetType() == CAssetPath::TYPE_MAPLAYERTILES)
@@ -582,7 +582,7 @@ public:
 						AddItem = true;
 					}
 				}
-				
+
 				if(AddItem)
 				{
 					CAssetListItem* pItem = new CAssetListItem(m_pAssetsEditor, pMapGroup->m_Layers[i], m_Source);
@@ -591,10 +591,10 @@ public:
 				}
 			}
 		}
-		
+
 		Update();
 	}
-	
+
 	bool SourceFound()
 	{
 		return m_SourceFound || (m_AssetPath.GetSource() == m_Source);
@@ -621,10 +621,10 @@ CAssetsEditor::~CAssetsEditor()
 	{
 		if(m_GuiPopups[i]) delete m_GuiPopups[i];
 	}
-	
+
 	if(m_pGuiConfig) delete m_pGuiConfig;
 }
-	
+
 void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGraphics)
 {
 	m_pClient = Kernel()->RequestInterface<IClient>();
@@ -635,18 +635,18 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pAssetsFile = Kernel()->RequestInterface<tu::IAssetsFile>();
 	m_pTUGraphics = pTUGraphics;
 	m_pAssetsManager = pAssetsManager;
-	
+
 	m_RenderTools.m_pGraphics = m_pGraphics;
-		
+
 	m_CursorTexture = Graphics()->LoadTexture("editor/cursor.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
 	m_AssetsEditorTexture = Graphics()->LoadTexture("tu/assetseditor.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
-	
+
 	m_pGuiConfig = new gui::CConfig(TUGraphics(), RenderTools(), TextRender(), Input(), m_AssetsEditorTexture);
 	m_pGuiConfig->m_fShowHint = CAssetsEditor::ShowHint;
 	m_pGuiConfig->m_pShowHintData = (void*) this;
-	
+
 	int Margin = 5;
-	
+
 	int MenuBarHeight = 30;
 	int PanelWidth = 250;
 	int PanelHeight = 250;
@@ -655,9 +655,9 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	gui::CRect ViewRect(AssetListRect.x + AssetListRect.w + Margin, AssetListRect.y, Graphics()->ScreenWidth() - 2*PanelWidth - 4*Margin, Graphics()->ScreenHeight() - 4*Margin - PanelHeight - MenuBarHeight);
 	gui::CRect AssetsEditorRect(ViewRect.x + ViewRect.w + Margin, AssetListRect.y, PanelWidth, AssetListRect.h);
 	gui::CRect TimelineRect(AssetListRect.x + AssetListRect.w + Margin, ViewRect.y + ViewRect.h + Margin, ViewRect.w, PanelHeight);
-	
+
 	m_pHintLabel = new gui::CLabel(m_pGuiConfig, "");
-	
+
 	m_pGuiToolbar = new gui::CHListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_DEFAULT, gui::LAYOUTFILLING_LAST);
 	m_pGuiToolbar->SetRect(ToolbarRect);
 	m_pGuiToolbar->Add(new CButton_ToolbarLoad(this));
@@ -665,46 +665,46 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pGuiToolbar->Add(new CButton_ToolbarExit(this));
 	m_pGuiToolbar->Add(m_pHintLabel);
 	m_pGuiToolbar->Update();
-	
+
 	m_pGuiAssetListTabs = new gui::CTabs(m_pGuiConfig);
 	m_pGuiAssetListTabs->SetRect(AssetListRect);
-	
+
 	m_pGuiAssetList[CAssetPath::SRC_UNIVERSE] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_UNIVERSE], CAssetsEditor::ICON_INTERNAL_ASSET, "Universe");
-	
+
 	m_pGuiAssetList[CAssetPath::SRC_WORLD] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_WORLD], CAssetsEditor::ICON_EXTERNAL_ASSET, "World");
-	
+
 	m_pGuiAssetList[CAssetPath::SRC_LAND] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_LAND], CAssetsEditor::ICON_MAP_ASSET, "Land");
-	
+
 	m_pGuiAssetList[CAssetPath::SRC_SKIN] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE);
 	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_SKIN], CAssetsEditor::ICON_SKIN_ASSET, "Skins");
-	
+
 	m_pGuiAssetListTabs->Update();
 	RefreshAssetList();
-	
+
 	m_pGuiView = new CView(this);
 	m_pGuiView->SetRect(ViewRect);
 	m_pGuiView->Update();
-	
+
 	m_pGuiTimeline = new CTimeline(this);
 	m_pGuiTimeline->SetRect(TimelineRect);
 	m_pGuiTimeline->Update();
-	
+
 	m_pGuiAssetsEditor = new CEditor(this);
 	m_pGuiAssetsEditor->SetRect(AssetsEditorRect);
 	m_pGuiAssetsEditor->Update();
-	
+
 	m_RefreshAssetsEditor = false;
 	m_EditorTab = -1;
-	
+
 	m_ShowCursor = true;
-	
+
 	m_LastTime = -1.0f;
 	m_Time = 0.0f;
 	m_Paused = true;
-	
+
 	m_EditedAssetSubPath = -1;
 	m_AssetsListSource = CAssetPath::SRC_WORLD;
 }
@@ -722,7 +722,7 @@ void CAssetsEditor::ShowHint(const char* pText, void* pData)
 void CAssetsEditor::RefreshAssetList(int Source)
 {
 	m_pGuiAssetList[Source]->Clear();
-	
+
 	switch(Source)
 	{
 		case CAssetPath::SRC_UNIVERSE:
@@ -738,16 +738,16 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			m_pGuiAssetList[Source]->Add(new gui::CLabel(m_pGuiConfig, "Skins", gui::TEXTSTYLE_HEADER));
 			break;
 	}
-	
+
 	//AntiDoubleeEntries
 	bool MapLayerTilesFound[1024];
 	bool MapLayerQuadsFound[1024];
-	
+
 	for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_MapLayerTiles>(Source); i++)
 		MapLayerTilesFound[i] = false;
 	for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_MapLayerQuads>(Source); i++)
 		MapLayerQuadsFound[i] = false;
-	
+
 	//Images
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
@@ -760,7 +760,7 @@ void CAssetsEditor::RefreshAssetList(int Source)
 				delete pItem;
 		}
 	}
-	
+
 	//Sprites
 	{
 		int nbAssets = AssetsManager()->GetNumAssets<CAsset_Sprite>(Source);
@@ -777,7 +777,7 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			}
 		}
 	}
-	
+
 	//Skeletons
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
@@ -790,7 +790,7 @@ void CAssetsEditor::RefreshAssetList(int Source)
 				delete pItem;
 		}
 	}
-	
+
 	//SkeletonSkins
 	{
 		int nbAssets = AssetsManager()->GetNumAssets<CAsset_SkeletonSkin>(Source);
@@ -807,7 +807,7 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			}
 		}
 	}
-	
+
 	//SkeletonAnimations
 	{
 		int nbAssets = AssetsManager()->GetNumAssets<CAsset_SkeletonAnimation>(Source);
@@ -824,9 +824,9 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			}
 		}
 	}
-	
+
 	//Search Tag: TAG_NEW_ASSET
-	
+
 	//Character
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
@@ -839,7 +839,7 @@ void CAssetsEditor::RefreshAssetList(int Source)
 				delete pItem;
 		}
 	}
-	
+
 	//CharacterPart
 	{
 		int nbAssets = AssetsManager()->GetNumAssets<CAsset_CharacterPart>(Source);
@@ -865,7 +865,7 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			}
 		}
 	}
-	
+
 	#define REFRESH_ASSET_LIST(TypeName) \
 	{\
 		int nbAssets = AssetsManager()->GetNumAssets<TypeName>(Source);\
@@ -877,9 +877,9 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			}\
 		}\
 	}
-	
+
 	REFRESH_ASSET_LIST(CAsset_Weapon)
-	
+
 	//MapGroup
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
@@ -892,14 +892,14 @@ void CAssetsEditor::RefreshAssetList(int Source)
 				MapLayerTilesFound,
 				MapLayerQuadsFound
 			);
-			
+
 			if(pItem->SourceFound())
 				m_pGuiAssetList[Source]->Add(pItem);
 			else
 				delete pItem;
 		}
 	}
-	
+
 	//MapLayer
 	{
 		int nbAssets = AssetsManager()->GetNumAssets<CAsset_MapLayerTiles>(Source);
@@ -929,7 +929,7 @@ void CAssetsEditor::RefreshAssetList(int Source)
 			}
 		}
 	}
-	
+
 	m_pGuiAssetList[Source]->Update();
 }
 
@@ -950,30 +950,30 @@ void CAssetsEditor::RefreshAssetsEditor(int Tab)
 void CAssetsEditor::Render()
 {
 	Graphics()->MapScreen(0, 0, Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
-	
+
 	{
 		Graphics()->TextureClear();
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(0.5f, 0.5f, 0.5f, 1.0f);
-		
+
 		IGraphics::CQuadItem QuadItem(Graphics()->ScreenWidth()/2, Graphics()->ScreenHeight()/2, Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
 		Graphics()->QuadsDraw(&QuadItem, 1);
-		
+
 		Graphics()->QuadsEnd();
 	}
-	
+
 	m_pGuiToolbar->Render();
 	m_pGuiAssetListTabs->Render();
 	m_pGuiAssetsEditor->Render();
 	m_pGuiView->Render();
 	m_pGuiTimeline->Render();
-	
+
 	for(int i=0; i<m_GuiPopups.size(); i++)
 	{
 		if(m_GuiPopups[i])
 			m_GuiPopups[i]->Render();
 	}
-	
+
 	//Cursor
 	if(m_ShowCursor)
 	{
@@ -1001,9 +1001,9 @@ void CAssetsEditor::UpdateAndRender()
 	{
 		CloseEditor();
 	}
-	
+
 	m_Hint = false;
-	
+
 	//Update time
 	if(!m_Paused)
 	{
@@ -1011,7 +1011,7 @@ void CAssetsEditor::UpdateAndRender()
 		else m_Time += (Client()->LocalTime() - m_LastTime);
 	}
 	m_LastTime = Client()->LocalTime();
-	
+
 	//Update popup state
 	for(int i=0; i<m_GuiPopups.size(); i++)
 	{
@@ -1021,31 +1021,31 @@ void CAssetsEditor::UpdateAndRender()
 			m_GuiPopups.remove_index(i);
 		}
 	}
-	
+
 	if(m_RefreshAssetsEditor)
 	{
 		m_pGuiAssetsEditor->Refresh(m_EditorTab);
 		m_RefreshAssetsEditor = false;
 	}
-	
+
 	//Input
 	int Keys = 0x0;
-		
+
 	if(Input()->KeyIsPressed(KEY_LCTRL) || Input()->KeyIsPressed(KEY_RCTRL))
 		Keys |= TU_INPUT_CTRL;
-		
+
 	if(Input()->KeyIsPressed(KEY_LSHIFT) || Input()->KeyIsPressed(KEY_RSHIFT))
 		Keys |= TU_INPUT_SHIFT;
-	
+
 	if(Input()->KeyIsPressed(KEY_LALT) || Input()->KeyIsPressed(KEY_RALT))
 		Keys |= TU_INPUT_ALT;
-	
+
 	Input()->MouseRelative(&m_MouseDelta.x, &m_MouseDelta.y);
 
 	m_MousePos += m_MouseDelta;
 	m_MousePos.x = clamp(m_MousePos.x, 0.0f, static_cast<float>(Graphics()->ScreenWidth()));
 	m_MousePos.y = clamp(m_MousePos.y, 0.0f, static_cast<float>(Graphics()->ScreenHeight()));
-	
+
 	if(m_GuiPopups.size() > 0)
 	{
 		for(int i=0; i<m_GuiPopups.size(); i++)
@@ -1061,14 +1061,14 @@ void CAssetsEditor::UpdateAndRender()
 		m_pGuiAssetsEditor->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
 		m_pGuiView->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
 		m_pGuiTimeline->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
-		
+
 		m_pGuiToolbar->OnInputEvent();
 		m_pGuiAssetListTabs->OnInputEvent();
 		m_pGuiAssetsEditor->OnInputEvent();
 		m_pGuiView->OnInputEvent();
 		m_pGuiTimeline->OnInputEvent();
 	}
-	
+
 	int aButtons[] = {
 		KEY_MOUSE_1,
 		KEY_MOUSE_2,
@@ -1076,23 +1076,23 @@ void CAssetsEditor::UpdateAndRender()
 		KEY_MOUSE_WHEEL_UP,
 		KEY_MOUSE_WHEEL_DOWN
 	};
-	
+
 	for(int i=0; i<(sizeof(aButtons)/sizeof(int)); i++)
 	{
 		int Button = aButtons[i];
-		
+
 		int Count = 0;
 		if(Button == KEY_MOUSE_WHEEL_UP || Button == KEY_MOUSE_WHEEL_DOWN)
 			Count = Input()->KeyPress(Button);
 		else
 			Count = (Input()->KeyIsPressed(Button) ? 1 : 0);
-		
+
 		if(Count)
 		{
 			if(m_MouseButton[i] == 0)
 			{
 				m_MouseButton[i] = 1;
-				
+
 				if(m_GuiPopups.size() > 0)
 				{
 					for(int i=0; i<m_GuiPopups.size(); i++)
@@ -1115,7 +1115,7 @@ void CAssetsEditor::UpdateAndRender()
 			if(m_MouseButton[i] == 1)
 			{
 				m_MouseButton[i] = 0;
-				
+
 				if(m_GuiPopups.size() > 0)
 				{
 					for(int i=0; i<m_GuiPopups.size(); i++)
@@ -1134,10 +1134,10 @@ void CAssetsEditor::UpdateAndRender()
 			}
 		}
 	}
-	
+
 	//Rendering
 	Render();
-	
+
 	if(!m_Hint)
 	{
 		m_pHintLabel->SetText("");
@@ -1148,7 +1148,7 @@ void CAssetsEditor::UpdateAndRender()
 
 bool CAssetsEditor::HasUnsavedData() const
 {
-	
+
 }
 
 void CAssetsEditor::DisplayPopup(gui::CPopup* pWidget)
@@ -1196,32 +1196,32 @@ void CAssetsEditor::EditAssetPrevFrame()
 		{
 			float MaxTime = m_Time;
 			m_Time = 0.0f;
-			
+
 			//Bones
 			for(int i=0; i<pSkeletonAnimation->m_BoneAnimations.size(); i++)
 			{
 				for(int j=0; j<pSkeletonAnimation->m_BoneAnimations[i].m_KeyFrames.size(); j++)
 				{
 					float Time = pSkeletonAnimation->m_BoneAnimations[i].m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
-					
+
 					if(Time >= MaxTime)
 						break;
-						
+
 					if(Time > m_Time)
 						m_Time = Time;
 				}
 			}
-			
+
 			//Layers
 			for(int i=0; i<pSkeletonAnimation->m_LayerAnimations.size(); i++)
 			{
 				for(int j=0; j<pSkeletonAnimation->m_LayerAnimations[i].m_KeyFrames.size(); j++)
 				{
 					float Time = pSkeletonAnimation->m_LayerAnimations[i].m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
-					
+
 					if(Time >= MaxTime)
 						break;
-						
+
 					if(Time > m_Time)
 						m_Time = Time;
 				}
@@ -1239,17 +1239,17 @@ void CAssetsEditor::EditAssetNextFrame()
 		{
 			float MinTime = m_Time;
 			bool Initialized = false;
-			
+
 			//Bones
 			for(int i=0; i<pSkeletonAnimation->m_BoneAnimations.size(); i++)
 			{
 				for(int j=pSkeletonAnimation->m_BoneAnimations[i].m_KeyFrames.size()-1; j>=0; j--)
 				{
 					float Time = pSkeletonAnimation->m_BoneAnimations[i].m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
-					
+
 					if(Time <= MinTime)
 						break;
-						
+
 					if(Time < m_Time || !Initialized)
 					{
 						Initialized = true;
@@ -1257,17 +1257,17 @@ void CAssetsEditor::EditAssetNextFrame()
 					}
 				}
 			}
-			
+
 			//Layers
 			for(int i=0; i<pSkeletonAnimation->m_LayerAnimations.size(); i++)
 			{
 				for(int j=pSkeletonAnimation->m_LayerAnimations[i].m_KeyFrames.size()-1; j>=0; j--)
 				{
 					float Time = pSkeletonAnimation->m_LayerAnimations[i].m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
-					
+
 					if(Time <= MinTime)
 						break;
-						
+
 					if(Time < m_Time || !Initialized)
 					{
 						Initialized = true;
@@ -1287,7 +1287,7 @@ void CAssetsEditor::EditAssetLastFrame()
 		if(pSkeletonAnimation)
 		{
 			m_Time = 0.0f;
-			
+
 			//Bones
 			for(int i=0; i<pSkeletonAnimation->m_BoneAnimations.size(); i++)
 			{
@@ -1299,7 +1299,7 @@ void CAssetsEditor::EditAssetLastFrame()
 						m_Time = Time;
 				}
 			}
-			
+
 			//Layers
 			for(int i=0; i<pSkeletonAnimation->m_LayerAnimations.size(); i++)
 			{
@@ -1330,9 +1330,9 @@ void CAssetsEditor::NewAsset(CAssetPath AssetPath)
 void CAssetsEditor::DeleteAsset(CAssetPath AssetPath)
 {
 	AssetsManager()->DeleteAsset(AssetPath);
-	
+
 	RefreshAssetList();
-	
+
 	m_EditedAssetPath = CAssetPath::Null();
 	m_ViewedAssetPath = CAssetPath::Null();
 }

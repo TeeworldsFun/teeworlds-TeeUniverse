@@ -67,7 +67,7 @@ int CEvent::GetMask_TW06()
 	
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW06)
+		if((m_Mask & (1 << i)) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW06)
 			Mask |= (1 << i);
 	}
 	
@@ -80,7 +80,7 @@ int CEvent::GetMask_TW07()
 	
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW07)
+		if((m_Mask & (1 << i)) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TW07)
 			Mask |= (1 << i);
 	}
 	
@@ -93,7 +93,7 @@ int CEvent::GetMask_TU07()
 	
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TU07)
+		if((m_Mask & (1 << i)) == 1 && Server()->GetClientProtocol(i) == CLIENTPROTOCOL_TU07)
 			Mask |= (1 << i);
 	}
 	
@@ -114,7 +114,7 @@ void CEvent_WeaponPickup::Send(int WeaponID)
 {
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 0 || GameServer()->m_apPlayers[i])
+		if((m_Mask & (1 << i)) == 0 || GameServer()->m_apPlayers[i])
 			continue;
 		
 		if(GameServer()->m_apPlayers[i])
@@ -149,7 +149,7 @@ void CEvent_Broadcast::Send(const char* pText, int Alternative)
 {
 	for(int i=0; i<MAX_CLIENTS; i++)
 	{
-		if(m_Mask & (1 << i) == 0 || GameServer()->m_apPlayers[i])
+		if((m_Mask & (1 << i)) == 0 || GameServer()->m_apPlayers[i])
 			continue;
 		
 		if(GameServer()->m_apPlayers[i])

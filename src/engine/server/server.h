@@ -277,7 +277,7 @@ public:
 	
 	void SetTUServer(class tu::CServer* pTUServer);
 	
-	virtual bool GetClientProtocol(int ClientID) const;
+	virtual int GetClientProtocol(int ClientID) const;
 };
 
 #endif

@@ -43,7 +43,7 @@ void CAssetsManager::LoadInteralAssets()
 		CAssetPath ImagePath = AddImage(IStorage::TYPE_ALL, "game.png", CAssetPath::SRC_UNIVERSE);
 		CAsset_Image* pImage = GetAsset<CAsset_Image>(ImagePath);
 		if(pImage)
-		{			
+		{
 			pImage->m_GridWidth = 32;
 			pImage->m_GridHeight = 16;
 		}
@@ -52,7 +52,7 @@ void CAssetsManager::LoadInteralAssets()
 		CAssetPath ImagePath = AddImage(IStorage::TYPE_ALL, "particles.png", CAssetPath::SRC_UNIVERSE);
 		CAsset_Image* pImage = GetAsset<CAsset_Image>(ImagePath);
 		if(pImage)
-		{			
+		{
 			pImage->m_GridWidth = 8;
 			pImage->m_GridHeight = 8;
 		}
@@ -61,7 +61,7 @@ void CAssetsManager::LoadInteralAssets()
 		CAssetPath ImagePath = AddImage(IStorage::TYPE_ALL, "skins/body/standard.png", CAssetPath::SRC_UNIVERSE);
 		CAsset_Image* pImage = GetAsset<CAsset_Image>(ImagePath);
 		if(pImage)
-		{			
+		{
 			pImage->m_GridWidth = 2;
 			pImage->m_GridHeight = 2;
 		}
@@ -70,7 +70,7 @@ void CAssetsManager::LoadInteralAssets()
 		CAssetPath ImagePath = AddImage(IStorage::TYPE_ALL, "skins/feet/standard.png", CAssetPath::SRC_UNIVERSE);
 		CAsset_Image* pImage = GetAsset<CAsset_Image>(ImagePath);
 		if(pImage)
-		{			
+		{
 			pImage->m_GridWidth = 2;
 			pImage->m_GridHeight = 1;
 		}
@@ -79,7 +79,7 @@ void CAssetsManager::LoadInteralAssets()
 		CAssetPath ImagePath = AddImage(IStorage::TYPE_ALL, "skins/hands/standard.png", CAssetPath::SRC_UNIVERSE);
 		CAsset_Image* pImage = GetAsset<CAsset_Image>(ImagePath);
 		if(pImage)
-		{			
+		{
 			pImage->m_GridWidth = 2;
 			pImage->m_GridHeight = 1;
 		}
@@ -88,7 +88,7 @@ void CAssetsManager::LoadInteralAssets()
 		CAssetPath ImagePath = AddImage(IStorage::TYPE_ALL, "skins/eyes/standard.png", CAssetPath::SRC_UNIVERSE);
 		CAsset_Image* pImage = GetAsset<CAsset_Image>(ImagePath);
 		if(pImage)
-		{			
+		{
 			pImage->m_GridWidth = 4;
 			pImage->m_GridHeight = 4;
 		}
@@ -97,19 +97,19 @@ void CAssetsManager::LoadInteralAssets()
 		CAssetPath ImagePath = AddImage(IStorage::TYPE_ALL, "skins/hands/standard.png", CAssetPath::SRC_UNIVERSE);
 		CAsset_Image* pImage = GetAsset<CAsset_Image>(ImagePath);
 		if(pImage)
-		{			
+		{
 			pImage->m_GridWidth = 2;
 			pImage->m_GridHeight = 1;
 		}
 	}
 	dbg_msg("assetsmanager", "Images initialised");
-	
+
 	#define CREATE_INTERNAL_SPRITE(id, name, image, x, y, w, h) {\
 		CAsset_Sprite* pSprite = m_SpritesCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SPRITE, id));\
 		pSprite->SetName(name);\
 		pSprite->Init(CAssetPath::Universe(CAssetPath::TYPE_IMAGE, image), x, y, w, h);\
 	}
-	
+
 	{
 		CAsset_Sprite* pSprite = m_SpritesCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SPRITE, tu::SPRITE_WHITESQUARE));
 		pSprite->SetName("whiteSquare");
@@ -138,29 +138,29 @@ void CAssetsManager::LoadInteralAssets()
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_NINJA_CURSOR, "ninjaCursor", tu::IMAGE_GAME, 0, 10 , 2, 2);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_HOOK_HEAD, "hookEndPoint", tu::IMAGE_GAME, 3, 0, 2, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_HOOK_CHAIN, "hookChain", tu::IMAGE_GAME, 2, 0 , 1, 1);
-	
+
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_PART_SPLAT1, "partSplat1", tu::IMAGE_PARTICLES, 2, 0 , 1, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_PART_SPLAT2, "partSplat2", tu::IMAGE_PARTICLES, 3, 0 , 1, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_PART_SPLAT3, "partSplat3", tu::IMAGE_PARTICLES, 4, 0 , 1, 1);
-	
+
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEBODYDEFAULT_SHADOW, "teeBodyDefaultShadow", tu::IMAGE_TEEBODYDEFAULT, 0, 0, 1, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEBODYDEFAULT_COLOR, "teeBodyDefaultColor", tu::IMAGE_TEEBODYDEFAULT, 1, 0, 1, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEBODYDEFAULT_SHADING, "teeBodyDefaultShading", tu::IMAGE_TEEBODYDEFAULT, 0, 1, 1, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEBODYDEFAULT_OUTLINE, "teeBodyDefaultOutline", tu::IMAGE_TEEBODYDEFAULT, 1, 1, 1, 1);
-	
+
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEFEETDEFAULT_SHADOW, "teeFeetDefaultShadow", tu::IMAGE_TEEFEETDEFAULT, 1, 0, 1, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEFEETDEFAULT_COLOR, "teeFeetDefaultColor", tu::IMAGE_TEEFEETDEFAULT, 0, 0, 1, 1);
-	
+
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEHANDSDEFAULT_SHADOW, "teeHandsDefaultShadow", tu::IMAGE_TEEHANDSDEFAULT, 1, 0, 1, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEHANDSDEFAULT_COLOR, "teeHandsDefaultColor", tu::IMAGE_TEEHANDSDEFAULT, 0, 0, 1, 1);
-	
+
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEEYESDEFAULT_NORMAL, "teeEyesDefaultNormal", tu::IMAGE_TEEEYESDEFAULT, 0, 0, 2, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEEYESDEFAULT_ANGRY, "teeEyesDefaultAngry", tu::IMAGE_TEEEYESDEFAULT, 2, 0, 2, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEEYESDEFAULT_PAIN, "teeEyesDefaultPain", tu::IMAGE_TEEEYESDEFAULT, 0, 1, 2, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEEYESDEFAULT_HAPPY, "teeEyesDefaultHappy", tu::IMAGE_TEEEYESDEFAULT, 2, 0, 2, 1);
 	CREATE_INTERNAL_SPRITE(tu::SPRITE_TEEEYESDEFAULT_FEAR, "teeEyesDefaultFear", tu::IMAGE_TEEEYESDEFAULT, 0, 2, 2, 1);
 	dbg_msg("assetsmanager", "Sprites initialised");
-	
+
 	//Skeletons
 	{
 		CAsset_Skeleton* pSkeleton = m_SkeletonsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_TEE));
@@ -181,7 +181,7 @@ void CAssetsManager::LoadInteralAssets()
 			.Length(21.0f);
 		pSkeleton->AddBone().Name("frontHand").Color(vec4(0.0f, 1.0f, 0.0f, 1.0f)).Parent(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTARM))
 			.Length(8.0f);
-	
+
 		pSkeleton->AddLayer().Name("attach");
 		pSkeleton->AddLayer().Name("backHandShadow");
 		pSkeleton->AddLayer().Name("frontHandShadow");
@@ -230,7 +230,7 @@ void CAssetsManager::LoadInteralAssets()
 			.Length(32.0f);
 	}
 	dbg_msg("assetsmanager", "Skeletons initialised");
-	
+
 	//Skeleton Skins
 	{
 		CAsset_SkeletonSkin* pSkeletonSkin = m_SkeletonSkinsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONSKIN, tu::SKELETONSKIN_TEEBODYDEFAULT));
@@ -384,77 +384,77 @@ void CAssetsManager::LoadInteralAssets()
 			.Scale(vec2(93.13f, 93.13f));
 	}
 	dbg_msg("assetsmanager", "Skeleton Skins initialised");
-	
+
 	//Skeleton Animations
 	{
 		CAsset_SkeletonAnimation* pSkeletonAnimation = m_SkeletonAnimationsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEIDLE));
 		pSkeletonAnimation->SetName("teeIdle");
 		pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_TEE);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT),  0).Translation(vec2(-7.0f,  0.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 0).Translation(vec2( 7.0f,  0.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKARM), 0).Alignment(CAsset_SkeletonAnimation::BONEALIGN_HOOK);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_ANGRY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_PAIN), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_HAPPY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_FEAR), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 	}
-	
+
 	{
 		CAsset_SkeletonAnimation* pSkeletonAnimation = m_SkeletonAnimationsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEAIR));
 		pSkeletonAnimation->SetName("teeAir");
 		pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_TEE);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT),  0).Translation(vec2(-3.0f,  0.0f)).Angle(-0.1f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 0).Translation(vec2( 3.0f,  0.0f)).Angle(-0.1f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKARM), 0).Alignment(CAsset_SkeletonAnimation::BONEALIGN_HOOK);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_ANGRY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_PAIN), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_HAPPY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_FEAR), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 	}
-	
+
 	{
 		CAsset_SkeletonAnimation* pSkeletonAnimation = m_SkeletonAnimationsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEAIR2));
 		pSkeletonAnimation->SetName("teeAir2");
 		pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_TEE);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT),  0).Translation(vec2(-3.0f,  0.0f)).Angle(-0.1f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 0).Translation(vec2( 3.0f,  0.0f)).Angle(-0.1f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKARM), 0).Alignment(CAsset_SkeletonAnimation::BONEALIGN_HOOK);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKFOOT), 0).Color(vec4(0.5f, 0.5f, 0.5f, 1.0f));
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTFOOT), 0).Color(vec4(0.5f, 0.5f, 0.5f, 1.0f));
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_ANGRY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_PAIN), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_HAPPY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_FEAR), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 	}
-	
+
 	{
 		CAsset_SkeletonAnimation* pSkeletonAnimation = m_SkeletonAnimationsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEWALK));
 		pSkeletonAnimation->SetName("teeWalk");
 		pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_TEE);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKARM), 0).Alignment(CAsset_SkeletonAnimation::BONEALIGN_HOOK);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BODY), 0 ).Translation(vec2(0.0f,  0.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BODY), 6 ).Translation(vec2(0.0f, -1.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BODY), 12).Translation(vec2(0.0f,  0.0f));
@@ -462,7 +462,7 @@ void CAssetsManager::LoadInteralAssets()
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BODY), 24).Translation(vec2(0.0f, -1.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BODY), 30).Translation(vec2(0.0f,  0.0f));
 		pSkeletonAnimation->SetCycle(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BODY), CAsset_SkeletonAnimation::CYCLETYPE_LOOP);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT), 0 ).Translation(vec2(  8.0f,  0.0f)).Angle(0.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT), 6 ).Translation(vec2( -8.0f,  0.0f)).Angle(0.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT), 12).Translation(vec2(-10.0f, -4.0f)).Angle(0.2f*pi*2.0f);
@@ -470,7 +470,7 @@ void CAssetsManager::LoadInteralAssets()
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT), 24).Translation(vec2(  4.0f, -4.0f)).Angle(-0.2f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT), 30).Translation(vec2(  8.0f,  0.0f)).Angle(0.0f);
 		pSkeletonAnimation->SetCycle(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_BACKFOOT), CAsset_SkeletonAnimation::CYCLETYPE_LOOP);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 0 ).Translation(vec2(-10.0f, -4.0f)).Angle(0.2f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 6 ).Translation(vec2( -8.0f, -8.0f)).Angle(0.3f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 12).Translation(vec2(  4.0f, -4.0f)).Angle(-0.2f*pi*2.0f);
@@ -478,12 +478,12 @@ void CAssetsManager::LoadInteralAssets()
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 24).Translation(vec2(  8.0f,  0.0f)).Angle(0.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), 30).Translation(vec2(-10.0f, -4.0f)).Angle(0.2f*pi*2.0f);
 		pSkeletonAnimation->SetCycle(CAsset_Skeleton::CBonePath::Local(tu::TEEBONE_FRONTFOOT), CAsset_SkeletonAnimation::CYCLETYPE_LOOP);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_BACKHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_FRONTHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_ANGRY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_PAIN), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Local(tu::TEELAYER_EYES_HAPPY), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
@@ -493,15 +493,15 @@ void CAssetsManager::LoadInteralAssets()
 		CAsset_SkeletonAnimation* pSkeletonAnimation = m_SkeletonAnimationsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_HAMMERATTACK));
 		pSkeletonAnimation->SetName("hammerAttack");
 		pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_HAMMER);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 0).Angle(-pi/2-0.10f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 2).Angle(-pi/2+0.25f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 4).Angle(-pi/2+0.30f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 6).Angle(-pi/2+0.25f*pi*2.0f);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 9).Angle(-pi/2-0.10f*pi*2.0f);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_EYES), 0).Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEELAYER_FRONTHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEELAYER_FRONTHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_HIDDEN);
 	}
@@ -509,14 +509,14 @@ void CAssetsManager::LoadInteralAssets()
 		CAsset_SkeletonAnimation* pSkeletonAnimation = m_SkeletonAnimationsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_GUNATTACK));
 		pSkeletonAnimation->SetName("gunAttack");
 		pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_GUN);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTARM), 0)
 			.Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTARM), 2)
 			.Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTARM), 4)
 			.Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
-			
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTHAND), 0)
 			.Angle(-3*pi/4)
 			.Translation(vec2(0.0f, 0.0f));
@@ -526,16 +526,16 @@ void CAssetsManager::LoadInteralAssets()
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTHAND), 4)
 			.Angle(-3*pi/4)
 			.Translation(vec2(0.0f, 0.0f));
-			
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 0)
 			.Translation(vec2(0.0f, 0.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 2)
 			.Translation(vec2(-10.0f, 0.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 4)
 			.Translation(vec2(0.0f, 0.0f));
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_EYES), 0).Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEELAYER_FRONTHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEELAYER_FRONTHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE);
 	}
@@ -543,14 +543,14 @@ void CAssetsManager::LoadInteralAssets()
 		CAsset_SkeletonAnimation* pSkeletonAnimation = m_SkeletonAnimationsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_SHOTGUNATTACK));
 		pSkeletonAnimation->SetName("shotgunAttack");
 		pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, tu::SKELETON_SHOTGUN);
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTARM), 0)
 			.Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTARM), 2)
 			.Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTARM), 4)
 			.Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
-			
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTHAND), 0)
 			.Angle(-pi/2)
 			.Translation(vec2(0.0f, 6.0f));
@@ -560,40 +560,40 @@ void CAssetsManager::LoadInteralAssets()
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_FRONTHAND), 4)
 			.Angle(-pi/2)
 			.Translation(vec2(0.0f, 6.0f));
-			
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 0)
 			.Translation(vec2(0.0f, 0.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 2)
 			.Translation(vec2(-10.0f, 0.0f));
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Local(0), 4)
 			.Translation(vec2(0.0f, 0.0f));
-		
+
 		pSkeletonAnimation->AddBoneKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEEBONE_EYES), 0).Alignment(CAsset_SkeletonAnimation::BONEALIGN_AIM);
-		
+
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEELAYER_FRONTHANDSHADOW), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE);
 		pSkeletonAnimation->AddLayerKeyFrame(CAsset_Skeleton::CBonePath::Parent(tu::TEELAYER_FRONTHAND), 0).State(CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE);
 	}
 	dbg_msg("assetsmanager", "Skeleton Animations initialised");
-	
+
 	//Character
 	{
 		CAsset_Character* pCharacter = m_CharactersCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_CHARACTER, CHARACTER_TEE));
 		pCharacter->SetName("tee");
-		
+
 		pCharacter->AddPart().Name("body").Default(CAssetPath::Universe(CAssetPath::TYPE_CHARACTERPART, CHARACTERPART_TEEBODYDEFAULT));
 		pCharacter->AddPart().Name("marking");
 		pCharacter->AddPart().Name("decoration");
 		pCharacter->AddPart().Name("hands").Default(CAssetPath::Universe(CAssetPath::TYPE_CHARACTERPART, CHARACTERPART_TEEHANDSDEFAULT));
 		pCharacter->AddPart().Name("feet").Default(CAssetPath::Universe(CAssetPath::TYPE_CHARACTERPART, CHARACTERPART_TEEFEETDEFAULT));
 		pCharacter->AddPart().Name("eyes").Default(CAssetPath::Universe(CAssetPath::TYPE_CHARACTERPART, CHARACTERPART_TEEEYESDEFAULT));
-		
+
 		pCharacter->m_IdlePath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEIDLE);
 		pCharacter->m_WalkPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEWALK);
 		pCharacter->m_ControlledJumpPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEAIR);
 		pCharacter->m_UncontrolledJumpPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_TEEAIR2);
 	}
 	dbg_msg("assetsmanager", "Characters initialised");
-	
+
 	//CharacterPart
 	{
 		CAsset_CharacterPart* pCharacterPart = m_CharacterPartsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_CHARACTERPART, CHARACTERPART_TEEBODYDEFAULT));
@@ -617,7 +617,7 @@ void CAssetsManager::LoadInteralAssets()
 		pCharacterPart->m_SkeletonSkinPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONSKIN, tu::SKELETONSKIN_TEEEYESDEFAULT);
 	}
 	dbg_msg("assetsmanager", "Character parts initialized");
-	
+
 	//Weapons
 	{
 		CAsset_Weapon* pWeapon = m_WeaponsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_WEAPON, tu::WEAPON_HAMMER));
@@ -636,7 +636,7 @@ void CAssetsManager::LoadInteralAssets()
 		pWeapon->m_AttackAnimationPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_GUNATTACK);
 	}
 	dbg_msg("assetsmanager", "Weapons initialised");
-	
+
 	//Weapons
 	{
 		CAsset_Weapon* pWeapon = m_WeaponsCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_WEAPON, tu::WEAPON_HAMMER));
@@ -646,7 +646,7 @@ void CAssetsManager::LoadInteralAssets()
 		pWeapon->m_SkinPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONSKIN, tu::SKELETONSKIN_HAMMER);
 		pWeapon->m_AttackAnimationPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETONANIMATION, tu::SKELETONANIMATION_HAMMERATTACK);
 	}
-	
+
 	//GuiRectStyles
 	{
 		CAsset_GuiRectStyle* pGuiRectStyle = m_GuiRectStylesCatalog.NewAsset(CAssetPath::Universe(CAssetPath::TYPE_GUIRECTSTYLE, tu::GUIRECTSTYLE_BUTTON_DEFAULT));
@@ -762,20 +762,20 @@ int CAssetsManager::LoadSkinAssets_BodyScan(const char *pFilename, int IsDir, in
 	char aName[128];
 	str_copy(aName, pFilename, sizeof(aName));
 	aName[str_length(aName)-4] = 0;
-	
+
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/body/%s", pFilename);
-	
+
 	CAssetPath ImagePath = pSelf->AddImage(IStorage::TYPE_ALL, aBuf, CAssetPath::SRC_SKIN);
 	CAsset_Image* pImage = pSelf->GetAsset<CAsset_Image>(ImagePath);
 	if(pImage)
 	{
 		str_format(aBuf, sizeof(aBuf), "body/%s.png", aName);
 		pImage->SetName(aBuf);
-		
+
 		pImage->m_GridWidth = 2;
 		pImage->m_GridHeight = 2;
-	
+
 		CAssetPath ShadowPath;
 		CAssetPath ColorPath;
 		CAssetPath ShadingPath;
@@ -840,7 +840,7 @@ int CAssetsManager::LoadSkinAssets_BodyScan(const char *pFilename, int IsDir, in
 			pCharacterPart->m_SkeletonSkinPath = SkeletonSkinPath;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -854,20 +854,20 @@ int CAssetsManager::LoadSkinAssets_FootScan(const char *pFilename, int IsDir, in
 	char aName[128];
 	str_copy(aName, pFilename, sizeof(aName));
 	aName[str_length(aName)-4] = 0;
-	
+
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/feet/%s", pFilename);
-	
+
 	CAssetPath ImagePath = pSelf->AddImage(IStorage::TYPE_ALL, aBuf, CAssetPath::SRC_SKIN);
 	CAsset_Image* pImage = pSelf->GetAsset<CAsset_Image>(ImagePath);
 	if(pImage)
 	{
 		str_format(aBuf, sizeof(aBuf), "feet/%s.png", aName);
 		pImage->SetName(aBuf);
-		
+
 		pImage->m_GridWidth = 2;
 		pImage->m_GridHeight = 1;
-	
+
 		CAssetPath ShadowPath;
 		CAssetPath ColorPath;
 		CAssetPath SkeletonSkinPath;
@@ -922,7 +922,7 @@ int CAssetsManager::LoadSkinAssets_FootScan(const char *pFilename, int IsDir, in
 			pCharacterPart->m_SkeletonSkinPath = SkeletonSkinPath;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -936,20 +936,20 @@ int CAssetsManager::LoadSkinAssets_HandsScan(const char *pFilename, int IsDir, i
 	char aName[128];
 	str_copy(aName, pFilename, sizeof(aName));
 	aName[str_length(aName)-4] = 0;
-	
+
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/hands/%s", pFilename);
-	
+
 	CAssetPath ImagePath = pSelf->AddImage(IStorage::TYPE_ALL, aBuf, CAssetPath::SRC_SKIN);
 	CAsset_Image* pImage = pSelf->GetAsset<CAsset_Image>(ImagePath);
 	if(pImage)
 	{
 		str_format(aBuf, sizeof(aBuf), "hands/%s.png", aName);
 		pImage->SetName(aBuf);
-		
+
 		pImage->m_GridWidth = 2;
 		pImage->m_GridHeight = 1;
-	
+
 		CAssetPath ShadowPath;
 		CAssetPath ColorPath;
 		CAssetPath SkeletonSkinPath;
@@ -1004,7 +1004,7 @@ int CAssetsManager::LoadSkinAssets_HandsScan(const char *pFilename, int IsDir, i
 			pCharacterPart->m_SkeletonSkinPath = SkeletonSkinPath;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1018,20 +1018,20 @@ int CAssetsManager::LoadSkinAssets_MarkingScan(const char *pFilename, int IsDir,
 	char aName[128];
 	str_copy(aName, pFilename, sizeof(aName));
 	aName[str_length(aName)-4] = 0;
-	
+
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/marking/%s", pFilename);
-	
+
 	CAssetPath ImagePath = pSelf->AddImage(IStorage::TYPE_ALL, aBuf, CAssetPath::SRC_SKIN);
 	CAsset_Image* pImage = pSelf->GetAsset<CAsset_Image>(ImagePath);
 	if(pImage)
 	{
 		str_format(aBuf, sizeof(aBuf), "marking/%s.png", aName);
 		pImage->SetName(aBuf);
-		
+
 		pImage->m_GridWidth = 1;
 		pImage->m_GridHeight = 1;
-	
+
 		CAssetPath ColorPath;
 		CAssetPath SkeletonSkinPath;
 		{
@@ -1061,7 +1061,7 @@ int CAssetsManager::LoadSkinAssets_MarkingScan(const char *pFilename, int IsDir,
 			pCharacterPart->m_SkeletonSkinPath = SkeletonSkinPath;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1075,20 +1075,20 @@ int CAssetsManager::LoadSkinAssets_DecorationScan(const char *pFilename, int IsD
 	char aName[128];
 	str_copy(aName, pFilename, sizeof(aName));
 	aName[str_length(aName)-4] = 0;
-	
+
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/decoration/%s", pFilename);
-	
+
 	CAssetPath ImagePath = pSelf->AddImage(IStorage::TYPE_ALL, aBuf, CAssetPath::SRC_SKIN);
 	CAsset_Image* pImage = pSelf->GetAsset<CAsset_Image>(ImagePath);
 	if(pImage)
 	{
 		str_format(aBuf, sizeof(aBuf), "decoration/%s.png", aName);
 		pImage->SetName(aBuf);
-		
+
 		pImage->m_GridWidth = 2;
 		pImage->m_GridHeight = 1;
-	
+
 		CAssetPath ShadowPath;
 		CAssetPath ColorPath;
 		CAssetPath SkeletonSkinPath;
@@ -1131,7 +1131,7 @@ int CAssetsManager::LoadSkinAssets_DecorationScan(const char *pFilename, int IsD
 			pCharacterPart->m_SkeletonSkinPath = SkeletonSkinPath;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1145,20 +1145,20 @@ int CAssetsManager::LoadSkinAssets_EyeScan(const char *pFilename, int IsDir, int
 	char aName[128];
 	str_copy(aName, pFilename, sizeof(aName));
 	aName[str_length(aName)-4] = 0;
-	
+
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "skins/eyes/%s", pFilename);
-	
+
 	CAssetPath ImagePath = pSelf->AddImage(IStorage::TYPE_ALL, aBuf, CAssetPath::SRC_SKIN);
 	CAsset_Image* pImage = pSelf->GetAsset<CAsset_Image>(ImagePath);
 	if(pImage)
 	{
 		str_format(aBuf, sizeof(aBuf), "eyes/%s.png", aName);
 		pImage->SetName(aBuf);
-		
+
 		pImage->m_GridWidth = 4;
 		pImage->m_GridHeight = 4;
-	
+
 		CAssetPath NormalPath;
 		CAssetPath AngryPath;
 		CAssetPath PainPath;
@@ -1244,7 +1244,7 @@ int CAssetsManager::LoadSkinAssets_EyeScan(const char *pFilename, int IsDir, int
 			pCharacterPart->m_SkeletonSkinPath = SkeletonSkinPath;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1269,7 +1269,7 @@ CAssetPath CAssetsManager::FindSkinPart(CAssetPath CharacterPath, CAsset_Charact
 {
 	char aAssetName[256];
 	str_format(aAssetName, sizeof(aAssetName), "%s", pName);
-	
+
 	for(int i=0; i<m_CharacterPartsCatalog.m_Assets[CAssetPath::SRC_SKIN].size(); i++)
 	{
 		const CAsset_CharacterPart* pCharacterPart = &m_CharacterPartsCatalog.m_Assets[CAssetPath::SRC_SKIN][i];
@@ -1282,7 +1282,7 @@ CAssetPath CAssetsManager::FindSkinPart(CAssetPath CharacterPath, CAsset_Charact
 			return CAssetPath::Skin(CAssetPath::TYPE_CHARACTERPART, i);
 		}
 	}
-	
+
 	return CAssetPath::Null();
 }
 
@@ -1329,18 +1329,18 @@ CAssetPath CAssetsManager::AddImage(int StorageType, const char* pFilename, int 
 	png_close_file(&Png); // ignore_convention
 
 	int Format;
-	if(Png.color_type == PNG_TRUECOLOR) 
+	if(Png.color_type == PNG_TRUECOLOR)
 		Format = CImageInfo::FORMAT_RGB;
 	else if(Png.color_type == PNG_TRUECOLOR_ALPHA)
 		Format = CImageInfo::FORMAT_RGBA;
-	
+
 	CAssetPath Path;
 	CAsset_Image* pImage = m_ImagesCatalog.NewAsset(&Path, Source);
 	pImage->SetAssetsManager(this);
 	pImage->SetName(pFilename);
 	pImage->SetData(Png.width, Png.height, 1, 1, Format, pBuffer);
 	mem_free(pBuffer);
-	
+
 	return Path;
 }
 
@@ -1360,21 +1360,21 @@ int CAssetsManager::SaveInAssetsFile(const char *pFileName, int Source)
 		dbg_msg("TUGraphics", "can't create the assets file %s", pFileName);
 		return 0;
 	}
-	
+
 	{
 		CStorageType Item;
 		Item.m_Version = 0;
 		Item.m_Source = Source;
-		
+
 		df.AddItem(CAsset_Image::TypeId, 0, sizeof(CStorageType), &Item);
 	}
-	
+
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.SaveInAssetsFile(&df, Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	df.Finish(DATAFILE_TYPE_ASSET);
-	
+
 	return 1;
 }
 
@@ -1382,18 +1382,18 @@ int CAssetsManager::OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile)
 {
 	int Start, Num;
 	pAssetsFile->GetType(0, &Start, &Num);
-	
+
 	int Source = CAssetPath::SRC_WORLD;
 	if(Num > 0)
 	{
 		CStorageType* pItem = (CStorageType*) pAssetsFile->GetItem(Start, 0, 0);
 		Source = pItem->m_Source % CAssetPath::NUM_SOURCES;
 	}
-	
+
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.LoadFromAssetsFile(this, pAssetsFile, Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	return 1;
 }
 
@@ -1402,7 +1402,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 	CMapItemVersion *pItem = (CMapItemVersion *)pAssetsFile->FindItem(MAPITEMTYPE_VERSION, 0);
 	if(!pItem)
 		return 0;
-		
+
 	if(pItem->m_Version != CMapItemVersion::CURRENT_VERSION)
 		return 0;
 
@@ -1413,9 +1413,9 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 	{
 		int Start, Num;
 		pAssetsFile->GetType(MAPITEMTYPE_IMAGE, &Start, &Num);
-		
+
 		pImagePath = new CAssetPath[Num];
-		
+
 		for(int i = 0; i < Num; i++)
 		{
 			CMapItemImage *pItem = (CMapItemImage *)pAssetsFile->GetItem(Start+i, 0, 0);
@@ -1427,14 +1427,14 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 					CAssetPath::SRC_LAND
 				);
 				pImage->SetAssetsManager(this);
-				
+
 				//Image name
 				{
 					char *pName = (char *)pAssetsFile->GetData(pItem->m_ImageName);
 					pImage->SetName(pName);
 					pAssetsFile->UnloadData(pItem->m_ImageName);
 				}
-				
+
 				//Image data
 				{
 					unsigned char* pData = (unsigned char*) pAssetsFile->GetData(pItem->m_ImageData);
@@ -1455,9 +1455,9 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 								break;
 						}
 					}
-					
+
 					pImage->SetData(pItem->m_Width, pItem->m_Height, pItem->m_Width/64, pItem->m_Height/64, Format, pData);
-					pAssetsFile->UnloadData(pItem->m_ImageData);	
+					pAssetsFile->UnloadData(pItem->m_ImageData);
 					pImage->m_Texture = Graphics()->LoadTextureRaw(pImage->m_Width, pImage->m_Height, pImage->m_Format, pImage->m_GridWidth, pImage->m_GridHeight, pImage->m_pData, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_MULTI_DIMENSION);
 
 				}
@@ -1468,7 +1468,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 			}
 		}
 	}
-	
+
 	//Load groups
 	{
 		int LayersStart, LayersNum;
@@ -1500,24 +1500,24 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 				//~ pGroup->m_ClipW = pGItem->m_ClipW;
 				//~ pGroup->m_ClipH = pGItem->m_ClipH;
 			//~ }
-			
+
 			// load group name
 			aBuf[0] = 0;
-			
+
 			if(pGItem->m_Version >= 3)
 				IntsToStr(pGItem->m_aName, sizeof(pGItem->m_aName)/sizeof(int), aBuf);
-			
+
 			if(!aBuf[0])
 				str_format(aBuf, sizeof(aBuf), "group%d", MapGroupPath.GetId());
-			
+
 			pMapGroup->SetName(aBuf);
-			
+
 			for(int l = 0; l < pGItem->m_NumLayers; l++)
 			{
 				CMapItemLayer *pLayerItem = (CMapItemLayer *)pAssetsFile->GetItem(LayersStart+pGItem->m_StartLayer+l, 0, 0);
 				if(!pLayerItem)
 					continue;
-				
+
 				if(pLayerItem->m_Type == LAYERTYPE_TILES)
 				{
 					CMapItemLayerTilemap *pTilemapItem = (CMapItemLayerTilemap *)pLayerItem;
@@ -1530,25 +1530,25 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 						&MapLayerPath,
 						CAssetPath::SRC_LAND
 					);
-					
+
 					pMapGroup->m_Layers.add(MapLayerPath);
-					
+
 					//Name
 					aBuf[0] = 0;
-					
+
 					if(pTilemapItem->m_Version >= 3)
 						IntsToStr(pTilemapItem->m_aName, sizeof(pTilemapItem->m_aName)/sizeof(int), aBuf);
-					
+
 					if(!aBuf[0])
 						str_format(aBuf, sizeof(aBuf), "tilelayer%d", MapLayerPath.GetId());
-					
+
 					pMapLayer->SetName(aBuf);
-									
+
 					//Tiles
 					int Width = pTilemapItem->m_Width;
 					pMapLayer->SetSize(Width, pTilemapItem->m_Height);
 					CTile* pTiles = (CTile*) pAssetsFile->GetData(pTilemapItem->m_Data);
-					
+
 					for(int j=0; j<pMapLayer->m_Height; j++)
 					{
 						for(int i=0; i<pMapLayer->m_Width; i++)
@@ -1561,11 +1561,11 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 							i += Skip;
 						}
 					}
-					
+
 					//Image
 					if(pTilemapItem->m_Image >= 0)
 						pMapLayer->m_ImagePath = pImagePath[pTilemapItem->m_Image];
-					
+
 					//Color
 					pMapLayer->m_Color.r = static_cast<float>(pTilemapItem->m_Color.r)/255.0f;
 					pMapLayer->m_Color.g = static_cast<float>(pTilemapItem->m_Color.g)/255.0f;
@@ -1582,18 +1582,18 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 						CAssetPath::SRC_LAND
 					);
 					pMapGroup->m_Layers.add(MapLayerPath);
-					
+
 					//Name
 					aBuf[0] = 0;
-					
+
 					if(pQuadsItem->m_Version >= 2)
 						IntsToStr(pQuadsItem->m_aName, sizeof(pQuadsItem->m_aName)/sizeof(int), aBuf);
-					
+
 					if(!aBuf[0])
 						str_format(aBuf, sizeof(aBuf), "quadlayer%d", MapLayerPath.GetId());
-					
+
 					pMapLayer->SetName(aBuf);
-					
+
 					//Quads
 					CQuad *pQuads = (CQuad *)pAssetsFile->GetDataSwapped(pQuadsItem->m_Data);
 					for(int i=0; i<pQuadsItem->m_NumQuads; i++)
@@ -1607,7 +1607,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 							Quad.m_Vertices[p].y = fx2f(pQuads[i].m_aPoints[p].y) - Quad.m_Pivot.y;
 							Quad.m_UVs[p].x = fx2f(pQuads[i].m_aTexcoords[p].x);
 							Quad.m_UVs[p].y = fx2f(pQuads[i].m_aTexcoords[p].y);
-							
+
 							Quad.m_Colors[p].r = static_cast<float>(pQuads[i].m_aColors[p].r)/255.0f;
 							Quad.m_Colors[p].g = static_cast<float>(pQuads[i].m_aColors[p].g)/255.0f;
 							Quad.m_Colors[p].b = static_cast<float>(pQuads[i].m_aColors[p].b)/255.0f;
@@ -1615,7 +1615,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 						}
 						pMapLayer->m_Quads.add(Quad);
 					}
-					
+
 					//Image
 					if(pQuadsItem->m_Image >= 0)
 						pMapLayer->m_ImagePath = pImagePath[pQuadsItem->m_Image];
@@ -1623,9 +1623,9 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile)
 			}
 		}
 	}
-	
+
 	delete[] pImagePath;
-	
+
 	return 1;
 }
 
@@ -1643,18 +1643,18 @@ int CAssetsManager::OnAssetsFileUnloaded()
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 }
-	
+
 void CAssetsManager::DeleteAsset(const CAssetPath& Path)
 {
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.DeleteAsset(Path);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.OnAssetDeleted(Path);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 }
-	
+
 int CAssetsManager::AddSubItem(CAssetPath AssetPath, int SubItemType)
 {
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
@@ -1670,12 +1670,12 @@ int CAssetsManager::AddSubItem(CAssetPath AssetPath, int SubItemType)
 	{
 		#include <tu/client/assetsmacro.h>
 	}
-	
+
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	return -1;
 }
-	
+
 void CAssetsManager::DeleteSubItem(CAssetPath AssetPath, int SubPath)
 {
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) case ClassName::TypeId:\
@@ -1691,7 +1691,7 @@ void CAssetsManager::DeleteSubItem(CAssetPath AssetPath, int SubPath)
 		#include <tu/client/assetsmacro.h>
 	}
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName) CatalogName.OnSubItemDeleted(AssetPath, SubPath);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE

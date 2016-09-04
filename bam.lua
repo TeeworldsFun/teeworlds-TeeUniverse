@@ -8,7 +8,7 @@ Import("other/freetype/freetype.lua")
 config = NewConfig()
 config:Add(OptCCompiler("compiler"))
 config:Add(OptTestCompileC("stackprotector", "int main(){return 0;}", "-fstack-protector -fstack-protector-all"))
-config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk"))
+config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.7 -isysroot /Developer/SDKs/MacOSX10.7.sdk"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
@@ -120,11 +120,11 @@ function GenerateMacOSXSettings(settings, conf, arch)
 		os.exit(1)
 	end
 
-	settings.cc.flags:Add("-mmacosx-version-min=10.5")
-	settings.link.flags:Add("-mmacosx-version-min=10.5")
+	settings.cc.flags:Add("-mmacosx-version-min=10.7")
+	settings.link.flags:Add("-mmacosx-version-min=10.7")
 	if config.minmacosxsdk.value == 1 then
-		settings.cc.flags:Add("-isysroot /Developer/SDKs/MacOSX10.5.sdk")
-		settings.link.flags:Add("-isysroot /Developer/SDKs/MacOSX10.5.sdk")
+		settings.cc.flags:Add("-isysroot /Developer/SDKs/MacOSX10.7.sdk")
+		settings.link.flags:Add("-isysroot /Developer/SDKs/MacOSX10.7.sdk")
 	end
 
 	settings.link.frameworks:Add("Carbon")
@@ -390,7 +390,15 @@ function GenerateSettings(conf, arch, builddir, compiler)
 	else
 		compiler = config.compiler.driver
 	end
+
+	config.compiler.driver = compiler
+	config.compiler:Apply(settings)
 	
+	if compiler == "clang" then
+		settings.cc.flags_cxx:Add("-std=c++11")
+		settings.link.flags:Add("-stdlib=libc++")
+	end
+
 	if conf ==  "debug" then
 		settings.debug = 1
 		settings.optimize = 0
