@@ -179,13 +179,13 @@ void CWeapon_GenericGun07::Snap_TW06(int Snapshot, int SnappingClient, class CTW
 	pCharNetObj->m_AmmoCount = (m_Ammo > 0 ? m_Ammo : 0);
 }
 	
-void CWeapon_GenericGun07::Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CWeapon_GenericGun07::Snap_TW07(int Snapshot, int SnappingClient, struct CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = m_TW07ID;
 	pCharNetObj->m_AmmoCount = (m_Ammo > 0 ? m_Ammo : 0);
 }
 	
-void CWeapon_GenericGun07::Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CWeapon_GenericGun07::Snap_TU07(int Snapshot, int SnappingClient, struct CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = m_TW07ID;
 	pCharNetObj->m_AmmoCount = (m_Ammo > 0 ? m_Ammo : 0);

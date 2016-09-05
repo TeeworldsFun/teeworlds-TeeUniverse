@@ -90,13 +90,13 @@ void CMod_Weapon_Hammer::Snap_TW06(int Snapshot, int SnappingClient, class CTW06
 	pCharNetObj->m_AmmoCount = -1;
 }
 	
-void CMod_Weapon_Hammer::Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Hammer::Snap_TW07(int Snapshot, int SnappingClient, struct CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_HAMMER;
 	pCharNetObj->m_AmmoCount = -1;
 }
 	
-void CMod_Weapon_Hammer::Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Hammer::Snap_TU07(int Snapshot, int SnappingClient, struct CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_HAMMER;
 	pCharNetObj->m_AmmoCount = -1;

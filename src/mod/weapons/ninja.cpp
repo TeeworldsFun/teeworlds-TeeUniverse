@@ -138,13 +138,13 @@ void CMod_Weapon_Ninja::Snap_TW06(int Snapshot, int SnappingClient, class CTW06_
 	pCharNetObj->m_AmmoCount = -1;
 }
 	
-void CMod_Weapon_Ninja::Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Ninja::Snap_TW07(int Snapshot, int SnappingClient, struct CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_NINJA;
 	pCharNetObj->m_AmmoCount = m_ActivationTick + g_pData->m_Weapons.m_Ninja.m_Duration * Server()->TickSpeed() / 1000;
 }
 	
-void CMod_Weapon_Ninja::Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pCharNetObj)
+void CMod_Weapon_Ninja::Snap_TU07(int Snapshot, int SnappingClient, struct CNetObj_Character* pCharNetObj)
 {
 	pCharNetObj->m_Weapon = WEAPON_NINJA;
 	pCharNetObj->m_AmmoCount = m_ActivationTick + g_pData->m_Weapons.m_Ninja.m_Duration * Server()->TickSpeed() / 1000;
