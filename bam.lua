@@ -381,17 +381,12 @@ function GenerateSettings(conf, arch, builddir, compiler)
 	local settings = NewSettings()
 
 	-- Set compiler if explicitly requested
-	if compiler == "gcc" then
-		SetDriversGCC(settings)
-	elseif compiler == "clang" then
-		SetDriversClang(settings)
-	elseif compiler == "cl" then
-		SetDriversCL(settings)
+	if compiler == "gcc" or compiler == "clang" or compiler == "cl" then
+		config.compiler.driver = compiler
 	else
 		compiler = config.compiler.driver
 	end
 
-	config.compiler.driver = compiler
 	config.compiler:Apply(settings)
 	
 	if compiler == "clang" then
