@@ -330,7 +330,11 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
 	
 	//TU
-	m_pTUGraphics = 0;
+	for(int i=0; i<tu::NUM_ASSETS; i++)
+	{
+		m_apTUGraphics[i] = 0;
+		m_apAssetsManager[i] = 0;
+	}
 }
 
 // ----- send functions -----
@@ -825,8 +829,19 @@ void CClient::DebugRender()
 
 void CClient::Quit()
 {
-	delete m_pTUGraphics;
-	m_pTUGraphics = 0;
+	for(int i=0; i<tu::NUM_ASSETS; i++)
+	{
+		if(m_apTUGraphics[i])
+		{
+			delete m_apTUGraphics[i];
+			m_apTUGraphics[i] = 0;
+		}
+		if(m_apAssetsManager[i])
+		{
+			delete m_apAssetsManager[i];
+			m_apAssetsManager[i] = 0;
+		}
+	}
 	
 	SetState(IClient::STATE_QUITING);
 }
@@ -2549,8 +2564,12 @@ void CClient::Run()
 			return;
 		}
 		
-		m_pAssetsManager = new tu::CAssetsManager(Graphics(), Storage());
-		m_pTUGraphics = new tu::CClient_Graphics(Graphics(), AssetsManager());
+		for(int i=0; i<tu::NUM_ASSETS; i++)
+		{
+			m_apAssetsManager[i] = new tu::CAssetsManager(Graphics(), Storage());
+			m_apTUGraphics[i] = new tu::CGraphics(Graphics(), m_apAssetsManager[i]);
+		}
+		m_apAssetsManager[tu::ASSETS_GAME]->EnableAssetsHistory();
 	}
 
 	// init sound, allowed to fail
@@ -2630,8 +2649,9 @@ void CClient::Run()
 
 	GameClient()->OnInit();
 	
-	m_pAssetsManager->Init(Storage());
-	m_pAssetsEditor->Init(m_pAssetsManager, m_pTUGraphics);
+	tu::CAssetsManager::InitAssetsManager_TeeWorldsUniverse(m_apAssetsManager[tu::ASSETS_GAME]);
+	tu::CAssetsManager::InitAssetsManager_AssetsEditorGUI(m_apAssetsManager[tu::ASSETS_EDITORGUI]);
+	m_pAssetsEditor->Init(m_apAssetsManager, m_apTUGraphics);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "version %s", GameClient()->NetVersion());
@@ -2733,7 +2753,8 @@ void CClient::Run()
 				m_ClientMode = g_Config.m_ClMode;
 			}
 
-			AssetsManager()->UpdateAssets();
+			for(int i=0; i<tu::NUM_ASSETS; i++)
+				m_apAssetsManager[i]->UpdateAssets();
 		
 			Update();
 			

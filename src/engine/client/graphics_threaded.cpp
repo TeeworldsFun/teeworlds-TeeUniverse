@@ -592,6 +592,27 @@ void CGraphics_Threaded::SetColor(vec4 rgba, bool AlphaBlend)
 	}
 }
 
+void CGraphics_Threaded::SetColor2(vec4 Color0, vec4 Color1, bool AlphaBlend)
+{
+	dbg_assert(m_Drawing != 0, "called Graphics()->SetColor without begin");
+	if(AlphaBlend)
+	{
+		CColorVertex Array[2] = {
+			CColorVertex(0, Color0.r*Color0.a, Color0.g*Color0.a, Color0.b*Color0.a, Color0.a),
+			CColorVertex(1, Color1.r*Color1.a, Color1.g*Color1.a, Color1.b*Color1.a, Color1.a)
+		};
+		SetColorVertex(Array, 2);
+	}
+	else
+	{
+		CColorVertex Array[2] = {
+			CColorVertex(0, Color0.r, Color0.g, Color0.b, Color0.a),
+			CColorVertex(1, Color1.r, Color1.g, Color1.b, Color1.a)
+		};
+		SetColorVertex(Array, 2);
+	}
+}
+
 void CGraphics_Threaded::SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight, bool AlphaBlend)
 {
 	dbg_assert(m_Drawing != 0, "called Graphics()->SetColor without begin");

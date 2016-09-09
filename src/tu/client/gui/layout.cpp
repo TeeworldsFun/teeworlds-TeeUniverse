@@ -220,7 +220,7 @@ void CHListLayout::Update()
 void CHListLayout::Render()
 {
 	//Background
-	TUGraphics()->Draw_GuiRect(&m_Rect, m_pConfig->m_LayoutStyles[m_Style].m_StylePath);
+	TUGraphics()->DrawGuiRect(&m_Rect, m_pConfig->m_LayoutStyles[m_Style].m_StylePath);
 	
 	//Childs
 	for(int i=0; i<m_Childs.size(); i++)
@@ -334,6 +334,45 @@ void CVListLayout::Clear()
 	Update();
 }
 
+void CVListLayout::Update_FillingFirst()
+{
+	if(m_Childs.size() == 0)
+		return;
+	
+	int Padding = m_pConfig->m_LayoutStyles[m_Style].m_Padding;
+	int Spacing = m_pConfig->m_LayoutStyles[m_Style].m_Spacing;
+	int AvailableSpace = m_Rect.h - 2*Padding;
+		
+	if(m_Childs.size() > 1)
+		AvailableSpace -= Spacing * (m_Childs.size() - 1);
+		
+	for(int i=1; i<m_Childs.size(); i++)
+	{
+		AvailableSpace -= m_Childs[i]->m_Rect.h;
+	}
+	
+	m_Childs[0]->SetRect(CRect(
+		m_Rect.x + Padding,
+		m_Rect.y + Padding,
+		m_Rect.w - Padding*2,
+		AvailableSpace
+	));
+	
+	int PosY = m_Childs[0]->m_Rect.y + m_Childs[0]->m_Rect.h;
+	for(int i=1; i<m_Childs.size(); i++)
+	{
+		m_Childs[i]->SetRect(CRect(
+			m_Rect.x + Padding,
+			PosY + Spacing,
+			m_Rect.w - Padding*2,
+			m_Childs[i]->m_Rect.h
+		));
+		
+		m_ChildrenHeight += m_Childs[i]->m_Rect.h + Spacing;
+		PosY += Spacing + m_Childs[i]->m_Rect.h;
+	}
+}
+
 void CVListLayout::Update_FillingLast()
 {
 	if(m_Childs.size() == 0)
@@ -412,6 +451,9 @@ void CVListLayout::Update()
 			break;
 		case LAYOUTFILLING_LAST:
 			Update_FillingLast();
+			break;
+		case LAYOUTFILLING_FIRST:
+			Update_FillingFirst();
 			break;
 	}
 	
@@ -505,7 +547,7 @@ void CVListLayout::Update()
 void CVListLayout::Render()
 {
 	//Background
-	TUGraphics()->Draw_GuiRect(&m_Rect, m_pConfig->m_LayoutStyles[m_Style].m_StylePath);
+	TUGraphics()->DrawGuiRect(&m_Rect, m_pConfig->m_LayoutStyles[m_Style].m_StylePath);
 	
 	//Childs
 	Graphics()->ClipEnable(m_Rect.x, m_Rect.y, m_Rect.w, m_Rect.h);
@@ -551,16 +593,20 @@ void CVListLayout::OnButtonClick(int X, int Y, int Button, int Count)
 	{
 		if(Button == KEY_MOUSE_WHEEL_UP)
 		{
+			int ScrollHeight = m_ChildrenHeight - m_Rect.h;
 			float Pos = m_pSlider->GetSliderPos();
-			Pos = max(Pos-0.1f*Count, 0.0f);
+			int ScrollPos = max(0, static_cast<int>(ScrollHeight * Pos - m_pConfig->m_PixelPerMouseWheel*Count));
+			Pos = static_cast<float>(ScrollPos)/ScrollHeight;
 			m_pSlider->SetSliderPos(Pos);
 			m_pSlider->Update();
 			return;
 		}
 		else if(Button == KEY_MOUSE_WHEEL_DOWN)
 		{
+			int ScrollHeight = m_ChildrenHeight - m_Rect.h;
 			float Pos = m_pSlider->GetSliderPos();
-			Pos = min(Pos+0.1f*Count, 1.0f);
+			int ScrollPos = min(ScrollHeight, static_cast<int>(ScrollHeight * Pos + m_pConfig->m_PixelPerMouseWheel*Count));
+			Pos = static_cast<float>(ScrollPos)/ScrollHeight;
 			m_pSlider->SetSliderPos(Pos);
 			m_pSlider->Update();
 			return;
@@ -572,9 +618,12 @@ void CVListLayout::OnButtonClick(int X, int Y, int Button, int Count)
 		m_pSlider->OnButtonClick(X, Y, Button, Count);
 	}
 	
-	for(int i=0; i<m_Childs.size(); i++)
+	if(m_Rect.IsInside(X, Y))
 	{
-		m_Childs[i]->OnButtonClick(X, Y, Button, Count);
+		for(int i=0; i<m_Childs.size(); i++)
+		{
+			m_Childs[i]->OnButtonClick(X, Y, Button, Count);
+		}
 	}
 }
 

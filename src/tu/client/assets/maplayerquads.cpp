@@ -1,4 +1,6 @@
 #include "maplayerquads.h"
+#include "skeleton.h"
+#include "skeletonanimation.h"
 
 #include <engine/shared/datafile.h>
 #include <tu/client/graphics.h>
@@ -6,17 +8,96 @@
 namespace tu
 {
 
+void CAsset_MapLayerQuads::CQuad::GetTransform(CAssetsManager* pAssetsManager, float Time, matrix2x2* pMatrix, vec2* pPosition) const
+{
+	*pPosition = m_Pivot;
+	
+	float Angle = m_Angle;
+	vec2 Scale = m_Size;
+	
+	if(!m_AnimationPath.IsNull())
+	{
+		CAsset_SkeletonAnimation* pAnimation = pAssetsManager->GetAsset<CAsset_SkeletonAnimation>(m_AnimationPath);
+		if(pAnimation)
+		{
+			for(int a=0; a<pAnimation->m_BoneAnimations.size(); a++)
+			{
+				tu::CAsset_Skeleton::CSubPath BonePath = pAnimation->m_BoneAnimations[a].m_BonePath;
+				if(BonePath.GetSource() == tu::CAsset_Skeleton::CSubPath::SRC_LOCAL && BonePath.GetId() == 0)
+				{
+					tu::CAsset_SkeletonAnimation::CBoneAnimation::CFrame Frame;
+					if(pAnimation->m_BoneAnimations[a].GetFrame(Time, &Frame))
+					{
+						*pPosition += Frame.m_Translation;
+						Angle += Frame.m_Angle;
+						Scale *= Frame.m_Scale;
+					}
+					break;
+				}
+			}
+		}
+	}
+	
+	*pMatrix = matrix2x2::rotation(Angle)*matrix2x2::scaling(Scale);
+}
+
+void CAsset_MapLayerQuads::CQuad::GetDrawState(CAssetsManager* pAssetsManager, float Time, vec4* pColor, int* pState) const
+{
+	*pColor = 1.0f;
+	*pState = CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE;
+	
+	if(!m_AnimationPath.IsNull())
+	{
+		CAsset_SkeletonAnimation* pAnimation = pAssetsManager->GetAsset<CAsset_SkeletonAnimation>(m_AnimationPath);
+		if(pAnimation)
+		{
+			for(int a=0; a<pAnimation->m_LayerAnimations.size(); a++)
+			{
+				tu::CAsset_Skeleton::CSubPath LayerPath = pAnimation->m_LayerAnimations[a].m_LayerPath;
+				if(LayerPath.GetSource() == tu::CAsset_Skeleton::CSubPath::SRC_LOCAL && LayerPath.GetId() == 0)
+				{
+					tu::CAsset_SkeletonAnimation::CLayerAnimation::CFrame Frame;
+					if(pAnimation->m_LayerAnimations[a].GetFrame(Time, &Frame))
+					{
+						*pColor *= Frame.m_Color;
+						*pState = Frame.m_State;
+					}
+					break;
+				}
+			}
+		}
+	}
+}
+
 CAsset_MapLayerQuads::CAsset_MapLayerQuads()
 {
 	
 }
 
+void CAsset_MapLayerQuads::GetQuadTransform(CSubPath SubPath, float Time, matrix2x2* pMatrix, vec2* pPosition)
+{
+	if(!IsValidQuad(SubPath))
+		return;
+	
+	m_Quads[SubPath.GetId()].GetTransform(AssetsManager(), Time, pMatrix, pPosition);
+}
+
+void CAsset_MapLayerQuads::GetQuadDrawState(CSubPath SubPath, float Time, vec4* pColor, int* pState)
+{
+	if(!IsValidQuad(SubPath))
+		return;
+	
+	m_Quads[SubPath.GetId()].GetDrawState(AssetsManager(), Time, pColor, pState);
+}
+
 /* IO *****************************************************************/
 
-void CAsset_MapLayerQuads::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, const CAsset_MapLayerQuads::CStorageType* pItem)
+void CAsset_MapLayerQuads::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_MapLayerQuads::CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	
+	m_ImagePath = pItem->m_ImagePath;
 	
 	// load quads
 	const CStorageType::CQuad* pQuads = static_cast<CStorageType::CQuad*>(pAssetsFile->GetData(pItem->m_QuadsData));
@@ -30,6 +111,7 @@ void CAsset_MapLayerQuads::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu
 		Quad.m_Size.x = pQuads[i].m_SizeX;
 		Quad.m_Size.y = pQuads[i].m_SizeY;
 		Quad.m_Angle = pQuads[i].m_Angle;
+		Quad.m_AnimationPath = pQuads[i].m_AnimationPath;
 		
 		for(int p=0; p<4; p++)
 		{
@@ -47,6 +129,8 @@ void CAsset_MapLayerQuads::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 	CAsset_MapLayerQuads::CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 	
+	Item.m_ImagePath = m_ImagePath;
+	
 	//save quads
 	{
 		CStorageType::CQuad* pQuads = new CStorageType::CQuad[m_Quads.size()];
@@ -57,6 +141,7 @@ void CAsset_MapLayerQuads::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 			pQuads[i].m_SizeX = m_Quads[i].m_Size.x;
 			pQuads[i].m_SizeY = m_Quads[i].m_Size.y;
 			pQuads[i].m_Angle = m_Quads[i].m_Angle;
+			pQuads[i].m_AnimationPath = m_Quads[i].m_AnimationPath;
 			
 			for(int p=0; p<4; p++)
 			{
@@ -80,26 +165,27 @@ void CAsset_MapLayerQuads::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 template<>
 CAssetPath CAsset_MapLayerQuads::GetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath DefaultValue)
 {
+	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case IMAGEPATH:
-			return m_ImagePath;
-		default:
-			return CAsset::GetValue<CAssetPath>(ValueType, PathInt, DefaultValue);
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(CAssetPath, IMAGEPATH, GetImagePath());
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_VARIABLE(CAssetPath, QUAD_ANIMATIONPATH, TYPE_QUAD, m_Quads, m_AnimationPath);
 	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(CAssetPath)
 }
 	
 template<>
-bool CAsset_MapLayerQuads::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
+bool CAsset_MapLayerQuads::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
 {
+	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case IMAGEPATH:
-			m_ImagePath = Value;
-			return true;
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(CAssetPath, IMAGEPATH, m_ImagePath);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_VARIABLE(CAssetPath, QUAD_ANIMATIONPATH, TYPE_QUAD, m_Quads, m_AnimationPath);
 	}
 	
-	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(CAssetPath)
 }
 
 /* VALUE FLOAT ********************************************************/
@@ -108,156 +194,40 @@ template<>
 float CAsset_MapLayerQuads::GetValue<float>(int ValueType, int PathInt, float DefaultValue)
 {
 	CSubPath Path(PathInt);
-	
 	switch(ValueType)
 	{
-		case QUAD_PIVOT_POSITION_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Pivot.x;
-			else
-				return DefaultValue;
-		case QUAD_PIVOT_POSITION_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Pivot.y;
-			else
-				return DefaultValue;
-		case QUAD_SIZE_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Size.x;
-			else
-				return DefaultValue;
-		case QUAD_SIZE_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Size.y;
-			else
-				return DefaultValue;
-		case QUAD_ANGLE:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Angle;
-			else
-				return DefaultValue;
-		case QUAD_POINT0_POSITION_X:
-		case QUAD_POINT1_POSITION_X:
-		case QUAD_POINT2_POSITION_X:
-		case QUAD_POINT3_POSITION_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Vertices[ValueType-QUAD_POINT0_POSITION_X].x;
-			else
-				return DefaultValue;
-		case QUAD_POINT0_POSITION_Y:
-		case QUAD_POINT1_POSITION_Y:
-		case QUAD_POINT2_POSITION_Y:
-		case QUAD_POINT3_POSITION_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Vertices[ValueType-QUAD_POINT0_POSITION_Y].y;
-			else
-				return DefaultValue;
-		case QUAD_POINT0_UV_X:
-		case QUAD_POINT1_UV_X:
-		case QUAD_POINT2_UV_X:
-		case QUAD_POINT3_UV_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_UVs[ValueType-QUAD_POINT0_UV_X].x;
-			else
-				return DefaultValue;
-		case QUAD_POINT0_UV_Y:
-		case QUAD_POINT1_UV_Y:
-		case QUAD_POINT2_UV_Y:
-		case QUAD_POINT3_UV_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_UVs[ValueType-QUAD_POINT0_UV_Y].y;
-			else
-				return DefaultValue;
-		default:
-			return CAsset::GetValue<float>(ValueType, PathInt, DefaultValue);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_POSITION_X, TYPE_QUAD, m_Quads, m_Pivot.x);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_POSITION_Y, TYPE_QUAD, m_Quads, m_Pivot.y);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_SIZE_X, TYPE_QUAD, m_Quads, m_Size.x);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_SIZE_Y, TYPE_QUAD, m_Quads, m_Size.y);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_ANGLE, TYPE_QUAD, m_Quads, m_Angle);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_POSITION_X, TYPE_QUAD, m_Quads, m_Vertices, CSubPath::POINT_VERTEX0, 4, x);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_POSITION_Y, TYPE_QUAD, m_Quads, m_Vertices, CSubPath::POINT_VERTEX0, 4, y);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_UV_X, TYPE_QUAD, m_Quads, m_UVs, CSubPath::POINT_VERTEX0, 4, x);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_UV_Y, TYPE_QUAD, m_Quads, m_UVs, CSubPath::POINT_VERTEX0, 4, y);
 	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(float)
 }
 	
 template<>
 bool CAsset_MapLayerQuads::SetValue<float>(int ValueType, int PathInt, float Value)
 {
 	CSubPath Path(PathInt);
-	
 	switch(ValueType)
 	{
-		case QUAD_PIVOT_POSITION_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Pivot.x = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_PIVOT_POSITION_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Pivot.y = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_SIZE_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Size.x = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_SIZE_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Size.y = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_ANGLE:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Angle = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_POINT0_POSITION_X:
-		case QUAD_POINT1_POSITION_X:
-		case QUAD_POINT2_POSITION_X:
-		case QUAD_POINT3_POSITION_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Vertices[ValueType-QUAD_POINT0_POSITION_X].x = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_POINT0_POSITION_Y:
-		case QUAD_POINT1_POSITION_Y:
-		case QUAD_POINT2_POSITION_Y:
-		case QUAD_POINT3_POSITION_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Vertices[ValueType-QUAD_POINT0_POSITION_X].y = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_POINT0_UV_X:
-		case QUAD_POINT1_UV_X:
-		case QUAD_POINT2_UV_X:
-		case QUAD_POINT3_UV_X:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Vertices[ValueType-QUAD_POINT0_UV_X].x = Value;
-				return true;
-			}
-			else return false;
-		case QUAD_POINT0_UV_Y:
-		case QUAD_POINT1_UV_Y:
-		case QUAD_POINT2_UV_Y:
-		case QUAD_POINT3_UV_Y:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Vertices[ValueType-QUAD_POINT0_UV_Y].y = Value;
-				return true;
-			}
-			else return false;
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_POSITION_X, TYPE_QUAD, m_Quads, m_Pivot.x);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_POSITION_Y, TYPE_QUAD, m_Quads, m_Pivot.y);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_SIZE_X, TYPE_QUAD, m_Quads, m_Size.x);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_SIZE_Y, TYPE_QUAD, m_Quads, m_Size.y);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_VARIABLE(float, QUAD_ANGLE, TYPE_QUAD, m_Quads, m_Angle);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_POSITION_X, TYPE_QUAD, m_Quads, m_Vertices, CSubPath::POINT_VERTEX0, 4, x);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_POSITION_Y, TYPE_QUAD, m_Quads, m_Vertices, CSubPath::POINT_VERTEX0, 4, y);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_UV_X, TYPE_QUAD, m_Quads, m_UVs, CSubPath::POINT_VERTEX0, 4, x);
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_RARRAY_VARIABLE(float, QUAD_POINT_UV_Y, TYPE_QUAD, m_Quads, m_UVs, CSubPath::POINT_VERTEX0, 4, y);
 	}
 	
-	return CAsset::SetValue<float>(ValueType, PathInt, Value);
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(float)
 }
 
 /* VALUE VEC4 *********************************************************/
@@ -268,17 +238,10 @@ vec4 CAsset_MapLayerQuads::GetValue<vec4>(int ValueType, int PathInt, vec4 Defau
 	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case QUAD_POINT0_COLOR:
-		case QUAD_POINT1_COLOR:
-		case QUAD_POINT2_COLOR:
-		case QUAD_POINT3_COLOR:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-				return m_Quads[Path.GetId()].m_Colors[ValueType-QUAD_POINT0_COLOR];
-			else
-				return DefaultValue;
-		default:
-			return CAsset::GetValue<vec4>(ValueType, PathInt, DefaultValue);
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_RARRAY(vec4, QUAD_POINT_COLOR, TYPE_QUAD, m_Quads, m_Colors, CSubPath::POINT_VERTEX0, 4);
 	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(vec4)
 }
 	
 template<>
@@ -287,19 +250,10 @@ bool CAsset_MapLayerQuads::SetValue<vec4>(int ValueType, int PathInt, vec4 Value
 	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case QUAD_POINT0_COLOR:
-		case QUAD_POINT1_COLOR:
-		case QUAD_POINT2_COLOR:
-		case QUAD_POINT3_COLOR:
-			if(Path.GetType() == CSubPath::TYPE_QUAD && Path.GetId() >= 0 && Path.GetId() < m_Quads.size())
-			{
-				m_Quads[Path.GetId()].m_Colors[ValueType-QUAD_POINT0_COLOR] = Value;
-				return true;
-			}
-			else return false;
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_RARRAY(vec4, QUAD_POINT_COLOR, TYPE_QUAD, m_Quads, m_Colors, CSubPath::POINT_VERTEX0, 4);
 	}
 	
-	return CAsset::SetValue<vec4>(ValueType, PathInt, Value);
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(vec4)
 }
 
 }

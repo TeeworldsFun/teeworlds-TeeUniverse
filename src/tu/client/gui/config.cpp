@@ -11,13 +11,13 @@ namespace tu
 namespace gui
 {
 
-CConfig::CConfig(CClient_Graphics *pTUGraphics, CRenderTools *pRenderTools, ITextRender *pTextRender, IInput *pInput, IGraphics::CTextureHandle Texture) :
+CConfig::CConfig(CGraphics *pTUGraphics, CRenderTools *pRenderTools, ITextRender *pTextRender, IInput *pInput, CAssetsManager* pAssetsManager) :
 	m_pGraphics(pTUGraphics->Graphics()),
 	m_pTUGraphics(pTUGraphics),
 	m_pRenderTools(pRenderTools),
 	m_pTextRender(pTextRender),
 	m_pInput(pInput),
-	m_Texture(Texture)
+	m_pAssetsManager(pAssetsManager)
 {
 	m_TextSize[TEXTSTYLE_NORMAL] = 11.0f;
 	m_TextColor[TEXTSTYLE_NORMAL] = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -37,6 +37,8 @@ CConfig::CConfig(CClient_Graphics *pTUGraphics, CRenderTools *pRenderTools, ITex
 	m_LayoutMargin = 4;
 	m_ExpandShift = 16;
 	m_ExpandSpacing = 4;
+	
+	m_PixelPerMouseWheel = 50;
 	
 	m_fShowHint = 0;
 	m_pShowHintData = 0;
@@ -59,6 +61,10 @@ CConfig::CConfig(CClient_Graphics *pTUGraphics, CRenderTools *pRenderTools, ITex
 	m_LayoutStyles[LAYOUTSTYLE_DEFAULT].m_Padding = 4;
 	m_LayoutStyles[LAYOUTSTYLE_DEFAULT].m_Spacing = 4;
 	
+	m_LayoutStyles[LAYOUTSTYLE_TOOLBAR].m_StylePath = CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_LAYOUT_TOOLBAR);
+	m_LayoutStyles[LAYOUTSTYLE_TOOLBAR].m_Padding = 4;
+	m_LayoutStyles[LAYOUTSTYLE_TOOLBAR].m_Spacing = 4;
+	
 	m_LayoutStyles[LAYOUTSTYLE_INVISIBLE].m_StylePath = CAssetPath::Null();
 	m_LayoutStyles[LAYOUTSTYLE_INVISIBLE].m_Padding = 4;
 	m_LayoutStyles[LAYOUTSTYLE_INVISIBLE].m_Spacing = 4;
@@ -68,9 +74,11 @@ CConfig::CConfig(CClient_Graphics *pTUGraphics, CRenderTools *pRenderTools, ITex
 	m_LayoutStyles[LAYOUTSTYLE_NONE].m_Spacing = 4;
 	
 	//Tab Styles
+	m_TabStyles[TABSTYLE_DEFAULT].m_StylePath_Layout = CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_TAB_LAYOUT);
 	m_TabStyles[TABSTYLE_DEFAULT].m_StylePath_Content = CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_TAB_CONTENT);
 	m_TabStyles[TABSTYLE_DEFAULT].m_StylePath_Button = CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_TAB_BUTTON);
 	m_TabStyles[TABSTYLE_DEFAULT].m_StylePath_ButtonHighlight = CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_TAB_BUTTON_HIGHLIGHT);
+	m_TabStyles[TABSTYLE_DEFAULT].m_LayoutPadding = 1;
 }
 
 }

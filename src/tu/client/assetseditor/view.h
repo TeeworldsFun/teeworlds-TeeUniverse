@@ -160,6 +160,8 @@ public:
 	enum
 	{
 		HINT_SHOW_SKELETON=0,
+		HINT_SHOW_ZONE,
+		HINT_SHOW_GRID,
 	};
 	
 protected:
@@ -169,6 +171,8 @@ protected:
 	vec2 m_StartPointPos;
 	vec2 m_EndPointPos;
 	bool m_ShowSkeleton;
+	bool m_ShowZones;
+	bool m_ShowGrid;
 	
 	vec2 m_CursorPivot;
 	vec2 m_CursorToolPosition;
@@ -239,6 +243,7 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
 	
+	CGraphics* TUGraphics(int Type = ASSETS_GAME) { return m_pAssetsEditor->TUGraphics(Type); }
 	CAssetsEditor* AssetsEditor() { return m_pAssetsEditor; }
 	CAssetsManager* AssetsManager() { return m_pAssetsEditor->AssetsManager(); }
 	
@@ -251,7 +256,8 @@ public:
 	inline gui::CRect GetViewRect() { return m_ViewRect; }
 	
 	//MapRenderer
-	void InitMapRenderer_LayerTiles(CMapRenderer* pMapRenderer, CAssetPath LayerPath);
+	void InitMapRenderer(CMapRenderer* pMapRenderer);
+	void InitMapRenderer_Layer(CMapRenderer* pMapRenderer, CAssetPath LayerPath);
 	
 	//Cursor Tools
 	inline CView_CursorTool* GetCursorTool() { return m_pCursorTool; }

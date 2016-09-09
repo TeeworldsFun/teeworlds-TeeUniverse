@@ -34,26 +34,39 @@ public:
 class CIconButton : public CAbstractButton
 {
 protected:
-	int m_IconId;
+	CAssetPath m_IconPath;
 	
 protected:
-	CIconButton(class CConfig *pConfig, int IconId);
+	CIconButton(class CConfig *pConfig, CAssetPath IconPath);
 	
 public:
 	virtual void Render();
 	
-	void SetIcon(int IconId);
+	void SetIcon(CAssetPath IconPath);
+};
+
+class CIconToggle : public CIconButton
+{
+protected:
+	bool m_Toggle;
+	
+protected:
+	CIconToggle(class CConfig *pConfig, CAssetPath IconPath);
+	
+public:
+	virtual void MouseClickAction();
+	virtual void OnToggle(bool Toggle) = 0;
 };
 
 class CTextButton : public CAbstractButton
 {
 protected:
 	char m_aText[128];
-	int m_IconId;
+	CAssetPath m_IconPath;
 	bool m_Centered;
 	
 protected:
-	CTextButton(class CConfig *pConfig, const char* pText = 0, int IconId = -1);
+	CTextButton(class CConfig *pConfig, const char* pText = 0, CAssetPath IconPath = CAssetPath::Null());
 	
 	virtual void MouseClickAction() = 0;
 	
@@ -61,25 +74,27 @@ public:
 	virtual void Render();
 	
 	void SetText(const char* pText);
-	void SetIcon(int IconId);
+	void SetIcon(CAssetPath IconPath);
 };
 
 class CExternalTextButton : public CAbstractButton
 {
 protected:
-	const char* m_pText;
-	int m_IconId;
+	CAssetPath m_IconPath;
 	bool m_Centered;
+
+public:
+	const char* m_pText;
 	
 protected:
-	CExternalTextButton(class CConfig *pConfig, const char* pText, int IconId = -1);
+	CExternalTextButton(class CConfig *pConfig, const char* pText, CAssetPath IconPath = CAssetPath::Null());
 	
 	virtual void MouseClickAction() = 0;
 	
 public:
 	virtual void Render();
 	
-	void SetIcon(int IconId);
+	void SetIcon(CAssetPath IconPath);
 };
 
 }

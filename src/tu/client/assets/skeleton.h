@@ -47,32 +47,12 @@ public:
 		int m_LayersData;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* SUBITEMS ***********************************************************/
 public:
-	class CSubPath : public CGenericPath<2, 0, 0>
-	{
-	public:
-		enum
-		{
-			TYPE_BONE=0, //Bone from the current skeleton
-			TYPE_LAYER,   //Bone from the parent skeleton
-			NUM_SOURCES,       //Asset provided by the skin
-		};
-
-	public:
-		CSubPath() : CGenericPath() { }
-		CSubPath(int PathInt) : CGenericPath(PathInt) { }
-		CSubPath(int Type, int Id) : CGenericPath(Type, 0, 0x0, Id) { }
-		
-		static inline CSubPath Null() { return CSubPath(CGenericPath::UNDEFINED); }
-		static inline CSubPath Bone(int Id) { return CSubPath(TYPE_BONE, Id); }
-		static inline CSubPath Layer(int Id) { return CSubPath(TYPE_LAYER, Id); }
-	};
-	
-	class CBonePath : public CGenericPath<0, 2, 0>
+	class CSubPath : public CGenericPath<2, 2, 0>
 	{
 	public:
 		enum
@@ -81,22 +61,34 @@ public:
 			SRC_PARENT,   //Bone from the parent skeleton
 			NUM_SOURCES,       //Asset provided by the skin
 		};
+		
+		enum
+		{
+			TYPE_BONE=0, //Bone from the current skeleton
+			TYPE_LAYER,   //Bone from the parent skeleton
+			NUM_TYPES,       //Asset provided by the skin
+		};
 
 	public:
-		CBonePath() : CGenericPath() { }
-		CBonePath(int PathInt) : CGenericPath(PathInt) { }
-		CBonePath(int Source, int Id) : CGenericPath(0, Source, 0x0, Id) { }
+		CSubPath() : CGenericPath() { }
+		CSubPath(int PathInt) : CGenericPath(PathInt) { }
+		CSubPath(int Type, int Source, int Id) : CGenericPath(Type, Source, 0x0, Id) { }
 		
-		static inline CBonePath Null() { return CBonePath(CGenericPath::UNDEFINED); }
-		static inline CBonePath Local(int Id) { return CBonePath(SRC_LOCAL, Id); }
-		static inline CBonePath Parent(int Id) { return CBonePath(SRC_PARENT, Id); }
+		inline CSubPath Local() { return CSubPath(GetType(), SRC_LOCAL, GetId()); }
+		inline CSubPath Parent() { return CSubPath(GetType(), SRC_PARENT, GetId()); }
+		
+		static inline CSubPath Null() { return CSubPath(CGenericPath::UNDEFINED); }
+		static inline CSubPath LocalBone(int Id) { return CSubPath(TYPE_BONE, SRC_LOCAL, Id); }
+		static inline CSubPath LocalLayer(int Id) { return CSubPath(TYPE_LAYER, SRC_LOCAL, Id); }
+		static inline CSubPath ParentBone(int Id) { return CSubPath(TYPE_BONE, SRC_PARENT, Id); }
+		static inline CSubPath ParentLayer(int Id) { return CSubPath(TYPE_LAYER, SRC_PARENT, Id); }
 	};
 
 	class CBone
 	{
 	public:
 		//Hierarchy
-		CAsset_Skeleton::CBonePath m_ParentPath;
+		CAsset_Skeleton::CSubPath m_ParentPath;
 		
 		//Physics
 		float m_Length;
@@ -111,7 +103,7 @@ public:
 		
 	public:
 		CBone() :
-			m_ParentPath(CAsset_Skeleton::CBonePath::Null()),
+			m_ParentPath(CAsset_Skeleton::CSubPath::Null()),
 			m_Length(64.0f),
 			m_Anchor(1.0f),
 			m_Translation(vec2(0.0f, 0.0f)),
@@ -122,7 +114,7 @@ public:
 			
 		}
 		
-		inline CBone& Parent(CAsset_Skeleton::CBonePath v)
+		inline CBone& Parent(CAsset_Skeleton::CSubPath v)
 		{
 			m_ParentPath = v;
 			return *this;
@@ -182,25 +174,9 @@ public:
 			return *this;
 		}
 	};
-	
-	inline int GetBonePath(int i)
-	{
-		return CSubPath::Bone(i).ConvertToInteger();
-	}
-	
-	inline int GetLayerPath(int i)
-	{
-		return CSubPath::Layer(i).ConvertToInteger();
-	}
 
 /* MEMBERS ************************************************************/
-public:	
-	enum
-	{
-		SUBITEM_BONE=0,
-		SUBITEM_LAYER,
-	};
-	
+public:
 	CAssetPath m_ParentPath;
 	CAssetPath m_DefaultSkinPath;
 	array<CBone> m_Bones;
@@ -247,32 +223,31 @@ public:
 	{
 		switch(SubItemType)
 		{
-			case SUBITEM_BONE:
+			case CSubPath::TYPE_BONE:
 				AddBone();
-				return CSubPath::Bone(m_Bones.size()-1).ConvertToInteger();
-			case SUBITEM_LAYER:
+				return CSubPath::LocalBone(m_Bones.size()-1);
+			case CSubPath::TYPE_LAYER:
 				AddLayer();
-				return CSubPath::Layer(m_Layers.size()-1).ConvertToInteger();
+				return CSubPath::LocalLayer(m_Layers.size()-1);
 		}
 	}
 	
 	bool DeleteSubItem(CSubPath SubItemPath)
 	{
+		if(SubItemPath.GetSource() == CSubPath::SRC_PARENT)
+			return false;
+		
 		switch(SubItemPath.GetType())
 		{
-			case SUBITEM_BONE:
+			case CSubPath::TYPE_BONE:
 				m_Bones.remove_index(SubItemPath.GetId());
 				for(int i=0; i<m_Bones.size(); i++)
 				{
-					if(m_Bones[i].m_ParentPath.GetSource() == CBonePath::SRC_LOCAL)
-					{
-						CSubPath TmpPath = CSubPath::Bone(m_Bones[i].m_ParentPath.GetId());
-						TmpPath.OnIdDeleted(SubItemPath);
-						m_Bones[i].m_ParentPath.SetId(TmpPath.GetId());
-					}
+					if(m_Bones[i].m_ParentPath.GetSource() == CSubPath::SRC_LOCAL)
+						m_Bones[i].m_ParentPath.OnIdDeleted(SubItemPath);
 				}
 				return true;
-			case SUBITEM_LAYER:
+			case CSubPath::TYPE_LAYER:
 				m_Layers.remove_index(SubItemPath.GetId());
 				return true;
 		}
@@ -288,17 +263,13 @@ public:
 				return;
 			
 			CSubPath SubPath(SubPathInt);
-			if(SubPath.GetType() != SUBITEM_BONE)
+			if(SubPath.GetType() != CSubPath::TYPE_BONE)
 				return;
 			
 			for(int i=0; i<m_Bones.size(); i++)
 			{
-				if(m_Bones[i].m_ParentPath.GetSource() == CBonePath::SRC_PARENT)
-				{
-					CSubPath TmpPath = CSubPath::Bone(m_Bones[i].m_ParentPath.GetId());
-					TmpPath.OnIdDeleted(SubPath);
-					m_Bones[i].m_ParentPath.SetId(TmpPath.GetId());
-				}
+				if(m_Bones[i].m_ParentPath.GetSource() == CSubPath::SRC_PARENT)
+					m_Bones[i].m_ParentPath.OnIdDeleted(SubPath);
 			}
 		}
 	}

@@ -93,6 +93,7 @@ protected:
 protected:
 	void Update_FillingNone();
 	void Update_FillingLast();
+	void Update_FillingFirst();
 	
 public:
 	CVListLayout(class CConfig *pConfig, int Style = CConfig::LAYOUTSTYLE_DEFAULT, int Model = LAYOUTFILLING_NONE);

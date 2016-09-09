@@ -62,12 +62,12 @@ CTimeline::CTimeline(CAssetsEditor* pAssetsEditor) :
 		pTimeScaleLabel->m_Rect.h
 	));
 	
-	m_CursorToolButtons[CURSORTOOL_FRAME_MOVE] = new CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_FRAME_MOVE, CURSORTOOL_FRAME_MOVE);
-	m_CursorToolButtons[CURSORTOOL_FRAME_ADD] = new CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_FRAME_ADD, CURSORTOOL_FRAME_ADD);
-	m_CursorToolButtons[CURSORTOOL_FRAME_DELETE] = new CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_FRAME_DELETE, CURSORTOOL_FRAME_DELETE);
-	m_CursorToolButtons[CURSORTOOL_FRAME_COLOR] = new CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_FRAME_COLOR, CURSORTOOL_FRAME_COLOR);
+	m_CursorToolButtons[CURSORTOOL_FRAME_MOVE] = new CCursorToolButton(this, CAssetPath::SpriteUniverse(SPRITE_ICON_FRAME_MOVE), CURSORTOOL_FRAME_MOVE);
+	m_CursorToolButtons[CURSORTOOL_FRAME_ADD] = new CCursorToolButton(this, CAssetPath::SpriteUniverse(SPRITE_ICON_FRAME_ADD), CURSORTOOL_FRAME_ADD);
+	m_CursorToolButtons[CURSORTOOL_FRAME_DELETE] = new CCursorToolButton(this, CAssetPath::SpriteUniverse(SPRITE_ICON_FRAME_DELETE), CURSORTOOL_FRAME_DELETE);
+	m_CursorToolButtons[CURSORTOOL_FRAME_COLOR] = new CCursorToolButton(this, CAssetPath::SpriteUniverse(SPRITE_ICON_FRAME_COLOR), CURSORTOOL_FRAME_COLOR);
 	
-	m_pToolbar = new tu::gui::CHListLayout(m_pConfig);
+	m_pToolbar = new tu::gui::CHListLayout(m_pConfig, gui::CConfig::LAYOUTSTYLE_TOOLBAR);
 	m_pToolbar->Add(new CFirstFrameButton(m_pAssetsEditor));
 	m_pToolbar->Add(new CPrevFrameButton(m_pAssetsEditor));
 	m_pToolbar->Add(new CPlayPauseButton(m_pAssetsEditor));
@@ -93,6 +93,128 @@ CTimeline::~CTimeline()
 	if(m_pToolbar) delete m_pToolbar;
 	if(m_pTimeSlider) delete m_pTimeSlider;
 	if(m_pValueSlider) delete m_pValueSlider;
+}
+
+CAssetPath CTimeline::GetSkeletonPath()
+{
+	switch(m_pAssetsEditor->m_EditedAssetPath.GetType())
+	{
+		case CAssetPath::TYPE_SKELETON:
+			return m_pAssetsEditor->m_EditedAssetPath;
+		case CAssetPath::TYPE_SKELETONANIMATION:
+		{
+			return m_pAssetsEditor->AssetsManager()->GetAssetValue<CAssetPath>(
+				m_pAssetsEditor->m_EditedAssetPath,
+				CAsset_SkeletonAnimation::SKELETONPATH,
+				-1,
+				CAssetPath::Null()
+			);
+		}
+		case CAssetPath::TYPE_SKELETONSKIN:
+		{
+			return m_pAssetsEditor->AssetsManager()->GetAssetValue<CAssetPath>(
+				m_pAssetsEditor->m_EditedAssetPath,
+				CAsset_SkeletonSkin::SKELETONPATH,
+				-1,
+				CAssetPath::Null()
+			);
+		}
+		case CAssetPath::TYPE_MAPLAYERQUADS:
+		{
+			CAssetPath AnimationPath = m_pAssetsEditor->AssetsManager()->GetAssetValue<CAssetPath>(
+				m_pAssetsEditor->m_EditedAssetSubPath,
+				CAsset_MapLayerQuads::QUAD_ANIMATIONPATH,
+				m_pAssetsEditor->m_EditedAssetSubPath,
+				CAssetPath::Null()
+			);
+			if(AnimationPath.IsNull())
+				return CAssetPath::Universe(CAssetPath::TYPE_SKELETON, SKELETON_PLACEHOLDER);
+			else
+			{
+				return m_pAssetsEditor->AssetsManager()->GetAssetValue<CAssetPath>(
+					AnimationPath,
+					CAsset_SkeletonAnimation::SKELETONPATH,
+					-1,
+					CAssetPath::Null()
+				);
+			}
+		}
+		default:
+			return CAssetPath::Null();
+	}
+}
+
+CAssetPath CTimeline::GetSkeletonAnimationPath()
+{
+	switch(m_pAssetsEditor->m_EditedAssetPath.GetType())
+	{
+		case CAssetPath::TYPE_SKELETONANIMATION:
+			return m_pAssetsEditor->m_EditedAssetPath;
+		case CAssetPath::TYPE_MAPLAYERQUADS:
+		{
+			return m_pAssetsEditor->AssetsManager()->GetAssetValue<CAssetPath>(
+				m_pAssetsEditor->m_EditedAssetSubPath,
+				CAsset_MapLayerQuads::QUAD_ANIMATIONPATH,
+				m_pAssetsEditor->m_EditedAssetSubPath,
+				CAssetPath::Null()
+			);
+		}
+		default:
+			return CAssetPath::Null();
+	}
+}
+
+void CTimeline::CreateAnimationIfNeeded()
+{
+	switch(m_pAssetsEditor->m_EditedAssetPath.GetType())
+	{
+		case CAssetPath::TYPE_MAPLAYERQUADS:
+		{
+			CAsset_MapLayerQuads* pLayer = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_MapLayerQuads>(m_pAssetsEditor->m_EditedAssetPath);
+			if(!pLayer)
+				return;
+			
+			CAsset_MapLayerQuads::CSubPath QuadPath = CAsset_MapLayerQuads::CSubPath(m_pAssetsEditor->m_EditedAssetSubPath);			
+			CAssetPath ExistingAnimationPath = m_pAssetsEditor->AssetsManager()->GetAssetValue<CAssetPath>(
+				m_pAssetsEditor->m_EditedAssetPath,
+				CAsset_MapLayerQuads::QUAD_ANIMATIONPATH,
+				QuadPath,
+				CAssetPath::Null()
+			);
+			
+			if(!ExistingAnimationPath.IsNull())
+				return;
+			
+			//Create animation
+			int Token = m_pAssetsEditor->AssetsManager()->GenerateToken();
+			
+			CAssetPath NewAnimationPath;
+			char aBuf[128];
+			
+			CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->NewAsset<CAsset_SkeletonAnimation>(
+				&NewAnimationPath,
+				m_pAssetsEditor->m_EditedAssetPath.GetSource(),
+				Token
+			);
+			
+			str_format(aBuf, sizeof(aBuf), "quadAnimation%d", NewAnimationPath.GetId());
+			pSkeletonAnimation->SetName(aBuf);
+			pSkeletonAnimation->m_SkeletonPath = CAssetPath::Universe(CAssetPath::TYPE_SKELETON, SKELETON_PLACEHOLDER);
+			
+			m_pAssetsEditor->AssetsManager()->SetAssetValue<CAssetPath>(
+				m_pAssetsEditor->m_EditedAssetPath,
+				QuadPath,
+				CAsset_MapLayerQuads::QUAD_ANIMATIONPATH,
+				NewAnimationPath,
+				Token
+			);
+			
+			m_pAssetsEditor->RefreshAssetsList();
+			m_pAssetsEditor->RefreshAssetsEditor();
+			
+			return;
+		}
+	}
 }
 
 void CTimeline::TimeScaleCallback(float Pos)
@@ -134,9 +256,9 @@ void CTimeline::Update()
 	m_ListRect.w = 150;
 	m_ListRect.h = m_Rect.h - 4*m_pConfig->m_LayoutMargin - m_ToolbarHeight - m_pTimeSlider->m_Rect.h;
 	
-	m_TimelineRect.x = m_ListRect.x + m_ListRect.w + m_pConfig->m_LayoutMargin;
+	m_TimelineRect.x = m_ListRect.x + m_ListRect.w + 1;
 	m_TimelineRect.y = m_ListRect.y;
-	m_TimelineRect.w = m_Rect.w - m_TimelineRect.x + m_Rect.x - m_pConfig->m_LayoutMargin;
+	m_TimelineRect.w = m_Rect.w - m_TimelineRect.x + m_Rect.x - 1;
 	m_TimelineRect.h = m_ListRect.h;
 	
 	m_TimelineTop = m_TimelineRect.y;
@@ -174,6 +296,8 @@ void CTimeline::Update()
 
 void CTimeline::Render()
 {
+	TUGraphics()->DrawGuiRect(&m_Rect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_LAYOUT_TOOLBAR));
+	
 	m_pTimeSlider->Render();
 	m_pValueSlider->Render();
 	m_pToolbar->Render();
@@ -186,24 +310,10 @@ void CTimeline::Render()
 			m_CursorToolButtons[i]->SetButtonStyle(gui::CConfig::BUTTONSTYLE_DEFAULT);
 	}
 	
-	{
-		CUIRect rect;
-		rect.x = m_TimelineRect.x;
-		rect.y = m_TimelineRect.y;
-		rect.w = m_TimelineRect.w;
-		rect.h = m_TimelineRect.h;
-		RenderTools()->DrawRoundRect(&rect, vec4(0.0f, 0.0f, 0.0f, s_LayoutOpacity), s_LayoutCornerRadius);
-	}
-	{
-		CUIRect rect;
-		rect.x = m_ListRect.x;
-		rect.y = m_ListRect.y;
-		rect.w = m_ListRect.w;
-		rect.h = m_ListRect.h;
-		RenderTools()->DrawRoundRect(&rect, vec4(0.0f, 0.0f, 0.0f, s_LayoutOpacity), s_LayoutCornerRadius);
-	}
+	TUGraphics()->DrawGuiRect(&m_TimelineRect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_LAYOUT_VIEW));
+	TUGraphics()->DrawGuiRect(&m_ListRect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_LAYOUT_VIEW));
 	
-	Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
+	Graphics()->ClipEnable(m_TimelineRect.x+1, m_TimelineRect.y+1, m_TimelineRect.w-2, m_TimelineRect.h-2);
 	{
 		float TimeIter = 0.0f;
 		int RectIter = 0;
@@ -237,21 +347,21 @@ void CTimeline::Render()
 	}
 	Graphics()->ClipDisable();
 	
-	if(m_pAssetsEditor->m_EditedAssetPath.GetType() != CAssetPath::TYPE_SKELETONANIMATION)
-		return;
+	CAssetPath SkeletonPath = GetSkeletonPath();
+	CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
 	
-	CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_EditedAssetPath);
-	if(!pSkeletonAnimation)
-		return;
-	
-	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
+	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
 	if(!pSkeleton)
 		return;
 
+	CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
+	
 	m_ValueHeight = m_FrameMargin;
 	float FrameY = m_TimelineTop-m_ValueScroll+m_FrameMargin;
 	
 	//Bones
+	//Pass 1: Local bones
+	//Pass 2: Parent bones
 	for(int s=0; s<2; s++)
 	{
 		CAsset_Skeleton* pCurrentSkeleton;
@@ -260,7 +370,7 @@ void CTimeline::Render()
 		if(s==0)
 		{
 			pCurrentSkeleton = pSkeleton;
-			CurrentSkeletonPath = pSkeletonAnimation->m_SkeletonPath;
+			CurrentSkeletonPath = SkeletonPath;
 		}
 		else
 		{
@@ -273,12 +383,13 @@ void CTimeline::Render()
 		
 		for(int i=0; i<pCurrentSkeleton->m_Bones.size(); i++)
 		{
+			//Draw List
 			Graphics()->ClipEnable(m_ListRect.x, m_ListRect.y, m_ListRect.w, m_ListRect.h);
 			
 			char* pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 				CurrentSkeletonPath,
 				CAsset_Skeleton::BONE_NAME,
-				CAsset_Skeleton::CSubPath::Bone(i).ConvertToInteger(),
+				CAsset_Skeleton::CSubPath::LocalBone(i),
 				0);
 			
 			if(pText)
@@ -294,87 +405,74 @@ void CTimeline::Render()
 				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 				TextRender()->TextEx(&Cursor, pText, -1);
 				
-				PosX -= m_pConfig->m_IconSize + m_pConfig->m_LabelMargin; //Icon size and space
+				PosX -= m_pConfig->m_IconSize/2 + m_pConfig->m_LabelMargin; //Icon size and space
 				
-				int SubX = CAssetsEditor::ICON_BONE%16;
-				int SubY = CAssetsEditor::ICON_BONE/16;
-				
-				Graphics()->TextureSet(m_pConfig->m_Texture);
-				Graphics()->QuadsBegin();
-				Graphics()->QuadsSetSubset(SubX/16.0f, SubY/16.0f, (SubX+1)/16.0f, (SubY+1)/16.0f);
-				IGraphics::CQuadItem QuadItem(PosX, CenterY - m_pConfig->m_IconSize/2, m_pConfig->m_IconSize, m_pConfig->m_IconSize);
-				Graphics()->QuadsDrawTL(&QuadItem, 1);
-				Graphics()->QuadsEnd();
+				TUGraphics()->DrawSprite(
+					CAssetPath::Universe(CAssetPath::TYPE_SPRITE, SPRITE_ICON_BONE),
+					vec2(PosX, CenterY),
+					1.0f, 0.0f, 0x0, 1.0f
+				);
 			}
 			
 			Graphics()->ClipDisable();
 			
-			Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
-			Graphics()->TextureClear();
-			Graphics()->QuadsBegin();
-	
-			CAsset_Skeleton::CBonePath BonePath;
-			if(s == 0) BonePath = CAsset_Skeleton::CBonePath::Local(i);
-			else BonePath = CAsset_Skeleton::CBonePath::Parent(i);
-			
-			CAsset_SkeletonAnimation::CBoneAnimation* pAnimation = 0;
-			
-			int AnimId = -1;
-			for(int j=0; j<pSkeletonAnimation->m_BoneAnimations.size(); j++)
+			//Draw Frames
+			if(pSkeletonAnimation)
 			{
-				if(pSkeletonAnimation->m_BoneAnimations[j].m_BonePath == BonePath)
+				Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
+				
+				CAsset_Skeleton::CSubPath BonePath;
+				if(s == 0) BonePath = CAsset_Skeleton::CSubPath::LocalBone(i);
+				else BonePath = CAsset_Skeleton::CSubPath::ParentBone(i);
+				
+				CAsset_SkeletonAnimation::CBoneAnimation* pAnimation = 0;
+				
+				int AnimId = -1;
+				for(int j=0; j<pSkeletonAnimation->m_BoneAnimations.size(); j++)
 				{
-					AnimId = j;
-					pAnimation = &pSkeletonAnimation->m_BoneAnimations[j];
-					break;
+					if(pSkeletonAnimation->m_BoneAnimations[j].m_BonePath == BonePath)
+					{
+						AnimId = j;
+						pAnimation = &pSkeletonAnimation->m_BoneAnimations[j];
+						break;
+					}
 				}
-			}
-			
-			if(pAnimation)
-			{
-				for(int j=0; j<pAnimation->m_KeyFrames.size(); j++)
+				
+				if(pAnimation)
 				{
-					CAsset_SkeletonAnimation::CSubPath SubPath = CAsset_SkeletonAnimation::CSubPath::BoneKeyFrame(AnimId, j);
-					
-					if(SubPath == m_DragedElement)
-						Graphics()->SetColor(1.0f, 1.0f, 0.0f, 1.0f);
-					else
-						Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-					
-					float Time = pAnimation->m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
-					float TimePos = TimeToTimeline(Time);
+					for(int j=0; j<pAnimation->m_KeyFrames.size(); j++)
+					{
+						CAsset_SkeletonAnimation::CSubPath SubPath = CAsset_SkeletonAnimation::CSubPath::BoneKeyFrame(AnimId, j);
+						
+						float Time = pAnimation->m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
+						float TimePos = TimeToTimeline(Time);
 
-					IGraphics::CFreeformItem Freeform1(
-						TimePos, FrameY,
-						TimePos, FrameY+m_FrameHeight,
-						TimePos+4.0f, FrameY+4.0f,
-						TimePos+4.0f, FrameY+m_FrameHeight-4.0f);
-					IGraphics::CFreeformItem Freeform2(
-						TimePos, FrameY,
-						TimePos, FrameY+m_FrameHeight,
-						TimePos-4.0f, FrameY+4.0f,
-						TimePos-4.0f, FrameY+m_FrameHeight-4.0f);
-					Graphics()->QuadsDrawFreeform(&Freeform1, 1);
-					Graphics()->QuadsDrawFreeform(&Freeform2, 1);
+						TUGraphics()->DrawSprite(
+							CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME),
+							vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+							1.0f, 0.0f, 0x0, 1.0f
+						);
+					}
 				}
+				
+				Graphics()->TextureClear();
+				Graphics()->LinesBegin();
+				Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.5f);
+				IGraphics::CLineItem Separator(m_TimelineRect.x, FrameY-1, m_TimelineRect.x+m_TimelineRect.w, FrameY-1);
+				Graphics()->LinesDraw(&Separator, 1);
+				Graphics()->LinesEnd();
+				
+				Graphics()->ClipDisable();
 			}
 			
-			Graphics()->QuadsEnd();
-			
-			Graphics()->LinesBegin();
-			Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.5f);
-			IGraphics::CLineItem Separator(m_TimelineRect.x, FrameY-1, m_TimelineRect.x+m_TimelineRect.w, FrameY-1);
-			Graphics()->LinesDraw(&Separator, 1);
-			Graphics()->LinesEnd();
-			
-			Graphics()->ClipDisable();
-				
 			FrameY += m_FrameHeight + 2.0f*m_FrameMargin;
 			m_ValueHeight += m_FrameHeight + 2.0f*m_FrameMargin;
 		}
 	}
 
 	//Layers
+	//Pass 1: Local layers
+	//Pass 2: Parent layers
 	for(int s=0; s<2; s++)
 	{
 		CAsset_Skeleton* pCurrentSkeleton;
@@ -383,7 +481,7 @@ void CTimeline::Render()
 		if(s==0)
 		{
 			pCurrentSkeleton = pSkeleton;
-			CurrentSkeletonPath = pSkeletonAnimation->m_SkeletonPath;
+			CurrentSkeletonPath = SkeletonPath;
 		}
 		else
 		{
@@ -396,12 +494,13 @@ void CTimeline::Render()
 		
 		for(int i=0; i<pCurrentSkeleton->m_Layers.size(); i++)
 		{
+			//Draw List
 			Graphics()->ClipEnable(m_ListRect.x, m_ListRect.y, m_ListRect.w, m_ListRect.h);
 			
 			char* pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 				CurrentSkeletonPath,
 				CAsset_Skeleton::LAYER_NAME,
-				CAsset_Skeleton::CSubPath::Layer(i).ConvertToInteger(),
+				CAsset_Skeleton::CSubPath::LocalLayer(i),
 				0);
 			
 			if(pText)
@@ -417,121 +516,83 @@ void CTimeline::Render()
 				TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 				TextRender()->TextEx(&Cursor, pText, -1);
 				
-				PosX -= m_pConfig->m_IconSize + m_pConfig->m_LabelMargin; //Icon size and space
+				PosX -= m_pConfig->m_IconSize/2 + m_pConfig->m_LabelMargin; //Icon size and space
 				
-				int SubX = CAssetsEditor::ICON_LAYERS%16;
-				int SubY = CAssetsEditor::ICON_LAYERS/16;
-				
-				Graphics()->TextureSet(m_pConfig->m_Texture);
-				Graphics()->QuadsBegin();
-				Graphics()->QuadsSetSubset(SubX/16.0f, SubY/16.0f, (SubX+1)/16.0f, (SubY+1)/16.0f);
-				IGraphics::CQuadItem QuadItem(PosX, CenterY - m_pConfig->m_IconSize/2, m_pConfig->m_IconSize, m_pConfig->m_IconSize);
-				Graphics()->QuadsDrawTL(&QuadItem, 1);
-				Graphics()->QuadsEnd();
+				TUGraphics()->DrawSprite(
+					CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERS),
+					vec2(PosX, CenterY),
+					1.0f, 0.0f, 0x0, 1.0f
+				);
 			}
 			
 			Graphics()->ClipDisable();
 			
-			Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
-			Graphics()->TextureClear();
-
-			CAsset_Skeleton::CBonePath LayerPath;
-			if(s == 0) LayerPath = CAsset_Skeleton::CBonePath::Local(i);
-			else LayerPath = CAsset_Skeleton::CBonePath::Parent(i);
-			
-			CAsset_SkeletonAnimation::CLayerAnimation* pAnimation = 0;
-			
-			int AnimId = -1;
-			for(int j=0; j<pSkeletonAnimation->m_LayerAnimations.size(); j++)
+			//Draw Frames
+			if(pSkeletonAnimation)
 			{
-				if(pSkeletonAnimation->m_LayerAnimations[j].m_LayerPath == LayerPath)
-				{
-					AnimId = j;
-					pAnimation = &pSkeletonAnimation->m_LayerAnimations[j];
-					break;
-				}
-			}
-			
-			if(pAnimation)
-			{
-				for(int j=0; j<pAnimation->m_KeyFrames.size(); j++)
-				{
-					CAsset_SkeletonAnimation::CSubPath SubPath = CAsset_SkeletonAnimation::CSubPath::LayerKeyFrame(AnimId, j);
-					
-					float Time = pAnimation->m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
-					float TimePos = TimeToTimeline(Time);
-					
-					if(pAnimation->m_KeyFrames[j].m_State == CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE)
-					{
-						Graphics()->QuadsBegin();
-						
-						if(SubPath == m_DragedElement)
-							Graphics()->SetColor(1.0f, 1.0f, 0.0f, 1.0f);
-						else
-						{
-							vec4 LayerColor = pAnimation->m_KeyFrames[j].m_Color;
-							Graphics()->SetColor(LayerColor.r, LayerColor.g, LayerColor.b, 1.0f);
-						}
+				Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
 
-						IGraphics::CFreeformItem Freeform1(
-							TimePos, FrameY,
-							TimePos, FrameY+m_FrameHeight,
-							TimePos+4.0f, FrameY+4.0f,
-							TimePos+4.0f, FrameY+m_FrameHeight-4.0f);
-						Graphics()->QuadsDrawFreeform(&Freeform1, 1);
-						
-						if(SubPath == m_DragedElement)
-							Graphics()->SetColor(1.0f, 1.0f, 0.0f, 1.0f);
-						else
-						{
-							vec4 LayerColor = pAnimation->m_KeyFrames[j].m_Color;
-							Graphics()->SetColor(LayerColor.r*LayerColor.a, LayerColor.g*LayerColor.a, LayerColor.b*LayerColor.a, LayerColor.a);
-						}
-						
-						IGraphics::CFreeformItem Freeform2(
-							TimePos, FrameY,
-							TimePos, FrameY+m_FrameHeight,
-							TimePos-4.0f, FrameY+4.0f,
-							TimePos-4.0f, FrameY+m_FrameHeight-4.0f);
-						Graphics()->QuadsDrawFreeform(&Freeform2, 1);
-						
-						Graphics()->QuadsEnd();
-					}
-					else
+				CAsset_Skeleton::CSubPath LayerPath;
+				if(s == 0) LayerPath = CAsset_Skeleton::CSubPath::LocalLayer(i);
+				else LayerPath = CAsset_Skeleton::CSubPath::ParentLayer(i);
+				
+				CAsset_SkeletonAnimation::CLayerAnimation* pAnimation = 0;
+				
+				int AnimId = -1;
+				for(int j=0; j<pSkeletonAnimation->m_LayerAnimations.size(); j++)
+				{
+					if(pSkeletonAnimation->m_LayerAnimations[j].m_LayerPath == LayerPath)
 					{
-						Graphics()->LinesBegin();
-						if(SubPath == m_DragedElement)
-							Graphics()->SetColor(1.0f, 1.0f, 0.0f, 1.0f);
-						else
-						{
-							vec4 LayerColor = pAnimation->m_KeyFrames[j].m_Color;
-							Graphics()->SetColor(LayerColor.r, LayerColor.g, LayerColor.b, 1.0f);
-						}
-						
-						IGraphics::CLineItem FrameBorder[6] = {
-							IGraphics::CLineItem(TimePos, FrameY, TimePos-4.0f, FrameY+4.0f),
-							IGraphics::CLineItem(TimePos-4.0f, FrameY+4.0f, TimePos-4.0f, FrameY+m_FrameHeight-4.0f),
-							IGraphics::CLineItem(TimePos-4.0f, FrameY+m_FrameHeight-4.0f, TimePos, FrameY+m_FrameHeight),
-							IGraphics::CLineItem(TimePos, FrameY+m_FrameHeight, TimePos+4.0f, FrameY+m_FrameHeight-4.0f),
-							IGraphics::CLineItem(TimePos+4.0f, FrameY+m_FrameHeight-4.0f, TimePos+4.0f, FrameY+4.0f),
-							IGraphics::CLineItem(TimePos+4.0f, FrameY+4.0f, TimePos, FrameY),
-						};
-						Graphics()->LinesDraw(FrameBorder, 6);
-						
-						Graphics()->LinesEnd();
+						AnimId = j;
+						pAnimation = &pSkeletonAnimation->m_LayerAnimations[j];
+						break;
 					}
 				}
+				
+				if(pAnimation)
+				{
+					for(int j=0; j<pAnimation->m_KeyFrames.size(); j++)
+					{
+						CAsset_SkeletonAnimation::CSubPath SubPath = CAsset_SkeletonAnimation::CSubPath::LayerKeyFrame(AnimId, j);
+						
+						float Time = pAnimation->m_KeyFrames[j].m_Time / static_cast<float>(TU_SKELETONANIMATION_TIMESTEP);
+						float TimePos = TimeToTimeline(Time);
+						
+						if(pAnimation->m_KeyFrames[j].m_State == CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE)
+						{
+							vec4 Color = pAnimation->m_KeyFrames[j].m_Color;
+							TUGraphics()->DrawSprite(
+								CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME_COLORED_BG),
+								vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+								1.0f, 0.0f, 0x0, Color
+							);
+							Color.a = 1.0;
+							TUGraphics()->DrawSprite(
+								CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME_COLORED_FG),
+								vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+								1.0f, 0.0f, 0x0, Color
+							);
+						}
+						else
+						{
+							TUGraphics()->DrawSprite(
+								CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME_HIDDEN),
+								vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+								1.0f, 0.0f, 0x0, 1.0f
+							);
+						}
+					}
+				}
+				
+				Graphics()->TextureClear();
+				Graphics()->LinesBegin();
+				Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.5f);
+				IGraphics::CLineItem Separator(m_TimelineRect.x, FrameY-1, m_TimelineRect.x+m_TimelineRect.w, FrameY-1);
+				Graphics()->LinesDraw(&Separator, 1);
+				Graphics()->LinesEnd();
+			
+				Graphics()->ClipDisable();
 			}
-			
-			Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
-			
-			Graphics()->LinesBegin();
-			Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.5f);
-			IGraphics::CLineItem Separator(m_TimelineRect.x, FrameY-1, m_TimelineRect.x+m_TimelineRect.w, FrameY-1);
-			Graphics()->LinesDraw(&Separator, 1);
-			Graphics()->LinesEnd();
-		
-			Graphics()->ClipDisable();
 				
 			FrameY += m_FrameHeight + 2.0f*m_FrameMargin;
 			m_ValueHeight += m_FrameHeight + 2.0f*m_FrameMargin;
@@ -546,41 +607,26 @@ void CTimeline::Render()
 			float Time = TimelineToTime(m_CursorX);
 			int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
 				
-			bool DrawOutline = false;
-			CAsset_Skeleton::CBonePath BonePath = BonePicking(m_CursorX, m_CursorY);
-			if(!BonePath.IsNull())
-			{
-				DrawOutline = true;
-			}
-			else
-			{
-				CAsset_Skeleton::CBonePath LayerPath = LayerPicking(m_CursorX, m_CursorY);
-				if(!LayerPath.IsNull())
-				{
-					DrawOutline = true;
-				}
-			}
+			bool DrawGizmo = false;
+			CAsset_Skeleton::CSubPath SubPath = AnimationPicking(m_CursorX, m_CursorY);
+			if(!SubPath.IsNull())
+				DrawGizmo = true;
 			
-			if(DrawOutline)
+			if(DrawGizmo)
 			{
 				int ListId = (m_CursorY - m_TimelineTop + m_ValueScroll)/(m_FrameHeight + 2*m_FrameMargin);
 				float TimePos = TimeToTimeline(Frame/static_cast<float>(TU_SKELETONANIMATION_TIMESTEP));
 				float FrameY = m_TimelineTop-m_ValueScroll+m_FrameMargin;
 				FrameY += (m_FrameHeight + 2.0f*m_FrameMargin)*ListId;
-				Graphics()->LinesBegin();
-				Graphics()->SetColor(0.0f, 1.0f, 0.0f, 1.0f);
 				
-				IGraphics::CLineItem FrameBorder[6] = {
-					IGraphics::CLineItem(TimePos, FrameY, TimePos-4.0f, FrameY+4.0f),
-					IGraphics::CLineItem(TimePos-4.0f, FrameY+4.0f, TimePos-4.0f, FrameY+m_FrameHeight-4.0f),
-					IGraphics::CLineItem(TimePos-4.0f, FrameY+m_FrameHeight-4.0f, TimePos, FrameY+m_FrameHeight),
-					IGraphics::CLineItem(TimePos, FrameY+m_FrameHeight, TimePos+4.0f, FrameY+m_FrameHeight-4.0f),
-					IGraphics::CLineItem(TimePos+4.0f, FrameY+m_FrameHeight-4.0f, TimePos+4.0f, FrameY+4.0f),
-					IGraphics::CLineItem(TimePos+4.0f, FrameY+4.0f, TimePos, FrameY),
-				};
-				Graphics()->LinesDraw(FrameBorder, 6);
+				Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
 				
-				Graphics()->LinesEnd();
+				TUGraphics()->DrawSprite(
+					CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME_ADD),
+					vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+					1.0f, 0.0f, 0x0, 1.0f
+				);
+				
 				Graphics()->ClipDisable();
 			}
 		}
@@ -597,20 +643,15 @@ void CTimeline::Render()
 			float TimePos = TimeToTimeline(Frame/static_cast<float>(TU_SKELETONANIMATION_TIMESTEP));
 			float FrameY = m_TimelineTop-m_ValueScroll+m_FrameMargin;
 			FrameY += (m_FrameHeight + 2.0f*m_FrameMargin)*ListId;
-			Graphics()->LinesBegin();
-			Graphics()->SetColor(1.0f, 0.0f, 0.0f, 1.0f);
 			
-			IGraphics::CLineItem FrameBorder[6] = {
-				IGraphics::CLineItem(TimePos, FrameY, TimePos-4.0f, FrameY+4.0f),
-				IGraphics::CLineItem(TimePos-4.0f, FrameY+4.0f, TimePos-4.0f, FrameY+m_FrameHeight-4.0f),
-				IGraphics::CLineItem(TimePos-4.0f, FrameY+m_FrameHeight-4.0f, TimePos, FrameY+m_FrameHeight),
-				IGraphics::CLineItem(TimePos, FrameY+m_FrameHeight, TimePos+4.0f, FrameY+m_FrameHeight-4.0f),
-				IGraphics::CLineItem(TimePos+4.0f, FrameY+m_FrameHeight-4.0f, TimePos+4.0f, FrameY+4.0f),
-				IGraphics::CLineItem(TimePos+4.0f, FrameY+4.0f, TimePos, FrameY),
-			};
-			Graphics()->LinesDraw(FrameBorder, 6);
+			Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
 			
-			Graphics()->LinesEnd();
+			TUGraphics()->DrawSprite(
+				CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME_DELETE),
+				vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+				1.0f, 0.0f, 0x0, 1.0f
+			);
+			
 			Graphics()->ClipDisable();
 		}
 	}
@@ -631,20 +672,26 @@ void CTimeline::Render()
 				float TimePos = TimeToTimeline(Frame/static_cast<float>(TU_SKELETONANIMATION_TIMESTEP));
 				float FrameY = m_TimelineTop-m_ValueScroll+m_FrameMargin;
 				FrameY += (m_FrameHeight + 2.0f*m_FrameMargin)*ListId;
-				Graphics()->LinesBegin();
-				Graphics()->SetColor(1.0f, 1.0f, 0.0f, 1.0f);
 				
-				IGraphics::CLineItem FrameBorder[6] = {
-					IGraphics::CLineItem(TimePos, FrameY, TimePos-4.0f, FrameY+4.0f),
-					IGraphics::CLineItem(TimePos-4.0f, FrameY+4.0f, TimePos-4.0f, FrameY+m_FrameHeight-4.0f),
-					IGraphics::CLineItem(TimePos-4.0f, FrameY+m_FrameHeight-4.0f, TimePos, FrameY+m_FrameHeight),
-					IGraphics::CLineItem(TimePos, FrameY+m_FrameHeight, TimePos+4.0f, FrameY+m_FrameHeight-4.0f),
-					IGraphics::CLineItem(TimePos+4.0f, FrameY+m_FrameHeight-4.0f, TimePos+4.0f, FrameY+4.0f),
-					IGraphics::CLineItem(TimePos+4.0f, FrameY+4.0f, TimePos, FrameY),
-				};
-				Graphics()->LinesDraw(FrameBorder, 6);
+				Graphics()->ClipEnable(m_TimelineRect.x, m_TimelineRect.y, m_TimelineRect.w, m_TimelineRect.h);
 				
-				Graphics()->LinesEnd();
+				if(m_CursorTool == CTimeline::CURSORTOOL_FRAME_COLOR)
+				{
+					TUGraphics()->DrawSprite(
+						CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME_COLOR),
+						vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+						1.0f, 0.0f, 0x0, 1.0f
+					);
+				}
+				else
+				{
+					TUGraphics()->DrawSprite(
+						CAssetPath::SpriteUniverse(SPRITE_GIZMOFRAME_SELECT),
+						vec2(TimePos, FrameY+m_FrameHeight/2.0f),
+						1.0f, 0.0f, 0x0, 1.0f
+					);
+				}
+				
 				Graphics()->ClipDisable();
 			}
 		}
@@ -663,17 +710,20 @@ CAsset_SkeletonAnimation::CSubPath CTimeline::KeyFramePicking(int X, int Y)
 	if(ListId < 0)
 		return CAsset_SkeletonAnimation::CSubPath::Null();
 	
-	CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_EditedAssetPath);
+	CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
+	CAssetPath SkeletonPath = GetSkeletonPath();
+	
+	CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
 	if(!pSkeletonAnimation)
 		return CAsset_SkeletonAnimation::CSubPath::Null();
 	
-	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
+	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
 	if(!pSkeleton)
 		return CAsset_SkeletonAnimation::CSubPath::Null();
 	
 	//Bones
 	if(ListId < pSkeleton->m_Bones.size())
-		return pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Local(ListId), Frame);
+		return pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CSubPath::LocalBone(ListId), Frame);
 	else
 		ListId -= pSkeleton->m_Bones.size();
 	
@@ -682,14 +732,14 @@ CAsset_SkeletonAnimation::CSubPath CTimeline::KeyFramePicking(int X, int Y)
 	if(pSkeletonParent)
 	{
 		if(ListId < pSkeletonParent->m_Bones.size())
-			return pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Parent(ListId), Frame);
+			return pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CSubPath::ParentBone(ListId), Frame);
 		else
 			ListId -= pSkeletonParent->m_Bones.size();
 	}
 	
 	//Layers
 	if(ListId < pSkeleton->m_Layers.size())
-		return pSkeletonAnimation->GetLayerKeyFramePath(CAsset_Skeleton::CBonePath::Local(ListId), Frame);
+		return pSkeletonAnimation->GetLayerKeyFramePath(CAsset_Skeleton::CSubPath::LocalLayer(ListId), Frame);
 	else
 		ListId -= pSkeleton->m_Layers.size();
 	
@@ -697,7 +747,7 @@ CAsset_SkeletonAnimation::CSubPath CTimeline::KeyFramePicking(int X, int Y)
 	if(pSkeletonParent)
 	{
 		if(ListId < pSkeletonParent->m_Layers.size())
-			return pSkeletonAnimation->GetLayerKeyFramePath(CAsset_Skeleton::CBonePath::Parent(ListId), Frame);
+			return pSkeletonAnimation->GetLayerKeyFramePath(CAsset_Skeleton::CSubPath::ParentLayer(ListId), Frame);
 		else
 			ListId -= pSkeletonParent->m_Layers.size();
 	}
@@ -705,63 +755,27 @@ CAsset_SkeletonAnimation::CSubPath CTimeline::KeyFramePicking(int X, int Y)
 	return CAsset_SkeletonAnimation::CSubPath::Null();
 }
 
-CAsset_Skeleton::CBonePath CTimeline::BonePicking(int X, int Y)
+CAsset_Skeleton::CSubPath CTimeline::AnimationPicking(int X, int Y)
 {
 	if(!m_TimelineRect.IsInside(X, Y))
-		return CAsset_Skeleton::CBonePath::Null();
-	
-	int ListId = (Y - m_TimelineTop + m_ValueScroll)/(m_FrameHeight + 2*m_FrameMargin);
-	if(ListId < 0)
-		return CAsset_Skeleton::CBonePath::Null();
-	
-	CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_EditedAssetPath);
-	if(!pSkeletonAnimation)
-		return CAsset_Skeleton::CBonePath::Null();
-	
-	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
-	if(!pSkeleton)
-		return CAsset_Skeleton::CBonePath::Null();
-	
-	//Bones
-	if(ListId < pSkeleton->m_Bones.size())
-		return CAsset_Skeleton::CBonePath::Local(ListId);
-	else
-		ListId -= pSkeleton->m_Bones.size();
-	
-	//Parent bones
-	CAsset_Skeleton* pSkeletonParent = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(pSkeleton->m_ParentPath);
-	if(pSkeletonParent)
-	{
-		if(ListId < pSkeletonParent->m_Bones.size())
-			return CAsset_Skeleton::CBonePath::Parent(ListId);
-	}
-	
-	return CAsset_Skeleton::CBonePath::Null();
-}
-
-CAsset_Skeleton::CBonePath CTimeline::LayerPicking(int X, int Y)
-{
-	if(!m_TimelineRect.IsInside(X, Y))
-		return CAsset_Skeleton::CBonePath::Null();
+		return CAsset_Skeleton::CSubPath::Null();
 		
 	float Time = TimelineToTime(X);
 	int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
 	
 	int ListId = (Y - m_TimelineTop + m_ValueScroll)/(m_FrameHeight + 2*m_FrameMargin);
 	if(ListId < 0)
-		return CAsset_Skeleton::CBonePath::Null();
+		return CAsset_Skeleton::CSubPath::Null();
 	
-	CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_EditedAssetPath);
-	if(!pSkeletonAnimation)
-		return CAsset_Skeleton::CBonePath::Null();
+	CAssetPath SkeletonPath = GetSkeletonPath();
 	
-	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
+	CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
 	if(!pSkeleton)
-		return CAsset_Skeleton::CBonePath::Null();
+		return CAsset_Skeleton::CSubPath::Null();
 	
-	//Bones
+	//Local bones
 	if(ListId < pSkeleton->m_Bones.size())
-		return CAsset_Skeleton::CBonePath::Null();
+		return CAsset_Skeleton::CSubPath::LocalBone(ListId);
 	else
 		ListId -= pSkeleton->m_Bones.size();
 	
@@ -770,27 +784,27 @@ CAsset_Skeleton::CBonePath CTimeline::LayerPicking(int X, int Y)
 	if(pSkeletonParent)
 	{
 		if(ListId < pSkeletonParent->m_Bones.size())
-			return CAsset_Skeleton::CBonePath::Null();
+			return CAsset_Skeleton::CSubPath::ParentBone(ListId);
 		else
 			ListId -= pSkeletonParent->m_Bones.size();
 	}
 	
-	//Layers
+	//Local layers
 	if(ListId < pSkeleton->m_Layers.size())
-		return CAsset_Skeleton::CBonePath::Local(ListId);
+		return CAsset_Skeleton::CSubPath::LocalLayer(ListId);
 	else
 		ListId -= pSkeleton->m_Layers.size();
 	
-	//Parent bones
+	//Parent layers
 	if(pSkeletonParent)
 	{
 		if(ListId < pSkeletonParent->m_Layers.size())
-			return CAsset_Skeleton::CBonePath::Parent(ListId);
+			return CAsset_Skeleton::CSubPath::ParentLayer(ListId);
 		else
 			ListId -= pSkeletonParent->m_Layers.size();
 	}
 	
-	return CAsset_Skeleton::CBonePath::Null();
+	return CAsset_Skeleton::CSubPath::Null();
 }
 	
 void CTimeline::OnButtonClick(int X, int Y, int Button, int Count)
@@ -798,55 +812,54 @@ void CTimeline::OnButtonClick(int X, int Y, int Button, int Count)
 	if(Button == KEY_MOUSE_1 && m_TimelineRect.IsInside(X, Y))
 	{
 		if(m_CursorTool == CTimeline::CURSORTOOL_FRAME_ADD)
-		{
+		{			
 			CAsset_SkeletonAnimation::CSubPath KeyFramePath = KeyFramePicking(X, Y);
 			if(!KeyFramePath.IsNull())
 				return;
-				
-			CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_EditedAssetPath);
-			if(!pSkeletonAnimation)
-				return;
-			
-			CAsset_Skeleton::CBonePath BonePath = BonePicking(X, Y);
-			if(!BonePath.IsNull())
+					
+			CAsset_Skeleton::CSubPath SubPath = AnimationPicking(X, Y);
+			if(!SubPath.IsNull())
 			{
+				CreateAnimationIfNeeded();
+				
+				CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
+				CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
+				if(!pSkeletonAnimation)
+					return;
+				
 				float Time = TimelineToTime(X);
 				int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
 				
-				pSkeletonAnimation->AddBoneKeyFrame(BonePath, Frame);
+				if(SubPath.GetType() == CAsset_Skeleton::CSubPath::TYPE_BONE)
+					pSkeletonAnimation->AddBoneKeyFrame(SubPath, Frame);
+				else if(SubPath.GetType() == CAsset_Skeleton::CSubPath::TYPE_LAYER)
+					pSkeletonAnimation->AddLayerKeyFrame(SubPath, Frame);
+				
 				m_pAssetsEditor->RefreshAssetsEditor();
-			}
-			else
-			{
-				CAsset_Skeleton::CBonePath LayerPath = LayerPicking(X, Y);
-				if(!LayerPath.IsNull())
-				{
-					float Time = TimelineToTime(X);
-					int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
-					
-					pSkeletonAnimation->AddLayerKeyFrame(LayerPath, Frame);
-					m_pAssetsEditor->RefreshAssetsEditor();
-				}
 			}
 		}
 		else if(m_CursorTool == CTimeline::CURSORTOOL_FRAME_DELETE)
 		{
+			CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
+			
 			CAsset_SkeletonAnimation::CSubPath KeyFramePath = KeyFramePicking(X, Y);
 			if(!KeyFramePath.IsNull())
 			{
-				m_pAssetsEditor->AssetsManager()->DeleteSubItem(m_pAssetsEditor->m_EditedAssetPath, KeyFramePath.ConvertToInteger());
+				m_pAssetsEditor->AssetsManager()->DeleteSubItem(SkeletonAnimationPath, KeyFramePath);
 				m_pAssetsEditor->RefreshAssetsEditor();
 			}
 		}
 		else if(m_CursorTool == CTimeline::CURSORTOOL_FRAME_COLOR)
 		{
+			CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
+			
 			CAsset_SkeletonAnimation::CSubPath KeyFramePath = KeyFramePicking(X, Y);
 			if(!KeyFramePath.IsNull() && KeyFramePath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 			{
-				m_pAssetsEditor->EditAssetSubItem(m_pAssetsEditor->m_EditedAssetPath, m_DragedElement.ConvertToInteger(), CEditor::TAB_SKELETONANIMATION_KEYFRAMES);
+				m_pAssetsEditor->EditAssetSubItem(SkeletonAnimationPath, m_DragedElement, CEditor::TAB_SKELETONANIMATION_KEYFRAMES);
 				m_pAssetsEditor->DisplayPopup(new CPopup_ColorEdit(
 					m_pAssetsEditor, tu::gui::CRect(X-15, Y-15, 30, 30), tu::gui::CPopup::ALIGNMENT_LEFT,
-					m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::LAYERKEYFRAME_COLOR, KeyFramePath.ConvertToInteger()
+					SkeletonAnimationPath, CAsset_SkeletonAnimation::LAYERKEYFRAME_COLOR, KeyFramePath
 				));
 			}
 			else
@@ -859,6 +872,8 @@ void CTimeline::OnButtonClick(int X, int Y, int Button, int Count)
 		}
 		else if(m_CursorTool == CTimeline::CURSORTOOL_FRAME_MOVE)
 		{
+			CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
+			
 			CAsset_SkeletonAnimation::CSubPath KeyFramePath = KeyFramePicking(X, Y);
 			if(!KeyFramePath.IsNull())
 			{
@@ -866,13 +881,13 @@ void CTimeline::OnButtonClick(int X, int Y, int Button, int Count)
 				{
 					m_Drag = 2;
 					m_DragedElement = KeyFramePath;
-					m_pAssetsEditor->EditAssetSubItem(m_pAssetsEditor->m_EditedAssetPath, m_DragedElement.ConvertToInteger(), CEditor::TAB_SKELETONANIMATION_KEYFRAMES);
+					m_pAssetsEditor->EditAssetSubItem(SkeletonAnimationPath, m_DragedElement, CEditor::TAB_SKELETONANIMATION_KEYFRAMES);
 				}
 				else if(KeyFramePath.GetType() == CAsset_SkeletonAnimation::CSubPath::TYPE_LAYERKEYFRAME)
 				{
 					m_Drag = 3;
 					m_DragedElement = KeyFramePath;
-					m_pAssetsEditor->EditAssetSubItem(m_pAssetsEditor->m_EditedAssetPath, m_DragedElement.ConvertToInteger(), CEditor::TAB_SKELETONANIMATION_KEYFRAMES);
+					m_pAssetsEditor->EditAssetSubItem(SkeletonAnimationPath, m_DragedElement, CEditor::TAB_SKELETONANIMATION_KEYFRAMES);
 				}
 			}
 			else
@@ -938,15 +953,17 @@ void CTimeline::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 				float Time = TimelineToTime(X);
 				int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
 				
+				CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
+				
 				if(m_pAssetsEditor->AssetsManager()->SetAssetValue<int>(
-					m_pAssetsEditor->m_EditedAssetPath,
+					SkeletonAnimationPath,
+					m_DragedElement,
 					CAsset_SkeletonAnimation::BONEKEYFRAME_TIME,
-					m_DragedElement.ConvertToInteger(),
 					Frame
 				))
 				{
 					//Get the new Id of the frame
-					CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_EditedAssetPath);
+					CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
 					if(pSkeletonAnimation)
 					{
 						m_DragedElement = pSkeletonAnimation->GetBoneKeyFramePath(CAsset_SkeletonAnimation::CSubPath::BoneAnimation(m_DragedElement.GetId()), Frame);
@@ -969,15 +986,17 @@ void CTimeline::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 				float Time = TimelineToTime(X);
 				int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
 				
+				CAssetPath SkeletonAnimationPath = GetSkeletonAnimationPath();
+				
 				if(m_pAssetsEditor->AssetsManager()->SetAssetValue<int>(
-					m_pAssetsEditor->m_EditedAssetPath,
+					SkeletonAnimationPath,
+					m_DragedElement,
 					CAsset_SkeletonAnimation::LAYERKEYFRAME_TIME,
-					m_DragedElement.ConvertToInteger(),
 					Frame
 				))
 				{
 					//Get the new Id of the frame
-					CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(m_pAssetsEditor->m_EditedAssetPath);
+					CAsset_SkeletonAnimation* pSkeletonAnimation = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
 					if(pSkeletonAnimation)
 					{
 						m_DragedElement = pSkeletonAnimation->GetLayerKeyFramePath(CAsset_SkeletonAnimation::CSubPath::LayerAnimation(m_DragedElement.GetId()), Frame);

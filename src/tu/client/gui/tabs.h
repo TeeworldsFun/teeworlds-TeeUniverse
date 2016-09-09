@@ -16,7 +16,7 @@ class CTabs : public CWidget
 public:
 	struct CTab
 	{
-		int m_IconId;
+		CAssetPath m_IconPath;
 		char m_aHint[128];
 		CWidget* m_pWidget;
 		CRect m_Rect;
@@ -39,7 +39,7 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnInputEvent();
 	
-	void AddTab(CWidget* pWidget, int IconId, const char* pHint);
+	void AddTab(CWidget* pWidget, CAssetPath IconPath, const char* pHint);
 	void Clear();
 };
 

@@ -23,7 +23,7 @@ public:
 		int m_AttackAnimationPath;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 	
 /* MEMBERS ************************************************************/

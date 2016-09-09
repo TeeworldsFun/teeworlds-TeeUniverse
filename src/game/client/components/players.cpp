@@ -224,7 +224,7 @@ void CPlayers::RenderPlayer(
 	bool InAir = !Collision()->CheckPoint(Player.m_X, Player.m_Y+16);
 	bool WantOtherDir = (Player.m_Direction == -1 && Vel.x > 0) || (Player.m_Direction == 1 && Vel.x < 0);
 	
-	tu::CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
+	tu::CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
 	SkeletonRenderer.SetAim(AimDir);
 	SkeletonRenderer.SetMotion(MotionDir);
 	
@@ -235,9 +235,9 @@ void CPlayers::RenderPlayer(
 		pCharacterPart[i] = AssetsManager()->GetAsset<tu::CAsset_CharacterPart>(RenderInfo.m_aCharacterParts[i]);
 		if(pCharacterPart[i])
 		{
-			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart[i]->m_SkeletonSkinPath, RenderInfo.m_aColors[i]);
+			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart[i]->GetSkeletonSkinPath(), RenderInfo.m_aColors[i]);
 			if(CharacterPath.IsNull())
-				CharacterPath = pCharacterPart[i]->m_CharacterPath;
+				CharacterPath = pCharacterPart[i]->GetCharacterPath();
 		}
 	}
 	
@@ -249,16 +249,16 @@ void CPlayers::RenderPlayer(
 		{
 			if(!GotAirJump && g_Config.m_ClAirjumpindicator)
 			{
-				SkeletonRenderer.ApplyAnimation(pCharacter->m_UncontrolledJumpPath, 0.0f);
+				SkeletonRenderer.ApplyAnimation(pCharacter->GetUncontrolledJumpPath(), 0.0f);
 			}
 			else
 			{
-				SkeletonRenderer.ApplyAnimation(pCharacter->m_ControlledJumpPath, 0.0f);
+				SkeletonRenderer.ApplyAnimation(pCharacter->GetControlledJumpPath(), 0.0f);
 			}
 		}
 		else if(Stationary)
 		{
-			SkeletonRenderer.ApplyAnimation(pCharacter->m_IdlePath, 0.0f);
+			SkeletonRenderer.ApplyAnimation(pCharacter->GetIdlePath(), 0.0f);
 		}
 		else if(!WantOtherDir)
 		{
@@ -269,7 +269,7 @@ void CPlayers::RenderPlayer(
 					: WalkTimeMagic - fmod(-Position.x, WalkTimeMagic))
 				/ WalkTimeMagic;
 			
-			SkeletonRenderer.ApplyAnimation(pCharacter->m_WalkPath, WalkTime);
+			SkeletonRenderer.ApplyAnimation(pCharacter->GetWalkPath(), WalkTime);
 		}
 	}
 	

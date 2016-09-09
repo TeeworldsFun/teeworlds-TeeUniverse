@@ -27,6 +27,7 @@ protected:
 	gui::CVListLayout* m_Layout;
 	char m_aDirectory[256];
 	bool m_NeedRefresh;
+	int m_Source;
 	
 protected:
 	class CItem : public gui::CTextButton
@@ -55,7 +56,8 @@ protected:
 			{
 				char aBuf[512];
 				str_format(aBuf, sizeof(aBuf), "%s/%s", m_pPopup->m_aDirectory, m_aFilename);
-				CAssetPath Path = m_pAssetsEditor->AssetsManager()->AddImage(m_StorageType, aBuf, CAssetPath::SRC_WORLD);
+				CAssetPath Path;
+				CAsset_Image* pImage = m_pAssetsEditor->AssetsManager()->NewImage(&Path, m_pPopup->m_Source, m_StorageType, aBuf, -1);
 				if(!Path.IsNull())
 				{
 					m_pAssetsEditor->NewAsset(Path);
@@ -66,7 +68,7 @@ protected:
 		
 	public:
 		CItem(CPopup_AddImage* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, IsDir ? CAssetsEditor::ICON_MAPGROUP : CAssetsEditor::ICON_IMAGE),
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, IsDir ? CAssetPath::SpriteUniverse(SPRITE_ICON_FOLDER) : CAssetPath::SpriteUniverse(SPRITE_ICON_IMAGE)),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -79,9 +81,10 @@ protected:
 	};
 	
 public:
-	CPopup_AddImage(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment) :
+	CPopup_AddImage(CAssetsEditor* pAssetsEditor, const gui::CRect& CreatorRect, int Alignment, int Source) :
 		gui::CPopup(pAssetsEditor->m_pGuiConfig, CreatorRect, 300, 500, Alignment),
-		m_pAssetsEditor(pAssetsEditor)
+		m_pAssetsEditor(pAssetsEditor),
+		m_Source(Source)
 	{	
 		str_copy(m_aDirectory, ".", sizeof(m_aDirectory));
 			
@@ -112,7 +115,6 @@ public:
 	
 	virtual void Update()
 	{
-		dbg_msg("TeeUniv", "Directory:%s", m_aDirectory);
 		m_Layout->Clear();
 		m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, m_aDirectory, FileListFetchCallback, this);
 		gui::CPopup::Update();
@@ -149,7 +151,7 @@ protected:
 	protected:
 		virtual void MouseClickAction()
 		{
-			m_pAssetsEditor->AssetsManager()->SetAssetValue<CAssetPath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, m_FieldAssetPath);
+			m_pAssetsEditor->AssetsManager()->SetAssetValue<CAssetPath>(m_ParentAssetPath, m_ParentAssetSubId, m_ParentAssetMember, m_FieldAssetPath);
 			m_pAssetsEditor->RefreshAssetsEditor();
 			m_pAssetsEditor->RefreshAssetsList();
 		}
@@ -173,35 +175,35 @@ protected:
 			}
 			else
 			{
-				int IconId = -1;
+				CAssetPath IconPath = -1;
 				switch(FieldAssetPath.GetType())
 				{
 					case CAssetPath::TYPE_IMAGE:
-						IconId = CAssetsEditor::ICON_IMAGE;
+						IconPath = CAssetPath::SpriteUniverse(SPRITE_ICON_IMAGE);
 						break;
 					case CAssetPath::TYPE_SPRITE:
-						IconId = CAssetsEditor::ICON_SPRITE;
+						IconPath = CAssetPath::SpriteUniverse(SPRITE_ICON_SPRITE);
 						break;
 					case CAssetPath::TYPE_SKELETON:
-						IconId = CAssetsEditor::ICON_SKELETON;
+						IconPath = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETON);
 						break;
 					case CAssetPath::TYPE_SKELETONSKIN:
-						IconId = CAssetsEditor::ICON_SKELETONSKIN;
+						IconPath = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONSKIN);
 						break;
 					case CAssetPath::TYPE_SKELETONANIMATION:
-						IconId = CAssetsEditor::ICON_SKELETONANIMATION;
+						IconPath = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONANIMATION);
 						break;
 					case CAssetPath::TYPE_CHARACTER:
-						IconId = CAssetsEditor::ICON_CHARACTER;
+						IconPath = CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTER);
 						break;
 					case CAssetPath::TYPE_CHARACTERPART:
-						IconId = CAssetsEditor::ICON_CHARACTERPART;
+						IconPath = CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTERPART);
 						break;
 				}
 				
 				char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_FieldAssetPath, CAsset::NAME, -1, 0);
 				SetText(pName);
-				SetIcon(IconId);
+				SetIcon(IconPath);
 			}
 		}
 	};
@@ -279,7 +281,7 @@ public:
 			m_Layout->AddSeparator();\
 			m_Layout->Add(new gui::CLabel(m_pConfig, "Land", gui::TEXTSTYLE_HEADER2));\
 			for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_LAND); i++)\
-				AddListElement(CAssetPath::World(ClassName::TypeId, i));\
+				AddListElement(CAssetPath::Land(ClassName::TypeId, i));\
 			break;
 		
 		switch(m_FieldAssetType)
@@ -309,21 +311,21 @@ protected:
 	{
 	protected:
 		CPopup_BoneEdit* m_pPopup;
-		CAsset_Skeleton::CBonePath m_BonePath;
+		CAsset_Skeleton::CSubPath m_BonePath;
 		
 	protected:
 		virtual void MouseClickAction()
 		{
-			m_pPopup->m_pAssetsEditor->AssetsManager()->SetAssetValue<CAsset_Skeleton::CBonePath>(
+			m_pPopup->m_pAssetsEditor->AssetsManager()->SetAssetValue<CAsset_Skeleton::CSubPath>(
 				m_pPopup->m_AssetPath,
-				m_pPopup->m_AssetMember,
 				m_pPopup->m_AssetSubPath,
+				m_pPopup->m_AssetMember,
 				m_BonePath);
 			m_pPopup->m_pAssetsEditor->RefreshAssetsEditor();
 		}
 		
 	public:
-		CItem(CPopup_BoneEdit* pPopup, CAsset_Skeleton::CBonePath BonePath) :
+		CItem(CPopup_BoneEdit* pPopup, CAsset_Skeleton::CSubPath BonePath) :
 			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
 			m_pPopup(pPopup),
 			m_BonePath(BonePath)
@@ -336,15 +338,11 @@ protected:
 			}
 			else
 			{
-				if(m_BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
+				if(m_BonePath.GetSource() == CAsset_Skeleton::CSubPath::SRC_LOCAL)
 				{
-					char* pName = pPopup->m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
-						pPopup->m_SkeletonPath,
-						CAsset_Skeleton::BONE_NAME,
-						CAsset_Skeleton::CSubPath::Bone(m_BonePath.GetId()).ConvertToInteger(),
-						0);
+					char* pName = pPopup->m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pPopup->m_SkeletonPath, CAsset_Skeleton::BONE_NAME, m_BonePath, 0);
 					SetText(pName);
-					SetIcon(CAssetsEditor::ICON_BONE);
+					SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_BONE));
 				}
 				else
 				{
@@ -354,10 +352,10 @@ protected:
 						char* pName = pPopup->m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 							pSkeleton->m_ParentPath,
 							CAsset_Skeleton::BONE_NAME,
-							CAsset_Skeleton::CSubPath::Bone(m_BonePath.GetId()).ConvertToInteger(),
+							CAsset_Skeleton::CSubPath::LocalBone(m_BonePath.GetId()),
 							0);
 						SetText(pName);
-						SetIcon(CAssetsEditor::ICON_BONE);
+						SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_BONE));
 					}					
 				}
 			}
@@ -400,7 +398,7 @@ public:
 			m_Layout->Add(new gui::CLabel(m_pConfig, "Local bones", gui::TEXTSTYLE_HEADER));\
 			for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 			{
-				CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Local(i));
+				CItem* pItem = new CItem(this, CAsset_Skeleton::CSubPath::LocalBone(i));
 				m_Layout->Add(pItem);
 			}
 			
@@ -412,7 +410,7 @@ public:
 					m_Layout->Add(new gui::CLabel(m_pConfig, "Parent bones", gui::TEXTSTYLE_HEADER));\
 					for(int i=0; i<pParentSkeleton->m_Bones.size(); i++)
 					{
-						CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Parent(i));
+						CItem* pItem = new CItem(this, CAsset_Skeleton::CSubPath::ParentBone(i));
 						m_Layout->Add(pItem);
 					}
 				}
@@ -439,21 +437,21 @@ protected:
 	{
 	protected:
 		CPopup_LayerEdit* m_pPopup;
-		CAsset_Skeleton::CBonePath m_LayerPath;
+		CAsset_Skeleton::CSubPath m_LayerPath;
 		
 	protected:
 		virtual void MouseClickAction()
 		{
-			m_pPopup->m_pAssetsEditor->AssetsManager()->SetAssetValue<CAsset_Skeleton::CBonePath>(
+			m_pPopup->m_pAssetsEditor->AssetsManager()->SetAssetValue<CAsset_Skeleton::CSubPath>(
 				m_pPopup->m_AssetPath,
-				m_pPopup->m_AssetMember,
 				m_pPopup->m_AssetSubPath,
+				m_pPopup->m_AssetMember,
 				m_LayerPath);
 			m_pPopup->m_pAssetsEditor->RefreshAssetsEditor();
 		}
 		
 	public:
-		CItem(CPopup_LayerEdit* pPopup, CAsset_Skeleton::CBonePath LayerPath) :
+		CItem(CPopup_LayerEdit* pPopup, CAsset_Skeleton::CSubPath LayerPath) :
 			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, ""),
 			m_pPopup(pPopup),
 			m_LayerPath(LayerPath)
@@ -466,15 +464,15 @@ protected:
 			}
 			else
 			{
-				if(m_LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
+				if(m_LayerPath.GetSource() == CAsset_Skeleton::CSubPath::SRC_LOCAL)
 				{
 					char* pName = pPopup->m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 						pPopup->m_SkeletonPath,
 						CAsset_Skeleton::LAYER_NAME,
-						CAsset_Skeleton::CSubPath::Layer(m_LayerPath.GetId()).ConvertToInteger(),
+						m_LayerPath,
 						0);
 					SetText(pName);
-					SetIcon(CAssetsEditor::ICON_BONE);
+					SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_BONE));
 				}
 				else
 				{
@@ -484,10 +482,10 @@ protected:
 						char* pName = pPopup->m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 							pSkeleton->m_ParentPath,
 							CAsset_Skeleton::LAYER_NAME,
-							CAsset_Skeleton::CSubPath::Layer(m_LayerPath.GetId()).ConvertToInteger(),
+							CAsset_Skeleton::CSubPath::LocalLayer(m_LayerPath.GetId()),
 							0);
 						SetText(pName);
-						SetIcon(CAssetsEditor::ICON_BONE);
+						SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_BONE));
 					}					
 				}
 			}
@@ -530,7 +528,7 @@ public:
 			m_Layout->Add(new gui::CLabel(m_pConfig, "Local layers", gui::TEXTSTYLE_HEADER));\
 			for(int i=0; i<pSkeleton->m_Layers.size(); i++)
 			{
-				CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Local(i));
+				CItem* pItem = new CItem(this, CAsset_Skeleton::CSubPath::LocalLayer(i));
 				m_Layout->Add(pItem);
 			}
 			
@@ -542,7 +540,7 @@ public:
 					m_Layout->Add(new gui::CLabel(m_pConfig, "Parent layers", gui::TEXTSTYLE_HEADER));\
 					for(int i=0; i<pParentSkeleton->m_Layers.size(); i++)
 					{
-						CItem* pItem = new CItem(this, CAsset_Skeleton::CBonePath::Parent(i));
+						CItem* pItem = new CItem(this, CAsset_Skeleton::CSubPath::ParentLayer(i));
 						m_Layout->Add(pItem);
 					}
 				}
@@ -576,9 +574,9 @@ protected:
 		{
 			m_pPopup->m_pAssetsEditor->AssetsManager()->SetAssetValue<int>(
 				m_pPopup->m_AssetPath,
-				m_pPopup->m_AssetMember,
 				m_pPopup->m_AssetSubPath,
-				m_SubPath.ConvertToInteger());
+				m_pPopup->m_AssetMember,
+				m_SubPath);
 			m_pPopup->m_pAssetsEditor->RefreshAssetsEditor();
 		}
 		
@@ -599,10 +597,10 @@ protected:
 				char* pName = pPopup->m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 					pPopup->m_CharacterPath,
 					CAsset_Character::PART_NAME,
-					m_SubPath.ConvertToInteger(),
+					m_SubPath,
 					0);
 				SetText(pName);
-				SetIcon(CAssetsEditor::ICON_CHARACTERPART);
+				SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTERPART));
 			}
 		}
 	};
@@ -640,9 +638,10 @@ public:
 		CAsset_Character* pCharacter = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Character>(m_CharacterPath);
 		if(pCharacter)
 		{
-			for(int i=0; i<pCharacter->m_Parts.size(); i++)
+			CAsset_Character::CIteratorPart Iter;
+			for(Iter = pCharacter->BeginPart(); Iter != pCharacter->BeginPart(); ++Iter)
 			{
-				CItem* pItem = new CItem(this, CAsset_Character::CSubPath::Part(i));
+				CItem* pItem = new CItem(this, *Iter);
 				m_Layout->Add(pItem);
 			}
 		}
@@ -1480,7 +1479,7 @@ public:
 		Update();
 		
 		m_TabRGB = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabRGB, CAssetsEditor::ICON_COLORPICKER_RGB, "RGB Color Chooser");
+		m_Tabs->AddTab(m_TabRGB, CAssetPath::SpriteUniverse(SPRITE_ICON_COLORPICKER_RGB), "RGB Color Chooser");
 		
 		{
 			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
@@ -1532,7 +1531,7 @@ public:
 		}
 		
 		m_TabHSV = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabHSV, CAssetsEditor::ICON_COLORPICKER_HSV, "HSV Color Chooser");
+		m_Tabs->AddTab(m_TabHSV, CAssetPath::SpriteUniverse(SPRITE_ICON_COLORPICKER_HSV), "HSV Color Chooser");
 		{
 			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
@@ -1583,7 +1582,7 @@ public:
 		}
 		
 		m_TabSquare = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabSquare, CAssetsEditor::ICON_COLORPICKER_SQUARE, "HSV Square Color Chooser");
+		m_Tabs->AddTab(m_TabSquare, CAssetPath::SpriteUniverse(SPRITE_ICON_COLORPICKER_SQUARE), "HSV Square Color Chooser");
 		{
 			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_LAST);
 			pLayout->SetHeight(250);
@@ -1606,7 +1605,7 @@ public:
 		}
 		
 		m_TabWheel = new gui::CVListLayout(pAssetsEditor->m_pGuiConfig);
-		m_Tabs->AddTab(m_TabWheel, CAssetsEditor::ICON_COLORPICKER_WHEEL, "HSV Wheel Color Chooser");
+		m_Tabs->AddTab(m_TabWheel, CAssetPath::SpriteUniverse(SPRITE_ICON_COLORPICKER_WHEEL), "HSV Wheel Color Chooser");
 		{
 			m_TabWheel->Add(new CWheelPicker(this));
 		}
@@ -1630,8 +1629,8 @@ public:
 	{
 		m_pAssetsEditor->AssetsManager()->SetAssetValue<vec4>(
 			m_AssetPath,
-			m_AssetMember,
 			m_AssetSubPath,
+			m_AssetMember,
 			Color);
 	}
 	
@@ -1693,59 +1692,126 @@ public:
 		gui::CVListLayout* pLayout = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_DEFAULT);
 		Add(pLayout);
 				
-		pLayout->Add(new CItem(this, "Image", CAssetsEditor::ICON_IMAGE, CAssetPath::TYPE_IMAGE));
-		pLayout->Add(new CItem(this, "Sprite", CAssetsEditor::ICON_SPRITE, CAssetPath::TYPE_SPRITE));
+		pLayout->Add(new CItem(this, "Image", CAssetPath::SpriteUniverse(SPRITE_ICON_IMAGE), CAssetPath::TYPE_IMAGE));
+		pLayout->Add(new CItem(this, "Sprite", CAssetPath::SpriteUniverse(SPRITE_ICON_SPRITE), CAssetPath::TYPE_SPRITE));
 		pLayout->AddSeparator();
-		pLayout->Add(new CItem(this, "Map group", CAssetsEditor::ICON_MAPGROUP, CAssetPath::TYPE_MAPGROUP));
-		pLayout->Add(new CItem(this, "Map tiles layer", CAssetsEditor::ICON_MAPLAYERTILES, CAssetPath::TYPE_MAPLAYERTILES));
-		pLayout->Add(new CItem(this, "Map quads layer", CAssetsEditor::ICON_MAPLAYERQUADS, CAssetPath::TYPE_MAPLAYERQUADS));
+		pLayout->Add(new CItem(this, "Map", CAssetPath::SpriteUniverse(SPRITE_ICON_MAP), CAssetPath::TYPE_MAP));
+		pLayout->Add(new CItem(this, "Map group", CAssetPath::SpriteUniverse(SPRITE_ICON_FOLDER), CAssetPath::TYPE_MAPGROUP));
+		pLayout->Add(new CItem(this, "Map tiles layer", CAssetPath::SpriteUniverse(SPRITE_ICON_TILES), CAssetPath::TYPE_MAPLAYERTILES));
+		pLayout->Add(new CItem(this, "Map quads layer", CAssetPath::SpriteUniverse(SPRITE_ICON_QUAD), CAssetPath::TYPE_MAPLAYERQUADS));
 		pLayout->AddSeparator();
-		pLayout->Add(new CItem(this, "Skeleton", CAssetsEditor::ICON_SKELETON, CAssetPath::TYPE_SKELETON));
-		pLayout->Add(new CItem(this, "Skeleton animation", CAssetsEditor::ICON_SKELETONANIMATION, CAssetPath::TYPE_SKELETONANIMATION));
-		pLayout->Add(new CItem(this, "Skeleton skin", CAssetsEditor::ICON_SKELETONSKIN, CAssetPath::TYPE_SKELETONSKIN));
+		pLayout->Add(new CItem(this, "Skeleton", CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETON), CAssetPath::TYPE_SKELETON));
+		pLayout->Add(new CItem(this, "Skeleton animation", CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONANIMATION), CAssetPath::TYPE_SKELETONANIMATION));
+		pLayout->Add(new CItem(this, "Skeleton skin", CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONSKIN), CAssetPath::TYPE_SKELETONSKIN));
 		pLayout->AddSeparator();
-		pLayout->Add(new CItem(this, "Charater", CAssetsEditor::ICON_CHARACTER, CAssetPath::TYPE_CHARACTER));
-		pLayout->Add(new CItem(this, "Charater part", CAssetsEditor::ICON_CHARACTERPART, CAssetPath::TYPE_CHARACTERPART));
-		pLayout->Add(new CItem(this, "Weapon", CAssetsEditor::ICON_WEAPON, CAssetPath::TYPE_WEAPON));
+		pLayout->Add(new CItem(this, "Charater", CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTER), CAssetPath::TYPE_CHARACTER));
+		pLayout->Add(new CItem(this, "Charater part", CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTERPART), CAssetPath::TYPE_CHARACTERPART));
+		pLayout->Add(new CItem(this, "Weapon", CAssetPath::SpriteUniverse(SPRITE_ICON_WEAPON), CAssetPath::TYPE_WEAPON));
 		
 		Update();
 	}
 	
 	void CreateAsset(int AssetType)
-	{
-		#define ON_NEW_ASSET(TypeName, AssetName) case TypeName::TypeId:\
-		{\
-			TypeName* pAsset = m_pAssetsEditor->AssetsManager()->GetAssetCatalog<TypeName>()->NewAsset(&NewAssetPath, m_Source);\
-			char aBuf[128];\
-			str_format(aBuf, sizeof(aBuf), AssetName, NewAssetPath.GetId());\
-			pAsset->SetName(aBuf);\
-			m_pAssetsEditor->NewAsset(NewAssetPath);\
-			break;\
-		}
-			
-		CAssetPath NewAssetPath;
+	{		
+		bool AddRawAsset = true;
 		
-		switch(AssetType)
+		if(AssetType == CAssetPath::TYPE_IMAGE)
 		{
-			case CAssetPath::TYPE_IMAGE:
+			m_pAssetsEditor->DisplayPopup(new CPopup_AddImage(
+				m_pAssetsEditor, m_CreatorRect, m_Alignment,
+				m_Source
+			));
+			AddRawAsset = false;
+		}
+		else if(AssetType == CAssetPath::TYPE_MAP)
+		{
+			char aBuf[128];
+			
+			int Token = m_pAssetsEditor->AssetsManager()->GenerateToken();
+			
+			//Create map
+			CAssetPath MapPath;
+			CAsset_Map* pMap = m_pAssetsEditor->AssetsManager()->NewAsset<CAsset_Map>(&MapPath, m_Source, Token);
+			if(MapPath.GetId() == 0)
+				pMap->SetName("map");
+			else
 			{
-				Close();
-				m_pAssetsEditor->DisplayPopup(new CPopup_AddImage(
-					m_pAssetsEditor, m_CreatorRect, m_Alignment
-				));
-				break;
+				str_format(aBuf, sizeof(aBuf), "map%d", MapPath.GetId());
+				pMap->SetName(aBuf);
 			}
-			//Search Tag: TAG_NEW_ASSET
-			ON_NEW_ASSET(CAsset_Sprite, "sprite%d")
-			ON_NEW_ASSET(CAsset_Skeleton, "skeleton%d")
-			ON_NEW_ASSET(CAsset_SkeletonSkin, "skin%d")
-			ON_NEW_ASSET(CAsset_SkeletonAnimation, "animation%d")
-			ON_NEW_ASSET(CAsset_Character, "character%d")
-			ON_NEW_ASSET(CAsset_CharacterPart, "characterpart%d")
-			ON_NEW_ASSET(CAsset_Weapon, "weapon%d")
-			ON_NEW_ASSET(CAsset_MapGroup, "group%d")
-			ON_NEW_ASSET(CAsset_MapLayerTiles, "tilelayer%d")
-			ON_NEW_ASSET(CAsset_MapLayerQuads, "quadlayer%d")
+			
+			//Create physics
+			CAssetPath PhysicsPath;
+			CAsset_MapZoneTiles* pMapPhysics = m_pAssetsEditor->AssetsManager()->NewAsset<CAsset_MapZoneTiles>(&PhysicsPath, m_Source, Token);
+			pMapPhysics->SetName("tw_physics");
+			pMapPhysics->SetSize(256, 256);
+			pMap->AddZoneLayer(PhysicsPath);
+			
+			{
+				//Create group
+				CAssetPath MapGroupPath;
+				CAsset_MapGroup* pMapGroup = m_pAssetsEditor->AssetsManager()->NewAsset<CAsset_MapGroup>(&MapGroupPath, m_Source, Token);
+				pMapGroup->SetName("static");
+				pMapGroup->SetHardParallax(vec2(0.0f, 0.0f));
+				pMap->AddBgGroup(MapGroupPath);
+				
+				//Create quads layer
+				CAssetPath MapLayerQuadsPath;
+				CAsset_MapLayerQuads* pMapLayerQuads = m_pAssetsEditor->AssetsManager()->NewAsset<CAsset_MapLayerQuads>(&MapLayerQuadsPath, m_Source, Token);
+				pMapLayerQuads->SetName("sky");
+				pMapGroup->AddLayer(MapLayerQuadsPath);
+				
+				//Fill quads layer
+				{
+					CAsset_MapLayerQuads::CSubPath QuadPath = m_pAssetsEditor->AssetsManager()->AddSubItem(MapLayerQuadsPath, CAsset_MapLayerQuads::CSubPath::TYPE_QUAD, Token);
+					
+					pMapLayerQuads->SetQuadPivot(QuadPath, 0.0f);
+					
+					pMapLayerQuads->SetVertexPosition(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX0), vec2(-800.0f, -600.0f));
+					pMapLayerQuads->SetVertexPosition(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX1), vec2(800.0f, -600.0f));
+					pMapLayerQuads->SetVertexPosition(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX2), vec2(-800.0f, 600.0f));
+					pMapLayerQuads->SetVertexPosition(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX3), vec2(800.0f, 600.0f));
+					
+					pMapLayerQuads->SetVertexTexture(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX0), vec2(0.0f, 0.0f));
+					pMapLayerQuads->SetVertexTexture(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX1), vec2(1.0f, 0.0f));
+					pMapLayerQuads->SetVertexTexture(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX2), vec2(0.0f, 1.0f));
+					pMapLayerQuads->SetVertexTexture(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX3), vec2(1.0f, 1.0f));
+					
+					vec4 ColorTop = vec4(94.0f/255.0f, 132.0f/255.0f, 174.0f/255.0f, 1.0f);
+					vec4 ColorBottom = vec4(204.0f/255.0f, 232.0f/255.0f, 1.0f, 1.0f);
+					
+					pMapLayerQuads->SetVertexColor(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX0), ColorTop);
+					pMapLayerQuads->SetVertexColor(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX1), ColorTop);
+					pMapLayerQuads->SetVertexColor(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX2), ColorBottom);
+					pMapLayerQuads->SetVertexColor(QuadPath.Point(CAsset_MapLayerQuads::CSubPath::POINT_VERTEX3), ColorBottom);
+				}
+			}
+			
+			m_pAssetsEditor->NewAsset(MapPath);
+			AddRawAsset = false;
+		}
+		
+		if(AddRawAsset)
+		{
+			CAssetPath NewAssetPath;
+			char aBuf[128];
+			
+			#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
+			{\
+				ClassName* pAsset = m_pAssetsEditor->AssetsManager()->NewAsset<ClassName>(&NewAssetPath, m_Source, -1);\
+				str_format(aBuf, sizeof(aBuf), AssetDefaultName"%d", NewAssetPath.GetId());\
+				pAsset->SetName(aBuf);\
+				break;\
+			}
+			
+			switch(AssetType)
+			{
+				#include <tu/client/assetsmacro.h>
+			}
+		
+			#undef TU_MACRO_ASSETTYPE
+			
+			m_pAssetsEditor->NewAsset(NewAssetPath);
 		}
 		
 		Close();
@@ -1777,6 +1843,7 @@ protected:
 		CPopup_SaveLoadAssets* m_pPopup;
 		CAssetsEditor* m_pAssetsEditor;
 		char m_aFilename[256];
+		char m_aDir[256];
 		int m_StorageType;
 		int m_IsDirectory;
 		
@@ -1785,14 +1852,17 @@ protected:
 		{
 			if(!m_IsDirectory)
 			{
-				m_pAssetsEditor->LoadAssetsFile(m_aFilename, m_pPopup->m_Source);
+				char aBuf[512];
+				str_format(aBuf, sizeof(aBuf), "%s/%s", m_aDir, m_aFilename);
+				
+				m_pAssetsEditor->LoadAssetsFile(aBuf, m_pPopup->m_Source);
 				m_pPopup->Close();
 			}
 		}
 		
 	public:
-		CItem_Load(CPopup_SaveLoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_ASSET),
+		CItem_Load(CPopup_SaveLoadAssets* pPopup, const char* pDir, const char* pFilename, int StorageType, int IsDir) :
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetPath::SpriteUniverse(SPRITE_ICON_ASSET)),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -1800,6 +1870,8 @@ protected:
 			SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
 			
 			str_copy(m_aFilename, pFilename, sizeof(m_aFilename));
+			str_copy(m_aDir, pDir, sizeof(m_aDir));
+			
 			m_StorageType = StorageType;
 			m_IsDirectory = IsDir;
 		}
@@ -1825,7 +1897,7 @@ protected:
 		
 	public:
 		CItem_Save(CPopup_SaveLoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetsEditor::ICON_ASSET),
+			gui::CTextButton(pPopup->m_pAssetsEditor->m_pGuiConfig, pFilename, CAssetPath::SpriteUniverse(SPRITE_ICON_ASSET)),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -1909,14 +1981,11 @@ public:
 		
 		if(Length < 7 || str_comp(pName+Length-7, ".assets"))
 			return 0;
-
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "assets/universes/%s", pName);
 		
 		if(pPopup->m_Mode == MODE_SAVE)
-			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, aBuf, StorageType, IsDir));
+			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, pName, StorageType, IsDir));
 		else
-			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, aBuf, StorageType, IsDir));
+			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, "assets/universes", pName, StorageType, IsDir));
 		
 		return 0;
 	}
@@ -1931,19 +2000,35 @@ public:
 		
 		if(Length < 7 || str_comp(pName+Length-7, ".assets"))
 			return 0;
-
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "assets/worlds/%s", pName);
 		
 		if(pPopup->m_Mode == MODE_SAVE)
-			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, aBuf, StorageType, IsDir));
+			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, pName, StorageType, IsDir));
 		else
-			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, aBuf, StorageType, IsDir));
+			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, "assets/worlds", pName, StorageType, IsDir));
 
 		return 0;
 	}
 	
 	static int FileListFetchCallback_Land(const char *pName, int IsDir, int StorageType, void *pUser)
+	{
+		CPopup_SaveLoadAssets* pPopup = static_cast<CPopup_SaveLoadAssets*>(pUser);
+		
+		int Length = str_length(pName);
+		if(pName[0] == '.' && (pName[1] == 0))
+			return 0;
+		
+		if(Length < 7 || str_comp(pName+Length-7, ".assets"))
+			return 0;
+		
+		if(pPopup->m_Mode == MODE_SAVE)
+			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, pName, StorageType, IsDir));
+		else
+			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, "assets/lands", pName, StorageType, IsDir));
+
+		return 0;
+	}
+	
+	static int FileListFetchCallback_Map(const char *pName, int IsDir, int StorageType, void *pUser)
 	{
 		CPopup_SaveLoadAssets* pPopup = static_cast<CPopup_SaveLoadAssets*>(pUser);
 				
@@ -1953,20 +2038,16 @@ public:
 		
 		if(Length < 4 || str_comp(pName+Length-4, ".map"))
 			return 0;
-
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "maps/%s", pName);
 		
-		if(pPopup->m_Mode == MODE_SAVE)
-			pPopup->m_pFilelist->Add(new CItem_Save(pPopup, aBuf, StorageType, IsDir));
-		else
-			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, aBuf, StorageType, IsDir));
+		if(pPopup->m_Mode == MODE_LOAD)
+			pPopup->m_pFilelist->Add(new CItem_Load(pPopup, "maps", pName, StorageType, IsDir));
 
 		return 0;
 	}
 	
 	virtual void Update()
 	{
+		m_pFilelist->Add(new gui::CLabel(m_pConfig, "Load asset package", gui::TEXTSTYLE_HEADER2));
 		switch(m_Source)
 		{
 			case CAssetPath::SRC_UNIVERSE:
@@ -1976,7 +2057,15 @@ public:
 				m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets/worlds", FileListFetchCallback_World, this);
 				break;
 			case CAssetPath::SRC_LAND:
-				m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "maps", FileListFetchCallback_Land, this);
+				{
+					m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "assets/lands", FileListFetchCallback_Land, this);
+					if(m_Mode == MODE_LOAD)
+					{
+						m_pFilelist->AddSeparator();
+						m_pFilelist->Add(new gui::CLabel(m_pConfig, "Import TeeWorlds map", gui::TEXTSTYLE_HEADER2));
+						m_pAssetsEditor->Storage()->ListDirectory(IStorage::TYPE_ALL, "maps", FileListFetchCallback_Map, this);
+					}
+				}
 				break;
 		}
 		
@@ -2000,7 +2089,7 @@ public:
 				str_format(aBuf, sizeof(aBuf), "assets/worlds/%s", m_aFilename);
 				break;
 			case CAssetPath::SRC_LAND:
-				str_format(aBuf, sizeof(aBuf), "maps/%s", m_aFilename);
+				str_format(aBuf, sizeof(aBuf), "assets/lands/%s", m_aFilename);
 				break;
 		}
 		

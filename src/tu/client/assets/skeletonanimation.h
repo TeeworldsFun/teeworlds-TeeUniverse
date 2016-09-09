@@ -65,7 +65,7 @@ public:
 		
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
 	
 /* SUBITEMS ***********************************************************/
@@ -163,13 +163,13 @@ public:
 			}
 		};
 		
-		CAsset_Skeleton::CBonePath m_BonePath;
+		CAsset_Skeleton::CSubPath m_BonePath;
 		array<CKeyFrame> m_KeyFrames;
 		int m_CycleType;
 		
 		CBoneAnimation() :
 			m_CycleType(CYCLETYPE_CLAMP),
-			m_BonePath(CAsset_Skeleton::CBonePath::Null())
+			m_BonePath(CAsset_Skeleton::CSubPath::Null())
 		{
 			
 		}
@@ -271,13 +271,13 @@ public:
 			}
 		};
 		
-		CAsset_Skeleton::CBonePath m_LayerPath;
+		CAsset_Skeleton::CSubPath m_LayerPath;
 		array<CKeyFrame> m_KeyFrames;
 		int m_CycleType;
 		
 		CLayerAnimation() :
 			m_CycleType(CYCLETYPE_CLAMP),
-			m_LayerPath(CAsset_Skeleton::CBonePath::Null())
+			m_LayerPath(CAsset_Skeleton::CSubPath::Null())
 		{
 			
 		}
@@ -357,14 +357,14 @@ public:
 public:
 	CAsset_SkeletonAnimation();
 	
-	CBoneAnimation::CKeyFrame& AddBoneKeyFrame(CAsset_Skeleton::CBonePath BonePath, int Time);
-	CLayerAnimation::CKeyFrame& AddLayerKeyFrame(CAsset_Skeleton::CBonePath LayerPath, int Time);
+	CBoneAnimation::CKeyFrame& AddBoneKeyFrame(CAsset_Skeleton::CSubPath BonePath, int Time);
+	CLayerAnimation::CKeyFrame& AddLayerKeyFrame(CAsset_Skeleton::CSubPath LayerPath, int Time);
 	
-	void SetCycle(CAsset_Skeleton::CBonePath BonePath, int CycleType);
+	void SetCycle(CAsset_Skeleton::CSubPath BonePath, int CycleType);
 	
-	CSubPath GetBoneKeyFramePath(CAsset_Skeleton::CBonePath BonePath, int IntTime);
+	CSubPath GetBoneKeyFramePath(CAsset_Skeleton::CSubPath BonePath, int IntTime);
 	CSubPath GetBoneKeyFramePath(CAsset_SkeletonAnimation::CSubPath SubPath, int IntTime);
-	CSubPath GetLayerKeyFramePath(CAsset_Skeleton::CBonePath LayerPath, int IntTime);
+	CSubPath GetLayerKeyFramePath(CAsset_Skeleton::CSubPath LayerPath, int IntTime);
 	CSubPath GetLayerKeyFramePath(CAsset_SkeletonAnimation::CSubPath SubPath, int IntTime);
 
 /* GET/SET ************************************************************/

@@ -28,10 +28,10 @@ CTabs::~CTabs()
 void CTabs::Update()
 {
 	m_ContentRect = CRect(
-			m_Rect.x,
-			m_Rect.y + m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f,
-			m_Rect.w,
-			m_Rect.h - m_pConfig->m_IconSize - m_pConfig->m_LabelMargin*2.0f
+			m_Rect.x + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding,
+			m_Rect.y + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding + m_pConfig->m_IconSize + 2*m_pConfig->m_LabelMargin,
+			m_Rect.w - 2*m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding,
+			m_Rect.h - m_pConfig->m_IconSize - 2*m_pConfig->m_LabelMargin - 2*m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding
 		);
 	
 	for(int i=0; i<m_Tabs.size(); i++)
@@ -42,32 +42,24 @@ void CTabs::Update()
 }
 	
 void CTabs::Render()
-{	
+{
+	TUGraphics()->DrawGuiRect(&m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Layout);
+	
 	for(int i=0; i<m_Tabs.size(); i++)
 	{
-		CUIRect rect;
-		rect.x = m_Tabs[i].m_Rect.x;
-		rect.y = m_Tabs[i].m_Rect.y;
-		rect.w = m_Tabs[i].m_Rect.w;
-		rect.h = m_Tabs[i].m_Rect.h;
-	
 		if(m_SelectedTab == i)
-			TUGraphics()->Draw_GuiRect(&m_Tabs[i].m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_ButtonHighlight);
+			TUGraphics()->DrawGuiRect(&m_Tabs[i].m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_ButtonHighlight);
 		else
-			TUGraphics()->Draw_GuiRect(&m_Tabs[i].m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Button);
-			
-		int SubX = m_Tabs[i].m_IconId%16;
-		int SubY = m_Tabs[i].m_IconId/16;
+			TUGraphics()->DrawGuiRect(&m_Tabs[i].m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Button);
 		
-		Graphics()->TextureSet(m_pConfig->m_Texture);
-		Graphics()->QuadsBegin();
-		Graphics()->QuadsSetSubset(SubX/16.0f, SubY/16.0f, (SubX+1)/16.0f, (SubY+1)/16.0f);
-		IGraphics::CQuadItem QuadItem(rect.x+m_pConfig->m_LabelMargin, rect.y+m_pConfig->m_LabelMargin, m_pConfig->m_IconSize, m_pConfig->m_IconSize);
-		Graphics()->QuadsDrawTL(&QuadItem, 1);
-		Graphics()->QuadsEnd();
+		TUGraphics()->DrawSprite(
+			m_Tabs[i].m_IconPath,
+			vec2(m_Tabs[i].m_Rect.x+m_Tabs[i].m_Rect.w/2, m_Tabs[i].m_Rect.y+m_Tabs[i].m_Rect.h/2),
+			1.0f, 0.0f, 0x0, 1.0f
+		);
 	}
 	
-	TUGraphics()->Draw_GuiRect(&m_ContentRect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Content);
+	TUGraphics()->DrawGuiRect(&m_ContentRect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Content);
 	
 	if(m_SelectedTab >= 0)
 	{
@@ -75,7 +67,7 @@ void CTabs::Render()
 	}
 }
 
-void CTabs::AddTab(CWidget* pWidget, int IconId, const char* pHint)
+void CTabs::AddTab(CWidget* pWidget, CAssetPath IconPath, const char* pHint)
 {
 	float TabButtonSize = m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f;
 	
@@ -84,12 +76,12 @@ void CTabs::AddTab(CWidget* pWidget, int IconId, const char* pHint)
 	CTab& Tab = m_Tabs[TabId];
 	
 	Tab.m_pWidget = pWidget;
-	Tab.m_IconId = IconId;
+	Tab.m_IconPath = IconPath;
 	str_copy(Tab.m_aHint, pHint, sizeof(Tab.m_aHint));
-	Tab.m_Rect.x = m_Rect.x + s_LayoutCornerRadius + TabButtonSize*TabId + TabId;
-	Tab.m_Rect.y = m_Rect.y;
-	Tab.m_Rect.w = m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f;
-	Tab.m_Rect.h = Tab.m_Rect.w;
+	Tab.m_Rect.x = m_Rect.x + TabButtonSize*TabId + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding;
+	Tab.m_Rect.y = m_Rect.y + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding;
+	Tab.m_Rect.w = TabButtonSize;
+	Tab.m_Rect.h = TabButtonSize;
 	
 	for(int i=0; i<m_Tabs.size(); i++)
 	{

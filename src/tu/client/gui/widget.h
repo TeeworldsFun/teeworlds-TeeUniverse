@@ -55,7 +55,7 @@ protected:
 
 public:	
 	class IGraphics *Graphics() { return m_pConfig->m_pGraphics; };
-	class CClient_Graphics *TUGraphics() { return m_pConfig->m_pTUGraphics; };
+	class CGraphics *TUGraphics() { return m_pConfig->m_pTUGraphics; };
 	class ITextRender *TextRender() { return m_pConfig->m_pTextRender; };
 	class CRenderTools *RenderTools() { return m_pConfig->m_pRenderTools; };
 	class IInput *Input() { return m_pConfig->m_pInput; };

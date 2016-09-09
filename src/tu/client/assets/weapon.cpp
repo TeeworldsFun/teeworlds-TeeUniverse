@@ -13,7 +13,7 @@ CAsset_Weapon::CAsset_Weapon()
 
 /* IO *****************************************************************/
 
-void CAsset_Weapon::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, const CAsset_Weapon::CStorageType* pItem)
+void CAsset_Weapon::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_Weapon::CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -30,10 +30,10 @@ void CAsset_Weapon::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 	CAsset_Weapon::CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 	
-	Item.m_CharacterPath = m_CharacterPath.ConvertToInteger();
-	Item.m_CursorPath = m_CursorPath.ConvertToInteger();
-	Item.m_SkinPath = m_SkinPath.ConvertToInteger();
-	Item.m_AttackAnimationPath = m_AttackAnimationPath.ConvertToInteger();
+	Item.m_CharacterPath = m_CharacterPath;
+	Item.m_CursorPath = m_CursorPath;
+	Item.m_SkinPath = m_SkinPath;
+	Item.m_AttackAnimationPath = m_AttackAnimationPath;
 	
 	pFileWriter->AddItem(CAssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
 }
@@ -53,9 +53,9 @@ CAssetPath CAsset_Weapon::GetValue(int ValueType, int Path, CAssetPath DefaultVa
 			return m_SkinPath;
 		case ATTACKANIMATIONPATH:
 			return m_AttackAnimationPath;
-		default:
-			return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
 	}
+
+	return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
 }
 	
 template<>

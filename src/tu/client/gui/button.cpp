@@ -23,9 +23,9 @@ CAbstractButton::CAbstractButton(CConfig *pConfig) :
 void CAbstractButton::Render()
 {
 	if(m_UnderMouse)
-		TUGraphics()->Draw_GuiRect(&m_Rect, m_pConfig->m_ButtonStyles[m_ButtonStyle].m_StylePath_UnderMouse);
+		TUGraphics()->DrawGuiRect(&m_Rect, m_pConfig->m_ButtonStyles[m_ButtonStyle].m_StylePath_UnderMouse);
 	else
-		TUGraphics()->Draw_GuiRect(&m_Rect, m_pConfig->m_ButtonStyles[m_ButtonStyle].m_StylePath_Normal);
+		TUGraphics()->DrawGuiRect(&m_Rect, m_pConfig->m_ButtonStyles[m_ButtonStyle].m_StylePath_Normal);
 }
 
 void CAbstractButton::SetButtonStyle(int Style)
@@ -70,9 +70,9 @@ void CAbstractButton::OnButtonRelease(int Button)
 
 /* ICON BUTTON ********************************************************/
 
-CIconButton::CIconButton(CConfig *pConfig, int IconId) :
+CIconButton::CIconButton(CConfig *pConfig, CAssetPath IconPath) :
 	CAbstractButton(pConfig),
-	m_IconId(IconId)
+	m_IconPath(IconPath)
 {
 	
 }
@@ -84,29 +84,39 @@ void CIconButton::Render()
 	int PosX = m_Rect.x + m_Rect.w/2;
 	int PosY = m_Rect.y + m_Rect.h/2;
 	
-	int SubX = m_IconId%16;
-	int SubY = m_IconId/16;
-	
-	Graphics()->TextureSet(m_pConfig->m_Texture);
-	Graphics()->QuadsBegin();
-	Graphics()->QuadsSetSubset(SubX/16.0f, SubY/16.0f, (SubX+1)/16.0f, (SubY+1)/16.0f);
-	IGraphics::CQuadItem QuadItem(PosX - m_pConfig->m_IconSize/2, PosY - m_pConfig->m_IconSize/2, m_pConfig->m_IconSize, m_pConfig->m_IconSize);
-	Graphics()->QuadsDrawTL(&QuadItem, 1);
-	Graphics()->QuadsEnd();
+	TUGraphics()->DrawSprite(
+		m_IconPath,
+		vec2(PosX, PosY),
+		1.0f, 0.0f, 0x0, 1.0f
+	);
 }
 
-void CIconButton::SetIcon(int IconId)
+void CIconButton::SetIcon(CAssetPath IconPath)
 {
-	m_IconId = IconId;
+	m_IconPath = IconPath;
+}
+
+/* ICON TOGGLE ********************************************************/
+
+CIconToggle::CIconToggle(CConfig *pConfig, CAssetPath IconPath) :
+	CIconButton(pConfig, IconPath)
+{
+	
+}
+
+void CIconToggle::MouseClickAction()
+{
+	m_Toggle = !m_Toggle;
+	OnToggle(m_Toggle);
 }
 
 /* TEXT BUTTON ********************************************************/
 
-CTextButton::CTextButton(CConfig *pConfig, const char* pText, int IconId) :
+CTextButton::CTextButton(CConfig *pConfig, const char* pText, CAssetPath IconPath) :
 	CAbstractButton(pConfig)
 {
 	SetText(pText);
-	SetIcon(IconId);
+	SetIcon(IconPath);
 	
 	m_Centered = true;
 	
@@ -125,7 +135,7 @@ void CTextButton::Render()
 	{
 		int CenterX = m_Rect.x + m_Rect.w/2;
 		
-		if(m_IconId >= 0)
+		if(!m_IconPath.IsNull())
 			CenterX += m_pConfig->m_IconSize/2;
 		
 		PosX = CenterX - TextWidth/2;
@@ -134,7 +144,7 @@ void CTextButton::Render()
 	{
 		PosX = m_Rect.x + m_pConfig->m_LabelMargin;
 		
-		if(m_IconId >= 0)
+		if(!m_IconPath.IsNull())
 			PosX += m_pConfig->m_IconSize;
 	}
 	
@@ -146,21 +156,13 @@ void CTextButton::Render()
 	TextRender()->TextColor(m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].x, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].y, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].z, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].w);
 	TextRender()->TextEx(&Cursor, m_aText, -1);
 	
-	if(m_IconId >= 0)
+	if(!m_IconPath.IsNull())
 	{
-		float IconSize = 16.0f;
-		
-		PosX -= m_pConfig->m_IconSize + 4; //Icon size and space
-		
-		int SubX = m_IconId%16;
-		int SubY = m_IconId/16;
-		
-		Graphics()->TextureSet(m_pConfig->m_Texture);
-		Graphics()->QuadsBegin();
-		Graphics()->QuadsSetSubset(SubX/16.0f, SubY/16.0f, (SubX+1)/16.0f, (SubY+1)/16.0f);
-		IGraphics::CQuadItem QuadItem(PosX, CenterY - m_pConfig->m_IconSize/2, m_pConfig->m_IconSize, m_pConfig->m_IconSize);
-		Graphics()->QuadsDrawTL(&QuadItem, 1);
-		Graphics()->QuadsEnd();
+		TUGraphics()->DrawSprite(
+			m_IconPath,
+			vec2(PosX-m_pConfig->m_IconSize/2-4, CenterY),
+			1.0f, 0.0f, 0x0, 1.0f
+		);
 	}
 }
 
@@ -170,19 +172,19 @@ void CTextButton::SetText(const char* pText)
 		str_copy(m_aText, pText, sizeof(m_aText));
 }
 
-void CTextButton::SetIcon(int IconId)
+void CTextButton::SetIcon(CAssetPath IconPath)
 {
-	m_IconId = IconId;
+	m_IconPath = IconPath;
 }
 
 /* EXTERNAL TEXT BUTTON ********************************************************/
 
-CExternalTextButton::CExternalTextButton(class CConfig *pConfig, const char* pText, int IconId) :
+CExternalTextButton::CExternalTextButton(class CConfig *pConfig, const char* pText, CAssetPath IconPath) :
 	CAbstractButton(pConfig),
 	m_pText(pText),
 	m_Centered(true)
 {
-	SetIcon(IconId);
+	SetIcon(IconPath);
 	
 	m_Rect.w = m_pConfig->m_ButtonHeight;
 	m_Rect.h = m_pConfig->m_ButtonHeight;
@@ -202,7 +204,7 @@ void CExternalTextButton::Render()
 	{
 		int CenterX = m_Rect.x + m_Rect.w/2;
 		
-		if(m_IconId >= 0)
+		if(!m_IconPath.IsNull())
 			CenterX += m_pConfig->m_IconSize/2;
 		
 		PosX = CenterX - TextWidth/2;
@@ -211,7 +213,7 @@ void CExternalTextButton::Render()
 	{
 		PosX = m_Rect.x + m_pConfig->m_LabelMargin;
 		
-		if(m_IconId >= 0)
+		if(!m_IconPath.IsNull())
 			PosX += m_pConfig->m_IconSize;
 	}
 	
@@ -223,27 +225,19 @@ void CExternalTextButton::Render()
 	TextRender()->TextColor(m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].x, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].y, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].z, m_pConfig->m_TextColor[TEXTSTYLE_NORMAL].w);
 	TextRender()->TextEx(&Cursor, m_pText, -1);
 	
-	if(m_IconId >= 0)
-	{
-		float IconSize = 16.0f;
-		
-		PosX -= m_pConfig->m_IconSize + 4; //Icon size and space
-		
-		int SubX = m_IconId%16;
-		int SubY = m_IconId/16;
-		
-		Graphics()->TextureSet(m_pConfig->m_Texture);
-		Graphics()->QuadsBegin();
-		Graphics()->QuadsSetSubset(SubX/16.0f, SubY/16.0f, (SubX+1)/16.0f, (SubY+1)/16.0f);
-		IGraphics::CQuadItem QuadItem(PosX, CenterY - m_pConfig->m_IconSize/2, m_pConfig->m_IconSize, m_pConfig->m_IconSize);
-		Graphics()->QuadsDrawTL(&QuadItem, 1);
-		Graphics()->QuadsEnd();
+	if(!m_IconPath.IsNull())
+	{		
+		TUGraphics()->DrawSprite(
+			m_IconPath,
+			vec2(PosX-m_pConfig->m_IconSize/2-4, CenterY),
+			1.0f, 0.0f, 0x0, 1.0f
+		);
 	}
 }
 
-void CExternalTextButton::SetIcon(int IconId)
+void CExternalTextButton::SetIcon(CAssetPath IconPath)
 {
-	m_IconId = IconId;
+	m_IconPath = IconPath;
 }
 
 }

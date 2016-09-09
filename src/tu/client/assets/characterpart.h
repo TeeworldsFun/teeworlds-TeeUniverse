@@ -23,11 +23,11 @@ public:
 		int m_SkeletonSkinPath;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* MEMBERS ************************************************************/
-public:
+private:
 	CAssetPath m_CharacterPath;
 	CAsset_Character::CSubPath m_CharacterPart;
 	CAssetPath m_SkeletonSkinPath;
@@ -35,6 +35,14 @@ public:
 /* FUNCTIONS **********************************************************/
 public:
 	CAsset_CharacterPart();
+	
+	inline CAssetPath GetCharacterPath() const { return m_CharacterPath; }
+	inline CAsset_Character::CSubPath GetCharacterPart() const { return m_CharacterPart; }
+	inline CAssetPath GetSkeletonSkinPath() const { return m_SkeletonSkinPath; }
+	
+	inline void SetCharacterPath(CAssetPath Path) { m_CharacterPath = Path; }
+	inline void SetCharacterPart(CAsset_Character::CSubPath SubPath) { m_CharacterPart = SubPath; }
+	inline void SetSkeletonSkinPath(CAssetPath Path) { m_SkeletonSkinPath = Path; }
 	
 /* GET/SET ************************************************************/
 public:

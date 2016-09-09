@@ -22,6 +22,11 @@ public:
 		x = nx;
 		y = ny;
 	}
+	vector2_base(T n)
+	{
+		x = n;
+		y = n;
+	}
 
 	vector2_base operator -() const { return vector2_base(-x, -y); }
 	vector2_base operator -(const vector2_base &v) const { return vector2_base(x-v.x, y-v.y); }
@@ -141,6 +146,12 @@ public:
 		y = ny;
 		z = nz;
 	}
+	vector3_base(T n)
+	{
+		x = n;
+		y = n;
+		z = n;
+	}
 
 	const vector3_base &operator =(const vector3_base &v) { x = v.x; y = v.y; z = v.z; return *this; }
 
@@ -221,6 +232,13 @@ public:
 		z = nz;
 		w = nw;
 	}
+	vector4_base(T n)
+	{
+		x = n;
+		y = n;
+		z = n;
+		w = n;
+	}
 
 	vector4_base operator +(const vector4_base &v) const { return vector4_base(x+v.x, y+v.y, z+v.z, w+v.w); }
 	vector4_base operator -(const vector4_base &v) const { return vector4_base(x-v.x, y-v.y, z-v.z, w-v.w); }
@@ -291,6 +309,11 @@ public:
 		);
 	}
 	
+	static matrix2x2_base<T> identity()
+	{
+		return matrix2x2_base<T>(1, 0, 0, 1);
+	}
+	
 	static matrix2x2_base<T> rotation(T angle)
 	{
 		return matrix2x2_base<T>(
@@ -304,6 +327,12 @@ public:
 		return matrix2x2_base<T>(
 			scale.x, 0, 0, scale.y
 		);
+	}
+	
+	static matrix2x2_base<T> inverse(matrix2x2_base<T> m)
+	{
+		T det = m.v[0] * m.v[3] - m.v[1] * m.v[2];
+		return matrix2x2_base<T>(m.v[3]/det, -m.v[1]/det, -m.v[2]/det, m.v[0]/det);
 	}
 };
 

@@ -24,32 +24,27 @@ class CSkeletonState
 	};
 };
 
-class CClient_Graphics
+class CGraphics
 {
 private:
 	IGraphics* m_pGraphics;
 	CAssetsManager* m_pAssetsManager;
 
+protected:
+	void Draw_RoundRect_Background(float x, float y, float w, float h, float r, int Corners);
+	void Draw_RoundRect_Border(float x, float y, float w, float h, float r, int Borders, int Corners);
+	
 public:
-	CClient_Graphics(IGraphics* pGraphics, CAssetsManager* pAssetsManager);
-	void Init();
+	CGraphics(IGraphics* pGraphics, CAssetsManager* pAssetsManager);
 	
 	IGraphics *Graphics() { return m_pGraphics; };
 	CAssetsManager *AssetsManager() { return m_pAssetsManager; };
 	
-	bool TextureSet(CAssetPath AssetPath);
+	void TextureSet(CAssetPath AssetPath);
 	
 	void DrawSprite(CAssetPath AssetPath, vec2 Pos, vec2 Size, float Angle, int FlipFlag, vec4 Color);
-	void DrawSprite(CAssetPath AssetPath, vec2 Pos, float Size, float Angle, int FlipFlag, vec4 Color);
-	void DrawSprite(CAssetPath AssetPath, vec2 Pos, float Size, float Angle, int FlipFlag);
 	void DrawText(ITextRender* pTextRender, const char *pText, vec2 Pos, vec4 Color, float Size, int Alignment);
-	
-	void GetTeeAlignAxis(int Align, vec2 Dir, vec2 Aim, vec2& PartDirX, vec2& PartDirY);
-	
-	void Draw_RoundRect_Background(float x, float y, float w, float h, float r, int Corners);
-	void Draw_RoundRect_Border(float x, float y, float w, float h, float r, int Borders, int Corners);
-	
-	void Draw_GuiRect(const gui::CRect* pRect, CAssetPath StylePath);
+	void DrawGuiRect(const gui::CRect* pRect, CAssetPath StylePath);
 };
 
 }

@@ -12,7 +12,7 @@ class IInput;
 namespace tu
 {
 	
-class CClient_Graphics;
+class CGraphics;
 
 namespace gui
 {
@@ -42,6 +42,7 @@ public:
 	enum
 	{
 		LAYOUTSTYLE_DEFAULT = 0,
+		LAYOUTSTYLE_TOOLBAR,
 		LAYOUTSTYLE_INVISIBLE,
 		LAYOUTSTYLE_NONE,
 		NUM_LAYOUTSTYLES,
@@ -71,19 +72,21 @@ public:
 	class CTabStyle
 	{
 	public:
+		CAssetPath m_StylePath_Layout;
 		CAssetPath m_StylePath_Content;
 		CAssetPath m_StylePath_Button;
 		CAssetPath m_StylePath_ButtonHighlight;
+		int m_LayoutPadding;
 	};
 	
 public:
 	IGraphics *m_pGraphics;
-	CClient_Graphics *m_pTUGraphics;
+	CGraphics *m_pTUGraphics;
 	ITextRender *m_pTextRender;
 	CRenderTools *m_pRenderTools;
 	IInput *m_pInput;
 	
-	IGraphics::CTextureHandle m_Texture;
+	CAssetsManager* m_pAssetsManager;
 	
 	CButtonStyle m_ButtonStyles[NUM_BUTTONSTYLES];
 	CLayoutStyle m_LayoutStyles[NUM_LAYOUTSTYLES];
@@ -101,12 +104,13 @@ public:
 	int m_LayoutMargin;
 	int m_ExpandShift;
 	int m_ExpandSpacing;
+	int m_PixelPerMouseWheel;
 	
 	CShowHintFunc m_fShowHint;
 	void* m_pShowHintData;
 	
 public:
-	CConfig(CClient_Graphics *pTUGraphics, CRenderTools *pRenderTools, ITextRender *pTextRender, IInput *pInput, IGraphics::CTextureHandle Texture);
+	CConfig(CGraphics *pTUGraphics, CRenderTools *pRenderTools, ITextRender *pTextRender, IInput *pInput, CAssetsManager* pAssetsManager);
 	void ShowHind(const char* pText);
 };
 

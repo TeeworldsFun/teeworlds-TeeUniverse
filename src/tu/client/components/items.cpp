@@ -41,7 +41,7 @@ void CComponent_Items::RenderSprite(const CNetObj_TU_Sprite *pPrev, const CNetOb
 	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 	
-	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0);
+	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0x0, 1.0f);
 }
 
 void CComponent_Items::RenderSpriteCharacter(const CNetObj_TU_SpriteCharacter *pPrev, const CNetObj_TU_SpriteCharacter *pCurrent)
@@ -64,7 +64,7 @@ void CComponent_Items::RenderSpriteCharacter(const CNetObj_TU_SpriteCharacter *p
 		Pos = mix(vec2(PrevChar.m_X, PrevChar.m_Y), vec2(CurChar.m_X, CurChar.m_Y), Client()->IntraGameTick()) + Pos;
 	}
 	
-	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0);
+	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0x0, 1.0f);
 }
 
 void CComponent_Items::RenderText(const CNetObj_TU_Text *pPrev, const CNetObj_TU_Text *pCurrent)

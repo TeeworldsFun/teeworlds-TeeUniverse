@@ -431,6 +431,7 @@ public:
 	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight);
 	
 	virtual void SetColor(vec4 rgba, bool AlphaBlend);
+	virtual void SetColor2(vec4 Color0, vec4 Color1, bool AlphaBlend);
 	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight, bool AlphaBlend);
 
 	virtual void QuadsSetSubset(float TlU, float TlV, float BrU, float BrV, int TextureIndex = -1);

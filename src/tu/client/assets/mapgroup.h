@@ -25,7 +25,7 @@ public:
 		int m_HardParallaxY;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 	
 /* SUBITEMS ***********************************************************/
@@ -49,7 +49,7 @@ public:
 	};
 
 /* MEMBERS ************************************************************/
-public:	
+private:	
 	array<CAssetPath> m_Layers;
 	vec2 m_Position;
 	vec2 m_HardParallax;
@@ -57,6 +57,15 @@ public:
 /* FUNCTIONS **********************************************************/
 public:
 	CAsset_MapGroup();
+	
+	inline vec2 GetPosition() const { return m_Position; }
+	inline vec2 GetHardParallax() const { return m_HardParallax; }
+	inline CAssetPath GetLayer(CSubPath SubPath) const { return m_Layers[SubPath.GetId()]; }
+	
+	inline void SetPosition(vec2 Value) { m_Position = Value; }
+	inline void SetHardParallax(vec2 Value) { m_HardParallax = Value; }
+	
+	inline void AddLayer(CAssetPath Path) { m_Layers.add(Path); }
 	
 /* GET/SET ************************************************************/
 public:
@@ -69,6 +78,7 @@ public:
 		HARDPARALLAX_Y, //float
 	};
 	
+	TU_ASSET_ARRAY_ITERATOR(Layer, m_Layers, Layer)
 	TU_ASSET_GETSET_FUNC()
 	
 /* EDITOR *************************************************************/
@@ -76,9 +86,7 @@ public:
 	void OnAssetDeleted(const CAssetPath& Path)
 	{
 		for(int i=0; i<m_Layers.size(); i++)
-		{
 			m_Layers[i].OnIdDeleted(Path);
-		}
 	}
 };
 

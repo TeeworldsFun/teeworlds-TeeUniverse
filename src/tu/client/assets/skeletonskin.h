@@ -16,7 +16,7 @@ public:
 public:
 	struct CStorageType : public CAsset::CStorageType
 	{
-		struct CSprite
+		struct CAsset_Sprite
 		{
 			int m_SpritePath;
 			int m_BonePath;
@@ -37,7 +37,7 @@ public:
 		int m_SpritesData;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
 
 /* SUBITEMS ***********************************************************/
@@ -66,12 +66,12 @@ public:
 		ALIGNEMENT_BONE,
 	};
 
-	class CSprite
+	class CAsset_Sprite
 	{
 	public:
 		CAssetPath m_SpritePath;
-		CAsset_Skeleton::CBonePath m_BonePath;
-		CAsset_Skeleton::CBonePath m_LayerPath;
+		CAsset_Skeleton::CSubPath m_BonePath;
+		CAsset_Skeleton::CSubPath m_LayerPath;
 		vec2 m_Translation;
 		vec2 m_Scale;
 		float m_Angle;
@@ -80,8 +80,8 @@ public:
 		int m_Alignment;
 		
 	public:
-		CSprite() :
-			m_BonePath(CAsset_Skeleton::CBonePath::Null()),
+		CAsset_Sprite() :
+			m_BonePath(CAsset_Skeleton::CSubPath::Null()),
 			m_Translation(vec2(0.0f, 0.0f)),
 			m_Scale(vec2(64.0f, 64.0f)),
 			m_Angle(0.0f),
@@ -92,9 +92,9 @@ public:
 			
 		}
 		
-		CSprite(CAssetPath Path) :
+		CAsset_Sprite(CAssetPath Path) :
 			m_SpritePath(Path),
-			m_BonePath(CAsset_Skeleton::CBonePath::Null()),
+			m_BonePath(CAsset_Skeleton::CSubPath::Null()),
 			m_Translation(vec2(0.0f, 0.0f)),
 			m_Scale(vec2(64.0f, 64.0f)),
 			m_Angle(0.0f),
@@ -105,49 +105,49 @@ public:
 			
 		}
 		
-		inline CSprite& Bone(CAsset_Skeleton::CBonePath v)
+		inline CAsset_Sprite& Bone(CAsset_Skeleton::CSubPath v)
 		{
 			m_BonePath = v;
 			return *this;
 		}
 		
-		inline CSprite& Layer(CAsset_Skeleton::CBonePath v)
+		inline CAsset_Sprite& Layer(CAsset_Skeleton::CSubPath v)
 		{
 			m_LayerPath = v;
 			return *this;
 		}
 		
-		inline CSprite& Translation(vec2 v)
+		inline CAsset_Sprite& Translation(vec2 v)
 		{
 			m_Translation = v;
 			return *this;
 		}
 		
-		inline CSprite& Scale(vec2 v)
+		inline CAsset_Sprite& Scale(vec2 v)
 		{
 			m_Scale = v;
 			return *this;
 		}
 		
-		inline CSprite& Angle(float v)
+		inline CAsset_Sprite& Angle(float v)
 		{
 			m_Angle = v;
 			return *this;
 		}
 		
-		inline CSprite& Anchor(float v)
+		inline CAsset_Sprite& Anchor(float v)
 		{
 			m_Anchor = v;
 			return *this;
 		}
 		
-		inline CSprite& Color(vec4 v)
+		inline CAsset_Sprite& Color(vec4 v)
 		{
 			m_Color = v;
 			return *this;
 		}
 		
-		inline CSprite& Alignment(int v)
+		inline CAsset_Sprite& Alignment(int v)
 		{
 			m_Alignment = v;
 			return *this;
@@ -162,14 +162,14 @@ public:
 /* MEMBERS ************************************************************/
 public:	
 	CAssetPath m_SkeletonPath;
-	array<CSprite> m_Sprites;
+	array<CAsset_Sprite> m_Sprites;
 
 /* FUNCTIONS **********************************************************/
 public:
 	CAsset_SkeletonSkin();
 	
-	void AddSprite(const CSprite& Sprite);
-	CSprite& AddSprite(CAssetPath SkeletonPath, CAsset_Skeleton::CBonePath BonePath, CAsset_Skeleton::CBonePath LayerPath);
+	void AddSprite(const CAsset_Sprite& Sprite);
+	CAsset_Sprite& AddSprite(CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, CAsset_Skeleton::CSubPath LayerPath);
 
 /* GET/SET ************************************************************/
 public:
@@ -212,12 +212,27 @@ public:
 		{
 			case CSubPath::TYPE_SPRITE:
 			{
-				m_Sprites.add(CSprite());
-				CSprite& Sprite = m_Sprites[m_Sprites.size()-1];
+				m_Sprites.add(CAsset_Sprite());
+				CAsset_Sprite& Sprite = m_Sprites[m_Sprites.size()-1];
 				Sprite.m_SpritePath = CAssetPath::Universe(CAssetPath::TYPE_SPRITE, tu::SPRITE_WHITESQUARE);
-				return CSubPath::Sprite(m_Sprites.size()-1).ConvertToInteger();
+				return CSubPath::Sprite(m_Sprites.size()-1);
 			}
 		}
+	}
+	
+	bool DeleteSubItem(CSubPath SubItemPath)
+	{
+		if(SubItemPath.GetType() == CSubPath::TYPE_SPRITE)
+		{
+			int Id = SubItemPath.GetId();
+			if(Id >= 0 && Id < m_Sprites.size())
+			{
+				m_Sprites.remove_index(Id);
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	void OnSubItemDeleted(const CAssetPath& Path, int SubPathInt)
@@ -229,28 +244,20 @@ public:
 			
 			CAsset_Skeleton::CSubPath SubPath(SubPathInt);
 			
-			if(SubPath.GetType() == CAsset_Skeleton::SUBITEM_BONE)
+			if(SubPath.GetType() == CAsset_Skeleton::CSubPath::TYPE_BONE)
 			{
 				for(int i=0; i<m_Sprites.size(); i++)
 				{
-					if(m_Sprites[i].m_BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
-					{
-						CAsset_Skeleton::CSubPath TmpPath = CAsset_Skeleton::CSubPath::Bone(m_Sprites[i].m_BonePath.GetId());
-						TmpPath.OnIdDeleted(SubPath);
-						m_Sprites[i].m_BonePath.SetId(TmpPath.GetId());
-					}
+					if(m_Sprites[i].m_BonePath.GetSource() == CAsset_Skeleton::CSubPath::SRC_LOCAL)
+						m_Sprites[i].m_BonePath.OnIdDeleted(SubPath);
 				}
 			}
-			else if(SubPath.GetType() == CAsset_Skeleton::SUBITEM_LAYER)
+			else if(SubPath.GetType() == CAsset_Skeleton::CSubPath::TYPE_LAYER)
 			{
 				for(int i=0; i<m_Sprites.size(); i++)
 				{
-					if(m_Sprites[i].m_LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_LOCAL)
-					{
-						CAsset_Skeleton::CSubPath TmpPath = CAsset_Skeleton::CSubPath::Layer(m_Sprites[i].m_LayerPath.GetId());
-						TmpPath.OnIdDeleted(SubPath);
-						m_Sprites[i].m_LayerPath.SetId(TmpPath.GetId());
-					}
+					if(m_Sprites[i].m_LayerPath.GetSource() == CAsset_Skeleton::CSubPath::SRC_LOCAL)
+						m_Sprites[i].m_LayerPath.OnIdDeleted(SubPath);
 				}
 			}
 		}

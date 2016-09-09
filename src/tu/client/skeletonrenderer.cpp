@@ -1,8 +1,23 @@
 #include <engine/graphics.h>
+#include <tu/client/graphics.h>
 
 #include "skeletonrenderer.h"
 
-void tu::CSkeletonRenderer::AddSkeleton(tu::CAssetPath SkeletonPath)
+namespace tu
+{
+
+CSkeletonRenderer::CSkeletonRenderer(CGraphics* pTUGraphics, CAssetsManager* pAssetsManager) :
+	m_pTUGraphics(pTUGraphics),
+	m_pGraphics(pTUGraphics->Graphics()),
+	m_pAssetsManager(pAssetsManager),
+	m_NumLayers(0)
+{
+	m_Aim = vec2(1.0f, 0.0f);
+	m_Motion = vec2(1.0f, 0.0f);
+	m_Hook = vec2(1.0f, 0.0f);
+}
+
+void CSkeletonRenderer::AddSkeleton(CAssetPath SkeletonPath)
 {
 	for(int i=0; i<m_Skeletons.size(); i++)
 	{
@@ -10,7 +25,7 @@ void tu::CSkeletonRenderer::AddSkeleton(tu::CAssetPath SkeletonPath)
 			return;
 	}
 	
-	tu::CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<tu::CAsset_Skeleton>(SkeletonPath);
+	CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
 	if(!pSkeleton)
 		return;
 	
@@ -36,14 +51,14 @@ void tu::CSkeletonRenderer::AddSkeleton(tu::CAssetPath SkeletonPath)
 	SkeletonState.m_Bones.set_size(pSkeleton->m_Bones.size());
 	for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 	{
-		tu::CSkeletonRenderer::CBoneState& BoneState = SkeletonState.m_Bones[i];
+		CSkeletonRenderer::CBoneState& BoneState = SkeletonState.m_Bones[i];
 		BoneState.m_ParentSkeleton = -1;
 		BoneState.m_ParentBone = -1;
 		BoneState.m_Finalized = false;
 		
 		if(!pSkeleton->m_Bones[i].m_ParentPath.IsNull())
 		{
-			if(pSkeleton->m_Bones[i].m_ParentPath.GetSource() == tu::CAsset_Skeleton::CBonePath::SRC_PARENT)
+			if(pSkeleton->m_Bones[i].m_ParentPath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT)
 			{
 				if(SkeletonState.m_Parent >= 0)
 				{
@@ -69,15 +84,15 @@ void tu::CSkeletonRenderer::AddSkeleton(tu::CAssetPath SkeletonPath)
 	SkeletonState.m_Layers.set_size(pSkeleton->m_Layers.size());
 	for(int i=0; i<pSkeleton->m_Layers.size(); i++)
 	{
-		tu::CSkeletonRenderer::CLayerState& LayerState = SkeletonState.m_Layers[i];
+		CSkeletonRenderer::CLayerState& LayerState = SkeletonState.m_Layers[i];
 		LayerState.m_Color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		LayerState.m_State = tu::CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE;
+		LayerState.m_State = CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE;
 	}
 }
 
-void tu::CSkeletonRenderer::AddSkeletonWithParents(tu::CAssetPath SkeletonPath, int AddDefaultSkin)
+void CSkeletonRenderer::AddSkeletonWithParents(CAssetPath SkeletonPath, int AddDefaultSkin)
 {
-	tu::CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<tu::CAsset_Skeleton>(SkeletonPath);
+	CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
 	if(!pSkeleton)
 		return;
 	
@@ -89,9 +104,9 @@ void tu::CSkeletonRenderer::AddSkeletonWithParents(tu::CAssetPath SkeletonPath, 
 	}
 }
 
-void tu::CSkeletonRenderer::ApplyAnimation(tu::CAssetPath SkeletonAnimationPath, float Time)
+void CSkeletonRenderer::ApplyAnimation(CAssetPath SkeletonAnimationPath, float Time)
 {
-	tu::CAsset_SkeletonAnimation* pSkeletonAnimation = AssetsManager()->GetAsset<tu::CAsset_SkeletonAnimation>(SkeletonAnimationPath);
+	CAsset_SkeletonAnimation* pSkeletonAnimation = AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
 	if(!pSkeletonAnimation)
 		return;
 	
@@ -110,9 +125,9 @@ void tu::CSkeletonRenderer::ApplyAnimation(tu::CAssetPath SkeletonAnimationPath,
 	
 	for(int i=0; i<pSkeletonAnimation->m_BoneAnimations.size(); i++)
 	{
-		tu::CAsset_Skeleton::CBonePath BonePath = pSkeletonAnimation->m_BoneAnimations[i].m_BonePath;
+		CAsset_Skeleton::CSubPath BonePath = pSkeletonAnimation->m_BoneAnimations[i].m_BonePath;
 		int sId = SkeletonId;
-		if(BonePath.GetSource() == tu::CAsset_Skeleton::CBonePath::SRC_PARENT && m_Skeletons[SkeletonId].m_Parent >= 0)
+		if(BonePath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT && m_Skeletons[SkeletonId].m_Parent >= 0)
 		{
 			sId = m_Skeletons[SkeletonId].m_Parent;
 		}
@@ -121,9 +136,9 @@ void tu::CSkeletonRenderer::ApplyAnimation(tu::CAssetPath SkeletonAnimationPath,
 		if(sId < 0 || bId < 0 || sId >= m_Skeletons.size() || bId >= m_Skeletons[sId].m_Bones.size())
 			continue;
 		
-		tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[sId].m_Bones[bId];
+		CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[sId].m_Bones[bId];
 		
-		tu::CAsset_SkeletonAnimation::CBoneAnimation::CFrame Frame;
+		CAsset_SkeletonAnimation::CBoneAnimation::CFrame Frame;
 		if(pSkeletonAnimation->m_BoneAnimations[i].GetFrame(Time, &Frame))
 		{
 			BoneState.m_StartPoint += BoneState.m_Transform * Frame.m_Translation;
@@ -134,9 +149,9 @@ void tu::CSkeletonRenderer::ApplyAnimation(tu::CAssetPath SkeletonAnimationPath,
 	
 	for(int i=0; i<pSkeletonAnimation->m_LayerAnimations.size(); i++)
 	{
-		tu::CAsset_Skeleton::CBonePath LayerPath = pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath;
+		CAsset_Skeleton::CSubPath LayerPath = pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath;
 		int sId = SkeletonId;
-		if(LayerPath.GetSource() == tu::CAsset_Skeleton::CBonePath::SRC_PARENT && m_Skeletons[SkeletonId].m_Parent >= 0)
+		if(LayerPath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT && m_Skeletons[SkeletonId].m_Parent >= 0)
 		{
 			sId = m_Skeletons[SkeletonId].m_Parent;
 		}
@@ -145,9 +160,9 @@ void tu::CSkeletonRenderer::ApplyAnimation(tu::CAssetPath SkeletonAnimationPath,
 		if(sId < 0 || bId < 0 || sId >= m_Skeletons.size() || bId >= m_Skeletons[sId].m_Layers.size())
 			continue;
 		
-		tu::CSkeletonRenderer::CLayerState& LayerState = m_Skeletons[sId].m_Layers[bId];
+		CSkeletonRenderer::CLayerState& LayerState = m_Skeletons[sId].m_Layers[bId];
 		
-		tu::CAsset_SkeletonAnimation::CLayerAnimation::CFrame Frame;
+		CAsset_SkeletonAnimation::CLayerAnimation::CFrame Frame;
 		if(pSkeletonAnimation->m_LayerAnimations[i].GetFrame(Time, &Frame))
 		{
 			LayerState.m_Color = Frame.m_Color;
@@ -156,16 +171,16 @@ void tu::CSkeletonRenderer::ApplyAnimation(tu::CAssetPath SkeletonAnimationPath,
 	}
 }
 
-void tu::CSkeletonRenderer::AddSkin(tu::CAssetPath Path, vec4 Color)
+void CSkeletonRenderer::AddSkin(CAssetPath Path, vec4 Color)
 {
 	m_Skins.add(CSkinState());
 	m_Skins[m_Skins.size()-1].m_Path = Path;
 	m_Skins[m_Skins.size()-1].m_Color = Color;
 }
 
-void tu::CSkeletonRenderer::AddSkinWithSkeleton(tu::CAssetPath Path, vec4 Color)
+void CSkeletonRenderer::AddSkinWithSkeleton(CAssetPath Path, vec4 Color)
 {
-	tu::CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<tu::CAsset_SkeletonSkin>(Path);
+	CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<CAsset_SkeletonSkin>(Path);
 	if(!pSkeletonSkin)
 		return;
 	
@@ -173,9 +188,9 @@ void tu::CSkeletonRenderer::AddSkinWithSkeleton(tu::CAssetPath Path, vec4 Color)
 	AddSkin(Path, Color);
 }
 
-void tu::CSkeletonRenderer::FinalizeBone(int s, int b)
+void CSkeletonRenderer::FinalizeBone(int s, int b)
 {
-	tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
+	CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
 	if(BoneState.m_Finalized)
 		return;
 	
@@ -183,14 +198,14 @@ void tu::CSkeletonRenderer::FinalizeBone(int s, int b)
 	{
 		FinalizeBone(BoneState.m_ParentSkeleton, BoneState.m_ParentBone);
 		
-		tu::CSkeletonRenderer::CBoneState& ParentBoneState = m_Skeletons[BoneState.m_ParentSkeleton].m_Bones[BoneState.m_ParentBone];
+		CSkeletonRenderer::CBoneState& ParentBoneState = m_Skeletons[BoneState.m_ParentSkeleton].m_Bones[BoneState.m_ParentBone];
 		BoneState.m_Transform = ParentBoneState.m_Transform * BoneState.m_Transform;
 		BoneState.m_StartPoint = ParentBoneState.m_StartPoint + (ParentBoneState.m_EndPoint - ParentBoneState.m_StartPoint)*BoneState.m_Anchor + ParentBoneState.m_Transform * BoneState.m_StartPoint;
 	}
 	
 	switch(BoneState.m_Alignment)
 	{
-		case tu::CAsset_SkeletonAnimation::BONEALIGN_AIM:
+		case CAsset_SkeletonAnimation::BONEALIGN_AIM:
 		{
 			vec2 Orientation = BoneState.m_Transform * vec2(1.0f, 0.0f);
 			BoneState.m_Transform = BoneState.m_Transform * matrix2x2::rotation(-angle(Orientation));
@@ -200,7 +215,7 @@ void tu::CSkeletonRenderer::FinalizeBone(int s, int b)
 				BoneState.m_Transform = BoneState.m_Transform * matrix2x2::rotation(angle(m_Aim));
 			break;
 		}
-		case tu::CAsset_SkeletonAnimation::BONEALIGN_MOTION:
+		case CAsset_SkeletonAnimation::BONEALIGN_MOTION:
 		{
 			vec2 Orientation = BoneState.m_Transform * vec2(1.0f, 0.0f);
 			BoneState.m_Transform = BoneState.m_Transform * matrix2x2::rotation(-angle(Orientation));
@@ -210,7 +225,7 @@ void tu::CSkeletonRenderer::FinalizeBone(int s, int b)
 				BoneState.m_Transform = BoneState.m_Transform * matrix2x2::rotation(angle(m_Motion));
 			break;
 		}
-		case tu::CAsset_SkeletonAnimation::BONEALIGN_HOOK:
+		case CAsset_SkeletonAnimation::BONEALIGN_HOOK:
 		{
 			vec2 Orientation = BoneState.m_Transform * vec2(1.0f, 0.0f);
 			BoneState.m_Transform = BoneState.m_Transform * matrix2x2::rotation(-angle(Orientation));
@@ -220,7 +235,7 @@ void tu::CSkeletonRenderer::FinalizeBone(int s, int b)
 				BoneState.m_Transform = BoneState.m_Transform * matrix2x2::rotation(angle(m_Hook));
 			break;
 		}
-		case tu::CAsset_SkeletonAnimation::BONEALIGN_WORLD:
+		case CAsset_SkeletonAnimation::BONEALIGN_WORLD:
 		{
 			vec2 Orientation = BoneState.m_Transform * vec2(1.0f, 0.0f);
 			BoneState.m_Transform = BoneState.m_Transform * matrix2x2::rotation(angle(Orientation, vec2(1.0f, 0.0f)));
@@ -232,7 +247,7 @@ void tu::CSkeletonRenderer::FinalizeBone(int s, int b)
 	BoneState.m_Finalized = true;
 }
 
-void tu::CSkeletonRenderer::Finalize()
+void CSkeletonRenderer::Finalize()
 {
 	for(int s=0; s<m_Skeletons.size(); s++)
 	{
@@ -243,15 +258,15 @@ void tu::CSkeletonRenderer::Finalize()
 	}
 }
 
-void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int LayerSkeletonId, int LayerId)
+void CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int LayerSkeletonId, int LayerId)
 {
 	CLayerState& LayerState = m_Skeletons[LayerSkeletonId].m_Layers[LayerId];
-	if(LayerState.m_State != tu::CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE)
+	if(LayerState.m_State != CAsset_SkeletonAnimation::LAYERSTATE_VISIBLE)
 		return;
 	
 	for(int s=0; s<m_Skins.size(); s++)
 	{
-		tu::CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<tu::CAsset_SkeletonSkin>(m_Skins[s].m_Path);
+		CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<CAsset_SkeletonSkin>(m_Skins[s].m_Path);
 		if(!pSkeletonSkin)
 			continue;
 		
@@ -269,14 +284,14 @@ void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int Laye
 			return;
 		
 		//Compute LayerPath
-		tu::CAsset_Skeleton::CBonePath LayerPath;
+		CAsset_Skeleton::CSubPath LayerPath;
 		if(pSkeletonSkin->m_SkeletonPath == m_Skeletons[LayerSkeletonId].m_Path)
 		{
-			LayerPath = tu::CAsset_Skeleton::CBonePath::Local(LayerId);
+			LayerPath = CAsset_Skeleton::CSubPath::LocalLayer(LayerId);
 		}
 		else if(m_Skeletons[SkeletonId].m_Parent >= 0 && m_Skeletons[m_Skeletons[SkeletonId].m_Parent].m_Path == m_Skeletons[LayerSkeletonId].m_Path)
 		{			
-			LayerPath = tu::CAsset_Skeleton::CBonePath::Parent(LayerId);
+			LayerPath = CAsset_Skeleton::CSubPath::ParentLayer(LayerId);
 		}
 		else return;
 		
@@ -286,12 +301,12 @@ void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int Laye
 			if(!(pSkeletonSkin->m_Sprites[i].m_LayerPath == LayerPath))
 				continue;
 			
-			tu::CAsset_Sprite* pSprite = AssetsManager()->GetAsset<tu::CAsset_Sprite>(pSkeletonSkin->m_Sprites[i].m_SpritePath);
+			CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(pSkeletonSkin->m_Sprites[i].m_SpritePath);
 			if(!pSprite)
 				continue;
 			
 			int sId = SkeletonId;
-			if(pSkeletonSkin->m_Sprites[i].m_BonePath.GetSource() == tu::CAsset_Skeleton::CBonePath::SRC_PARENT && m_Skeletons[SkeletonId].m_Parent >= 0)
+			if(pSkeletonSkin->m_Sprites[i].m_BonePath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT && m_Skeletons[SkeletonId].m_Parent >= 0)
 			{
 				sId = m_Skeletons[SkeletonId].m_Parent;
 			}
@@ -300,8 +315,8 @@ void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int Laye
 			if(sId < 0 || bId < 0 || sId >= m_Skeletons.size() || bId >= m_Skeletons[sId].m_Bones.size())
 				continue;
 			
-			float SizeX = pSprite->m_Width;
-			float SizeY = pSprite->m_Height;
+			float SizeX = pSprite->GetWidth();
+			float SizeY = pSprite->GetHeight();
 			
 			if(SizeX > SizeY)
 			{
@@ -320,7 +335,7 @@ void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int Laye
 			
 			matrix2x2 Transform = matrix2x2::rotation(pSkeletonSkin->m_Sprites[i].m_Angle) * matrix2x2::scaling(pSkeletonSkin->m_Sprites[i].m_Scale);
 			
-			tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[sId].m_Bones[bId];
+			CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[sId].m_Bones[bId];
 
 			vec2 LocalPos = BoneState.m_StartPoint + (BoneState.m_EndPoint - BoneState.m_StartPoint)*pSkeletonSkin->m_Sprites[i].m_Anchor + BoneState.m_Transform * pSkeletonSkin->m_Sprites[i].m_Translation;
 			QuadPos += LocalPos * Size;
@@ -329,18 +344,15 @@ void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int Laye
 			DirX = Transform * DirX/2.0f;
 			DirY = Transform * DirY/2.0f;
 			
-			if(pSkeletonSkin->m_Sprites[i].m_Alignment == tu::CAsset_SkeletonSkin::ALIGNEMENT_WORLD)
+			if(pSkeletonSkin->m_Sprites[i].m_Alignment == CAsset_SkeletonSkin::ALIGNEMENT_WORLD)
 			{
 				DirX = vec2(length(DirX), 0.0f);
 				DirY = vec2(0.0f, length(DirY));
 			}
 			
 			//UVs
-			tu::CAsset_Image* pImage = AssetsManager()->GetAsset<tu::CAsset_Image>(pSprite->m_ImagePath);
-			if(pImage)
-				Graphics()->TextureSet(pImage->m_Texture);
-			else
-				Graphics()->TextureClear();
+			CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pSprite->GetImagePath());
+			TUGraphics()->TextureSet(pSprite->GetImagePath());
 			
 			vec4 Color = m_Skins[s].m_Color * LayerState.m_Color;
 			
@@ -350,8 +362,8 @@ void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int Laye
 			//Set Texture Coords
 			if(pImage)
 			{
-				vec2 uvMin = vec2(pSprite->m_X/(float)max(1, pImage->m_GridWidth), pSprite->m_Y/(float)max(1, pImage->m_GridHeight));
-				vec2 uvMax = uvMin + vec2(pSprite->m_Width/(float)max(1, pImage->m_GridWidth), pSprite->m_Height/(float)max(1, pImage->m_GridHeight));
+				vec2 uvMin = vec2(pSprite->GetX()/(float)max(1, pImage->GetGridWidth()), pSprite->GetY()/(float)max(1, pImage->GetGridHeight()));
+				vec2 uvMax = uvMin + vec2(pSprite->GetWidth()/(float)max(1, pImage->GetGridWidth()), pSprite->GetHeight()/(float)max(1, pImage->GetGridHeight()));
 				
 				Graphics()->QuadsSetSubsetFree(
 					uvMin.x, uvMin.y,
@@ -372,7 +384,7 @@ void tu::CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int Laye
 	}
 }
 
-void tu::CSkeletonRenderer::RenderSkins(vec2 Position, float Size)
+void CSkeletonRenderer::RenderSkins(vec2 Position, float Size)
 {
 	for(int s=0; s<m_Skeletons.size(); s++)
 	{
@@ -383,7 +395,7 @@ void tu::CSkeletonRenderer::RenderSkins(vec2 Position, float Size)
 	}
 }
 
-void tu::CSkeletonRenderer::RenderBone(vec2 Position, float Size, tu::CAssetPath SkeletonPath, tu::CAsset_Skeleton::CSubPath BonePath)
+void CSkeletonRenderer::RenderBone(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath)
 {
 	for(int s=0; s<m_Skeletons.size(); s++)
 	{
@@ -393,7 +405,7 @@ void tu::CSkeletonRenderer::RenderBone(vec2 Position, float Size, tu::CAssetPath
 		int b = BonePath.GetId();
 		if(b >= 0 && b < m_Skeletons[s].m_Bones.size())
 		{
-			tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
+			CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
 			
 			Graphics()->TextureClear();
 			Graphics()->QuadsBegin();
@@ -420,7 +432,7 @@ void tu::CSkeletonRenderer::RenderBone(vec2 Position, float Size, tu::CAssetPath
 	}
 }
 
-void tu::CSkeletonRenderer::RenderBoneOutline(vec2 Position, float Size, tu::CAssetPath SkeletonPath, tu::CAsset_Skeleton::CSubPath BonePath)
+void CSkeletonRenderer::RenderBoneOutline(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath)
 {
 	for(int s=0; s<m_Skeletons.size(); s++)
 	{
@@ -430,7 +442,7 @@ void tu::CSkeletonRenderer::RenderBoneOutline(vec2 Position, float Size, tu::CAs
 		int b = BonePath.GetId();
 		if(b >= 0 && b < m_Skeletons[s].m_Bones.size())
 		{
-			tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
+			CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
 			
 			Graphics()->TextureClear();
 			Graphics()->LinesBegin();
@@ -458,7 +470,7 @@ void tu::CSkeletonRenderer::RenderBoneOutline(vec2 Position, float Size, tu::CAs
 	}
 }
 
-void tu::CSkeletonRenderer::RenderBones(vec2 Position, float Size)
+void CSkeletonRenderer::RenderBones(vec2 Position, float Size)
 {
 	Graphics()->TextureClear();
 	Graphics()->QuadsBegin();
@@ -467,7 +479,7 @@ void tu::CSkeletonRenderer::RenderBones(vec2 Position, float Size)
 	{
 		for(int b=0; b<m_Skeletons[s].m_Bones.size(); b++)
 		{
-			tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
+			CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
 			
 			Graphics()->SetColor(BoneState.m_Color.r*BoneState.m_Color.a, BoneState.m_Color.g*BoneState.m_Color.a, BoneState.m_Color.b*BoneState.m_Color.a, BoneState.m_Color.a);
 				
@@ -491,7 +503,7 @@ void tu::CSkeletonRenderer::RenderBones(vec2 Position, float Size)
 	Graphics()->QuadsEnd();
 }
 
-bool tu::CSkeletonRenderer::BonePicking(vec2 Position, float Size, vec2 Point, tu::CAssetPath& SkeletonPath, tu::CAsset_Skeleton::CSubPath& BonePath)
+bool CSkeletonRenderer::BonePicking(vec2 Position, float Size, vec2 Point, CAssetPath& SkeletonPath, CAsset_Skeleton::CSubPath& BonePath)
 {
 	vec2 Vertices[4];
 	
@@ -499,7 +511,7 @@ bool tu::CSkeletonRenderer::BonePicking(vec2 Position, float Size, vec2 Point, t
 	{
 		for(int b=m_Skeletons[s].m_Bones.size()-1; b>=0; b--)
 		{
-			tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
+			CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
 			
 			vec2 StartPoint = Position + BoneState.m_StartPoint*Size;
 			vec2 EndPoint = Position + BoneState.m_EndPoint*Size;
@@ -528,7 +540,7 @@ bool tu::CSkeletonRenderer::BonePicking(vec2 Position, float Size, vec2 Point, t
 			if(isInside)
 			{
 				SkeletonPath = m_Skeletons[s].m_Path;
-				BonePath = tu::CAsset_Skeleton::CSubPath::Bone(b);
+				BonePath = CAsset_Skeleton::CSubPath::LocalBone(b);
 				return true;
 			}
 		}
@@ -537,7 +549,7 @@ bool tu::CSkeletonRenderer::BonePicking(vec2 Position, float Size, vec2 Point, t
 	return false;
 }
 
-bool tu::CSkeletonRenderer::GetLocalAxis(vec2 Position, float Size, tu::CAssetPath SkeletonPath, tu::CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY)
+bool CSkeletonRenderer::GetLocalAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY)
 {
 	for(int s=0; s<m_Skeletons.size(); s++)
 	{
@@ -549,7 +561,7 @@ bool tu::CSkeletonRenderer::GetLocalAxis(vec2 Position, float Size, tu::CAssetPa
 		if(b < 0 || b >= m_Skeletons[s].m_Bones.size())
 			return false;
 		
-		tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
+		CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[s].m_Bones[b];
 			
 		vec2 StartPoint = Position + BoneState.m_StartPoint*Size;
 		vec2 EndPoint = Position + BoneState.m_EndPoint*Size;
@@ -565,7 +577,7 @@ bool tu::CSkeletonRenderer::GetLocalAxis(vec2 Position, float Size, tu::CAssetPa
 	return false;
 }
 
-bool tu::CSkeletonRenderer::GetParentAxis(vec2 Position, float Size, tu::CAssetPath SkeletonPath, tu::CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY)
+bool CSkeletonRenderer::GetParentAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY)
 {
 	for(int s=0; s<m_Skeletons.size(); s++)
 	{
@@ -582,7 +594,7 @@ bool tu::CSkeletonRenderer::GetParentAxis(vec2 Position, float Size, tu::CAssetP
 			int pS = m_Skeletons[s].m_Bones[b].m_ParentSkeleton;
 			int pB = m_Skeletons[s].m_Bones[b].m_ParentBone;
 			
-			tu::CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[pS].m_Bones[pB];
+			CSkeletonRenderer::CBoneState& BoneState = m_Skeletons[pS].m_Bones[pB];
 			
 			vec2 StartPoint = Position + BoneState.m_StartPoint*Size;
 			vec2 EndPoint = Position + BoneState.m_EndPoint*Size;
@@ -602,4 +614,6 @@ bool tu::CSkeletonRenderer::GetParentAxis(vec2 Position, float Size, tu::CAssetP
 	}
 	
 	return false;
+}
+
 }

@@ -32,7 +32,7 @@ public:
 		int m_UncontrolledJumpPath;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* SUBITEMS ***********************************************************/
@@ -76,7 +76,7 @@ public:
 	};
 
 /* MEMBERS ************************************************************/
-public:	
+private:
 	array<CPart> m_Parts;
 	
 	CAssetPath m_IdlePath;
@@ -88,6 +88,17 @@ public:
 public:
 	CAsset_Character();
 	CPart& AddPart();
+	
+	inline CAssetPath GetIdlePath() const { return m_IdlePath; }
+	inline CAssetPath GetWalkPath() const { return m_WalkPath; }
+	inline CAssetPath GetControlledJumpPath() const { return m_ControlledJumpPath; }
+	inline CAssetPath GetUncontrolledJumpPath() const { return m_UncontrolledJumpPath; }
+	inline CAssetPath GetPartDefaultPath(CSubPath SubPath) const { m_Parts[SubPath.GetId()].m_DefaultPath; }
+	
+	inline void SetIdlePath(CAssetPath Path) { m_IdlePath = Path; }
+	inline void SetWalkPath(CAssetPath Path) { m_WalkPath = Path; }
+	inline void SetControlledJumpPath(CAssetPath Path) { m_ControlledJumpPath = Path; }
+	inline void SetUncontrolledJumpPath(CAssetPath Path) { m_UncontrolledJumpPath = Path; }
 	
 /* GET/SET ************************************************************/
 public:
@@ -101,6 +112,7 @@ public:
 		UNCONTROLLEDJUMPPATH, //Path
 	};
 	
+	TU_ASSET_ARRAY_ITERATOR(Part, m_Parts, Part)
 	TU_ASSET_GETSET_FUNC()
 	
 /* EDITOR *************************************************************/
@@ -123,7 +135,7 @@ public:
 		{
 			case CSubPath::TYPE_PART:
 				AddPart();
-				return CSubPath::Part(m_Parts.size()-1).ConvertToInteger();
+				return CSubPath::Part(m_Parts.size()-1);
 		}
 	}
 };

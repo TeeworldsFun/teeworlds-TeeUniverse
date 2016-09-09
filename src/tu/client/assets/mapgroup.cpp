@@ -15,7 +15,7 @@ CAsset_MapGroup::CAsset_MapGroup() :
 	
 /* IO *****************************************************************/
 
-void CAsset_MapGroup::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, const CAsset_MapGroup::CStorageType* pItem)
+void CAsset_MapGroup::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_MapGroup::CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -47,7 +47,7 @@ void CAsset_MapGroup::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Positio
 		int* pLayers = new int[m_Layers.size()];
 		for(int i=0; i<m_Layers.size(); i++)
 		{
-			pLayers[i] = m_Layers[i].ConvertToInteger();
+			pLayers[i] = m_Layers[i];
 		}
 		Item.m_NumLayers = m_Layers.size();
 		Item.m_LayersData = pFileWriter->AddData(Item.m_NumLayers * sizeof(int), pLayers);
@@ -65,17 +65,13 @@ float CAsset_MapGroup::GetValue<float>(int ValueType, int PathInt, float Default
 	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case POSITION_X:
-			return m_Position.x;
-		case POSITION_Y:
-			return m_Position.y;
-		case HARDPARALLAX_X:
-			return m_HardParallax.x;
-		case HARDPARALLAX_Y:
-			return m_HardParallax.x;
-		default:
-			return CAsset::GetValue<float>(ValueType, PathInt, DefaultValue);
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(float, POSITION_X, GetPosition().x)
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(float, POSITION_Y, GetPosition().y)
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(float, HARDPARALLAX_X, GetHardParallax().x)
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(float, HARDPARALLAX_Y, GetHardParallax().y)
 	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(float)
 }
 	
 template<>
@@ -84,21 +80,13 @@ bool CAsset_MapGroup::SetValue<float>(int ValueType, int PathInt, float Value)
 	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case POSITION_X:
-			m_Position.x = Value;
-			return true;
-		case POSITION_Y:
-			m_Position.y = Value;
-			return true;
-		case HARDPARALLAX_X:
-			m_HardParallax.x = Value;
-			return true;
-		case HARDPARALLAX_Y:
-			m_HardParallax.y = Value;
-			return true;
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(float, POSITION_X, m_Position.x)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(float, POSITION_Y, m_Position.y)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(float, HARDPARALLAX_X, m_HardParallax.x)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(float, HARDPARALLAX_Y, m_HardParallax.y)
 	}
 	
-	return CAsset::SetValue<float>(ValueType, PathInt, Value);
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(float)
 }
 
 }

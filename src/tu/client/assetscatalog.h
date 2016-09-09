@@ -7,16 +7,36 @@
 namespace tu
 {
 
-template<class T>
+struct CAssetState
+{
+	bool m_ListedInEditor;
+};
+
+template<class ASSET, class STATE = CAssetState>
 class CAssetCatalog
 {
 public:
-	array<T> m_Assets[CAssetPath::NUM_SOURCES];
-
-public:	
-	T* GetAsset(const CAssetPath& path)
+	struct CCatalogEntry
 	{
-		if(path.GetType() != T::TypeId)
+		ASSET m_Asset;
+		STATE m_State;
+	};
+	
+public:
+	array<CCatalogEntry> m_Assets[CAssetPath::NUM_SOURCES];
+
+public:
+	void InitAssetState(int Source, const STATE& State)
+	{
+		for(int i=0; i<m_Assets[Source].size(); i++)
+		{
+			m_Assets[Source][i].m_State = State;
+		}
+	}
+	
+	ASSET* GetAsset(const CAssetPath& path)
+	{
+		if(path.GetType() != ASSET::TypeId)
 			return 0;
 		
 		int Id = path.GetId();
@@ -24,48 +44,69 @@ public:
 			return 0;
 			
 		if(Id < m_Assets[path.GetSource()].size())
-			return &m_Assets[path.GetSource()][Id];
+			return &m_Assets[path.GetSource()][Id].m_Asset;
 		else
 			return 0;
 	}
 	
-	T* NewAsset(CAssetPath* path, int Source)
+	STATE* GetAssetState(const CAssetPath& path)
 	{
-		int Id = m_Assets[Source].add(T());
-		*path = CAssetPath::Asset(T::TypeId, Source, Id);
+		if(path.GetType() != ASSET::TypeId)
+			return 0;
 		
-		return &m_Assets[Source][Id];
+		int Id = path.GetId();
+		if(Id < 0)
+			return 0;
+			
+		if(Id < m_Assets[path.GetSource()].size())
+			return &m_Assets[path.GetSource()][Id].m_State;
+		else
+			return 0;
 	}
 	
-	T* NewAsset(const CAssetPath& path)
+	ASSET* NewAsset(class CAssetsManager* pAssetsManager, CAssetPath* path, int Source)
 	{
-		if(path.GetType() != T::TypeId)
+		int Id = m_Assets[Source].add(CCatalogEntry());
+		*path = CAssetPath::Asset(ASSET::TypeId, Source, Id);
+		
+		m_Assets[Source][Id].m_Asset.SetAssetsManager(pAssetsManager);
+		
+		return &m_Assets[Source][Id].m_Asset;
+	}
+	
+	ASSET* NewAsset(class CAssetsManager* pAssetsManager, const CAssetPath& path)
+	{
+		if(path.GetType() != ASSET::TypeId)
 			return 0;
 		
 		int Id = path.GetId();
 		if(Id < 0)
 			return 0;
 		
-		int Size = max(m_Assets[path.GetSource()].size(), Id+1);
-		m_Assets[path.GetSource()].set_size(Size);
+		int OldSize = m_Assets[path.GetSource()].size();
+		int NewSize = max(OldSize, Id+1);
+		m_Assets[path.GetSource()].set_size(NewSize);
 		
-		return &m_Assets[path.GetSource()][Id];
+		for(int i=OldSize; i<NewSize; i++)
+			m_Assets[path.GetSource()][i].m_Asset.SetAssetsManager(pAssetsManager);
+		
+		return &m_Assets[path.GetSource()][Id].m_Asset;
 	}
 	
 	void LoadFromAssetsFile(class CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, int Source)
 	{
-		dbg_msg("assetmanager", "load assets of type %d", T::TypeId);
 		int Start, Num;
-		pAssetsFile->GetType(CAssetPath::TypeToStoredType(T::TypeId), &Start, &Num);
+		pAssetsFile->GetType(CAssetPath::TypeToStoredType(ASSET::TypeId), &Start, &Num);
 		
 		m_Assets[Source].clear();
 		m_Assets[Source].set_size(Num);
 		
 		for(int i = 0; i < Num; i++)
 		{
-			class T::CStorageType* pItem = (class T::CStorageType*) pAssetsFile->GetItem(Start+i, 0, 0);
-			T* pAsset = &m_Assets[Source][i];
-			pAsset->InitFromAssetsFile(pAssetsManager, pAssetsFile, pItem);
+			class ASSET::CStorageType* pItem = (class ASSET::CStorageType*) pAssetsFile->GetItem(Start+i, 0, 0);
+			ASSET* pAsset = &m_Assets[Source][i].m_Asset;
+			pAsset->SetAssetsManager(pAssetsManager);
+			pAsset->InitFromAssetsFile(pAssetsFile, pItem);
 		}
 	}
 	
@@ -73,7 +114,7 @@ public:
 	{
 		for(int i=0; i<m_Assets[Source].size(); i++)
 		{
-			m_Assets[Source][i].SaveInAssetsFile(pFileWriter, i);
+			m_Assets[Source][i].m_Asset.SaveInAssetsFile(pFileWriter, i);
 		}
 	}
 	
@@ -83,7 +124,7 @@ public:
 		{
 			for(int i=0; i<m_Assets[s].size(); i++)
 			{
-				m_Assets[s][i].Update();
+				m_Assets[s][i].m_Asset.Update();
 			}
 		}
 	}
@@ -92,14 +133,14 @@ public:
 	{
 		for(int i=0; i<m_Assets[Source].size(); i++)
 		{
-			m_Assets[Source][i].Unload();
+			m_Assets[Source][i].m_Asset.Unload();
 		}
 		m_Assets[Source].clear();
 	}
 	
 	void DeleteAsset(const CAssetPath& Path)
 	{
-		if(!Path.IsNull() && Path.GetType() == T::TypeId)
+		if(!Path.IsNull() && Path.GetType() == ASSET::TypeId)
 		{
 			m_Assets[Path.GetSource()].remove_index(Path.GetId());
 		}
@@ -111,7 +152,7 @@ public:
 		{
 			for(int i=0; i<m_Assets[s].size(); i++)
 			{
-				m_Assets[s][i].OnAssetDeleted(Path);
+				m_Assets[s][i].m_Asset.OnAssetDeleted(Path);
 			}
 		}
 	}
@@ -122,7 +163,7 @@ public:
 		{
 			for(int i=0; i<m_Assets[s].size(); i++)
 			{
-				m_Assets[s][i].OnSubItemDeleted(Path, SubItemPath);
+				m_Assets[s][i].m_Asset.OnSubItemDeleted(Path, SubItemPath);
 			}
 		}
 	}

@@ -74,15 +74,16 @@ public:
 		CAssetPath m_AssetPath;
 		int m_Member;
 		int m_SubId;
+		int m_Token;
 		
 		virtual void SetValue(float v)
 		{
-			m_pAssetsEditor->AssetsManager()->SetAssetValue<float>(m_AssetPath, m_Member, m_SubId, v);
+			m_pAssetsEditor->AssetsManager()->SetAssetValue<float>(m_AssetPath, m_SubId, m_Member, v, m_Token);
 		}
 		
 		virtual float GetValue()
 		{
-			return m_pAssetsEditor->AssetsManager()->GetAssetValue<float>(m_AssetPath, m_Member, m_SubId, -2);
+			return m_pAssetsEditor->AssetsManager()->GetAssetValue<float>(m_AssetPath, m_Member, m_SubId, CAssetsHistory::NO_TOKEN);
 		}
 		
 	public:
@@ -91,40 +92,43 @@ public:
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(AssetPath),
 			m_Member(Member),
-			m_SubId(SubId)
-		{
-			
-		}
+			m_SubId(SubId),
+			m_Token(-1)
+		{ }
+		
+		void SetToken(int Token) { m_Token = Token; }
 	};
 			
-	class CAnglerEdit : public gui::CAbstractFloatEdit
+	class CAngleEdit : public gui::CAbstractFloatEdit
 	{
 	protected:
 		CAssetsEditor* m_pAssetsEditor;
 		CAssetPath m_AssetPath;
 		int m_Member;
 		int m_SubId;
+		int m_Token;
 		
 		virtual void SetValue(float v)
 		{
-			m_pAssetsEditor->AssetsManager()->SetAssetValue<float>(m_AssetPath, m_Member, m_SubId, pi*v/180.0f);
+			m_pAssetsEditor->AssetsManager()->SetAssetValue<float>(m_AssetPath, m_SubId, m_Member, pi*v/180.0f, m_Token);
 		}
 		
 		virtual float GetValue()
 		{
-			return 180.0f*m_pAssetsEditor->AssetsManager()->GetAssetValue<float>(m_AssetPath, m_Member, m_SubId, -2)/pi;
+			return 180.0f*m_pAssetsEditor->AssetsManager()->GetAssetValue<float>(m_AssetPath, m_Member, m_SubId, 0.0f)/pi;
 		}
 		
 	public:
-		CAnglerEdit(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int Member, int SubId = -1) :
+		CAngleEdit(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int Member, int SubId = -1) :
 			gui::CAbstractFloatEdit(pAssetsEditor->m_pGuiConfig),
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(AssetPath),
 			m_Member(Member),
-			m_SubId(SubId)
-		{
-			
-		}
+			m_SubId(SubId),
+			m_Token(CAssetsHistory::NEW_TOKEN)
+		{ }
+		
+		void SetToken(int Token) { m_Token = Token; }
 	};
 
 	class CIntegerAssetMemberEdit : public gui::CAbstractIntegerEdit
@@ -134,15 +138,16 @@ public:
 		CAssetPath m_AssetPath;
 		int m_Member;
 		int m_SubId;
+		int m_Token;
 		
 		virtual void SetValue(int v)
 		{
-			m_pAssetsEditor->AssetsManager()->SetAssetValue<int>(m_AssetPath, m_Member, m_SubId, v);
+			m_pAssetsEditor->AssetsManager()->SetAssetValue<int>(m_AssetPath, m_SubId, m_Member, v, m_Token);
 		}
 		
 		virtual int GetValue()
 		{
-			return m_pAssetsEditor->AssetsManager()->GetAssetValue<int>(m_AssetPath, m_Member, m_SubId, -2);
+			return m_pAssetsEditor->AssetsManager()->GetAssetValue<int>(m_AssetPath, m_Member, m_SubId, -1);
 		}
 		
 	public:
@@ -151,10 +156,11 @@ public:
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(AssetPath),
 			m_Member(Member),
-			m_SubId(SubId)
-		{
-			
-		}
+			m_SubId(SubId),
+			m_Token(CAssetsHistory::NEW_TOKEN)
+		{ }
+		
+		void SetToken(int Token) { m_Token = Token; }
 	};
 
 	class CAssetEdit : public gui::CExternalTextButton
@@ -215,19 +221,19 @@ public:
 			switch(Path.GetType())
 			{
 				case CAssetPath::TYPE_IMAGE:
-					IconId = CAssetsEditor::ICON_IMAGE;
+					IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_IMAGE);
 					break;
 				case CAssetPath::TYPE_SPRITE:
-					IconId = CAssetsEditor::ICON_SPRITE;
+					IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SPRITE);
 					break;
 				case CAssetPath::TYPE_SKELETON:
-					IconId = CAssetsEditor::ICON_SKELETON;
+					IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETON);
 					break;
 				case CAssetPath::TYPE_SKELETONSKIN:
-					IconId = CAssetsEditor::ICON_SKELETONSKIN;
+					IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONSKIN);
 					break;
 				case CAssetPath::TYPE_SKELETONANIMATION:
-					IconId = CAssetsEditor::ICON_SKELETONANIMATION;
+					IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONANIMATION);
 					break;
 			}
 			SetIcon(IconId);
@@ -279,12 +285,12 @@ public:
 		
 		virtual void Update()
 		{
-			CAsset_Skeleton::CBonePath BonePath = m_pAssetsEditor->AssetsManager()->GetAssetValue<CAsset_Skeleton::CBonePath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, CAsset_Skeleton::CBonePath::Null());
+			CAsset_Skeleton::CSubPath BonePath = m_pAssetsEditor->AssetsManager()->GetAssetValue<CAsset_Skeleton::CSubPath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, CAsset_Skeleton::CSubPath::Null());
 			if(BonePath.IsNull())
 			{
 				m_pText = m_aNoneText;
 			}
-			else if(BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_PARENT)
+			else if(BonePath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT)
 			{
 				CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(m_SkeletonPath);
 				if(pSkeleton)
@@ -292,19 +298,15 @@ public:
 					m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 						pSkeleton->m_ParentPath,
 						CAsset_Skeleton::BONE_NAME,
-						CAsset_Skeleton::CSubPath::Bone(BonePath.GetId()).ConvertToInteger(),
+						CAsset_Skeleton::CSubPath::LocalBone(BonePath.GetId()),
 						0);
-					SetIcon(CAssetsEditor::ICON_BONE);
+					SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_BONE));
 				}
 			}
 			else
 			{
-				m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
-					m_SkeletonPath,
-					CAsset_Skeleton::BONE_NAME,
-					CAsset_Skeleton::CSubPath::Bone(BonePath.GetId()).ConvertToInteger(),
-					0);
-				SetIcon(CAssetsEditor::ICON_BONE);
+				m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_SkeletonPath, CAsset_Skeleton::BONE_NAME, BonePath, 0);
+				SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_BONE));
 			}
 			
 			gui::CExternalTextButton::Update();
@@ -354,12 +356,12 @@ public:
 		
 		virtual void Update()
 		{
-			CAsset_Skeleton::CBonePath LayerPath = m_pAssetsEditor->AssetsManager()->GetAssetValue<CAsset_Skeleton::CBonePath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, CAsset_Skeleton::CBonePath::Null());
+			CAsset_Skeleton::CSubPath LayerPath = m_pAssetsEditor->AssetsManager()->GetAssetValue<CAsset_Skeleton::CSubPath>(m_ParentAssetPath, m_ParentAssetMember, m_ParentAssetSubId, CAsset_Skeleton::CSubPath::Null());
 			if(LayerPath.IsNull())
 			{
 				m_pText = m_aNoneText;
 			}
-			else if(LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_PARENT)
+			else if(LayerPath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT)
 			{
 				CAsset_Skeleton* pSkeleton = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Skeleton>(m_SkeletonPath);
 				if(pSkeleton)
@@ -367,19 +369,15 @@ public:
 					m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 						pSkeleton->m_ParentPath,
 						CAsset_Skeleton::LAYER_NAME,
-						CAsset_Skeleton::CSubPath::Layer(LayerPath.GetId()).ConvertToInteger(),
+						CAsset_Skeleton::CSubPath::LocalLayer(LayerPath.GetId()),
 						0);
-					SetIcon(CAssetsEditor::ICON_LAYERS);
+					SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERS));
 				}
 			}
 			else
 			{
-				m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
-					m_SkeletonPath,
-					CAsset_Skeleton::LAYER_NAME,
-					CAsset_Skeleton::CSubPath::Layer(LayerPath.GetId()).ConvertToInteger(),
-					0);
-				SetIcon(CAssetsEditor::ICON_LAYERS);
+				m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_SkeletonPath, CAsset_Skeleton::LAYER_NAME, LayerPath, 0);
+				SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERS));
 			}
 			
 			gui::CExternalTextButton::Update();
@@ -433,7 +431,7 @@ public:
 				m_ParentAssetPath,
 				m_ParentAssetMember,
 				m_ParentAssetSubId,
-				CAsset_Character::CSubPath::Null().ConvertToInteger()
+				CAsset_Character::CSubPath::Null()
 			);
 			
 			if(SubPath.IsNull())
@@ -445,9 +443,9 @@ public:
 				m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(
 					m_CharacterPath,
 					CAsset_Character::PART_NAME,
-					CAsset_Character::CSubPath::Part(SubPath.GetId()).ConvertToInteger(),
+					CAsset_Character::CSubPath::Part(SubPath.GetId()),
 					0);
-				SetIcon(CAssetsEditor::ICON_CHARACTERPART);
+				SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTERPART));
 			}
 			
 			gui::CExternalTextButton::Update();
@@ -600,13 +598,14 @@ public:
 		CAssetsEditor* m_pAssetsEditor;
 		int m_NbElements;
 		const char** m_aTexts;
+		int m_Token;
 		
 	protected:
 		virtual void MouseClickAction()
 		{
 			int OldValue = m_pAssetsEditor->AssetsManager()->GetAssetValue<int>(m_AssetPath, m_Member, m_SubId, 0);
 			int NewValue = (OldValue + 1)%m_NbElements;
-			m_pAssetsEditor->AssetsManager()->SetAssetValue<int>(m_AssetPath, m_Member, m_SubId, NewValue);
+			m_pAssetsEditor->AssetsManager()->SetAssetValue<int>(m_AssetPath, m_SubId, m_Member, NewValue, m_Token);
 			UpdateButtonLabel(NewValue);
 		}
 		
@@ -623,10 +622,11 @@ public:
 			m_Member(Member),
 			m_SubId(SubId),
 			m_aTexts(aTexts),
-			m_NbElements(NbElements)
-		{
-			
-		}
+			m_NbElements(NbElements),
+			m_Token(CAssetsHistory::NEW_TOKEN)
+		{ }
+		
+		void SetToken(int Token) { m_Token = Token; }
 		
 		virtual void Update()
 		{
@@ -648,7 +648,7 @@ public:
 
 	public:
 		CDuplicateAsset(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath) :
-			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Duplicate", CAssetsEditor::ICON_DUPLICATE),
+			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Duplicate", CAssetPath::SpriteUniverse(SPRITE_ICON_DUPLICATE)),
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(AssetPath)
 		{ }
@@ -665,90 +665,96 @@ public:
 
 	public:
 		CDeleteAsset(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath) :
-			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Delete", CAssetsEditor::ICON_DELETE),
+			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Delete", CAssetPath::SpriteUniverse(SPRITE_ICON_DELETE)),
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(AssetPath)
 		{ }
 	};
 
-	class CDeleteSubItem : public gui::CIconButton
+	class CDeleteSubItem : public gui::CTextButton
 	{
 	protected:
 		CAssetPath m_AssetPath;
 		int m_SubId;
 		CAssetsEditor* m_pAssetsEditor;
+
+		virtual void MouseClickAction() { m_pAssetsEditor->DeleteSubItem(m_AssetPath, m_SubId); }
 
 	public:
 		CDeleteSubItem(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int SubId) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_DELETE),
+			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Delete", CAssetPath::SpriteUniverse(SPRITE_ICON_DELETE)),
 			m_AssetPath(AssetPath),
 			m_SubId(SubId),
 			m_pAssetsEditor(pAssetsEditor)
-		{
-			
-		}
+		{ }
 	};
 
-	class CMoveDownSubItem : public gui::CIconButton
+	class CSubItemListItem : public gui::CHListLayout
 	{
-	protected:
-		CAssetPath m_AssetPath;
-		int m_SubId;
-		CAssetsEditor* m_pAssetsEditor;
-
 	public:
-		CMoveDownSubItem(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int SubId) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_UP),
-			m_AssetPath(AssetPath),
-			m_SubId(SubId),
-			m_pAssetsEditor(pAssetsEditor)
+		class CButton : public gui::CExternalTextButton
 		{
+		public:
+			CSubItemListItem* m_pItem;
+			virtual void MouseClickAction() { m_pItem->Open(); }
+			CButton(CSubItemListItem* pItem, int Icon) :
+				gui::CExternalTextButton(pItem->m_pConfig, 0, Icon),
+				m_pItem(pItem)
+			{
+				m_Centered = false;
+				SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			}
 			
-		}
-	};
-
-	class CMoveUpSubItem : public gui::CIconButton
-	{
-	protected:
-		CAssetPath m_AssetPath;
-		int m_SubId;
-		CAssetsEditor* m_pAssetsEditor;
-
-	public:
-		CMoveUpSubItem(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int SubId) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_DOWN),
-			m_AssetPath(AssetPath),
-			m_SubId(SubId),
-			m_pAssetsEditor(pAssetsEditor)
-		{
-			
-		}
-	};
-
-	class CSubItemListItem : public gui::CExternalTextButton
-	{
-	protected:
-		CAssetsEditor* m_pAssetsEditor;
+			void Render()
+			{
+				if(m_pItem->m_pAssetsEditor->IsEditedSubItem(m_pItem->m_AssetPath, m_pItem->m_AssetSubPath))
+					SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK_HIGHLIGHT);
+				else
+					SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+				
+				gui::CExternalTextButton::Render();
+			}
+		};
 		
+		class CMovePrev : public gui::CIconButton
+		{
+		public:
+			CSubItemListItem* m_pItem;
+			virtual void MouseClickAction() { m_pItem->MovePrev(); }
+			CMovePrev(CSubItemListItem* pItem) :
+				gui::CIconButton(pItem->m_pConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_UP)),
+				m_pItem(pItem)
+			{ SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK); }
+		};
+		
+		class CMoveNext : public gui::CIconButton
+		{
+		public:
+			CSubItemListItem* m_pItem;
+			virtual void MouseClickAction() { m_pItem->MoveNext(); }
+			CMoveNext(CSubItemListItem* pItem) :
+				gui::CIconButton(pItem->m_pConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_DOWN)),
+				m_pItem(pItem)
+			{ SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK); }
+		};
+		
+	protected:
+		CAssetsEditor* m_pAssetsEditor;
+		CButton* pButton;
 		CAssetPath m_AssetPath;
 		int m_AssetSubPath;
 		char m_aText[128];
-		
-	protected:
-		virtual void MouseClickAction()
-		{
-			m_pAssetsEditor->EditAssetSubItem(m_AssetPath, m_AssetSubPath);
-		}
 	
 	public:
 		CSubItemListItem(CAssetsEditor* pAssetsEditor, int Icon) :
-			gui::CExternalTextButton(pAssetsEditor->m_pGuiConfig, 0, Icon),
+			gui::CHListLayout(pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_FIRST),
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(CAssetPath::Null()),
 			m_AssetSubPath(-1)
 		{
-			m_Centered = false;
-			SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			SetHeight(m_pConfig->m_ButtonHeight);
+			pButton = new CButton(this, Icon);
+			Add(pButton);
 		}
 		
 		void SetTarget(CAssetPath AssetPath, int AssetSubPath)
@@ -759,13 +765,34 @@ public:
 		
 		void SetText(CAssetPath AssetPath, int AssetSubType, int AssetSubPath)
 		{
-			m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(AssetPath, AssetSubType, AssetSubPath, 0);
+			pButton->m_pText = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(AssetPath, AssetSubType, AssetSubPath, 0);
+		}
+		
+		void EnableSortButtons()
+		{
+			Add(new CMoveNext(this));
+			Add(new CMovePrev(this));
 		}
 		
 		void SetText(const char* pText)
 		{
 			str_copy(m_aText, pText, sizeof(m_aText));
-			m_pText = m_aText;
+			pButton->m_pText = m_aText;
+		}
+		
+		void Open()
+		{
+			m_pAssetsEditor->EditAssetSubItem(m_AssetPath, m_AssetSubPath);
+		}
+		
+		void MovePrev()
+		{
+			
+		}
+		
+		void MoveNext()
+		{
+			
 		}
 	};
 
@@ -793,7 +820,7 @@ public:
 			m_SubItemType(SubType),
 			m_TabId(Tab)
 		{
-			m_Centered = false;
+			
 		}
 	};
 	
@@ -806,13 +833,25 @@ public:
 		
 	public:
 		CDuplicateFrameButton(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int FrameId) :
-			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Duplicate", CAssetsEditor::ICON_DUPLICATE),
+			gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Duplicate", CAssetPath::SpriteUniverse(SPRITE_ICON_DUPLICATE)),
 			m_pAssetsEditor(pAssetsEditor),
 			m_AssetPath(AssetPath),
 			m_FrameId(FrameId)
 		{
 			
 		}
+	};
+	
+	class CMeshPreview : public gui::CWidget
+	{
+	public:
+		CAssetsEditor* m_pAssetsEditor;
+		CAssetPath m_AssetPath;
+		int m_SubPath;
+		
+	public:
+		CMeshPreview(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int SubPath);
+		virtual void Render();
 	};
 	
 public:
@@ -831,9 +870,13 @@ public:
 		
 		TAB_CHARACTER_PARTS=1,
 		
+		TAB_MAP_GROUPS=1,
+		
 		TAB_MAPGROUP_LAYERS=1,
 		
 		TAB_MAPLAYERQUADS_QUADS=1,
+		
+		TAB_ZONETYPE_INDICES=1,
 		
 		NUM_TABS=3
 	};
@@ -849,9 +892,13 @@ public:
 		
 		LIST_CHARACTER_PARTS=0,
 		
+		LIST_MAP_GROUPS=0,
+		
 		LIST_MAPGROUP_LAYERS=0,
 		
 		LIST_MAPLAYERQUADS_QUADS=0,
+		
+		LIST_ZONETYPE_INDICES=0,
 		
 		NUM_LISTS=2
 	};
@@ -899,11 +946,16 @@ protected:
 	void RefreshTab_Character_Parts(bool KeepStatus);
 	void RefreshTab_CharacterPart_Asset(bool KeepStatus);
 	void RefreshTab_Weapon_Asset(bool KeepStatus);
+	void RefreshTab_Map_Asset(bool KeepStatus);
+	void RefreshTab_Map_Groups(bool KeepStatus);
 	void RefreshTab_MapGroup_Asset(bool KeepStatus);
 	void RefreshTab_MapGroup_Layers(bool KeepStatus);
+	void RefreshTab_MapZoneTiles_Asset(bool KeepStatus);
 	void RefreshTab_MapLayerTiles_Asset(bool KeepStatus);
 	void RefreshTab_MapLayerQuads_Asset(bool KeepStatus);
 	void RefreshTab_MapLayerQuads_Quads(bool KeepStatus);
+	void RefreshTab_ZoneType_Asset(bool KeepStatus);
+	void RefreshTab_ZoneType_Indices(bool KeepStatus);
 	
 public:
 	CEditor(CAssetsEditor* pAssetsEditor);

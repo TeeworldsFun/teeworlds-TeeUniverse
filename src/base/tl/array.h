@@ -222,6 +222,7 @@ public:
 	*/
 	T& operator[] (int index)
 	{
+		dbg_assert(index >= 0 && index < size(), "Wrong index");
 		return list[index];
 	}
 
@@ -230,6 +231,7 @@ public:
 	*/
 	const T& operator[] (int index) const
 	{
+		dbg_assert(index >= 0 && index < size(), "Wrong index");
 		return list[index];
 	}
 

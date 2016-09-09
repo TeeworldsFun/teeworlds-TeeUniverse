@@ -11,23 +11,23 @@ CAsset_SkeletonSkin::CAsset_SkeletonSkin()
 	
 }
 
-void CAsset_SkeletonSkin::AddSprite(const CAsset_SkeletonSkin::CSprite& Sprite)
+void CAsset_SkeletonSkin::AddSprite(const CAsset_SkeletonSkin::CAsset_Sprite& Sprite)
 {
 	m_Sprites.add(Sprite);
 }
 	
-CAsset_SkeletonSkin::CSprite& CAsset_SkeletonSkin::AddSprite(
+CAsset_SkeletonSkin::CAsset_Sprite& CAsset_SkeletonSkin::AddSprite(
 	CAssetPath SkeletonPath,
-	CAsset_Skeleton::CBonePath BonePath,
-	CAsset_Skeleton::CBonePath LayerPath)
+	CAsset_Skeleton::CSubPath BonePath,
+	CAsset_Skeleton::CSubPath LayerPath)
 {
-	m_Sprites.add(CAsset_SkeletonSkin::CSprite(SkeletonPath));
+	m_Sprites.add(CAsset_SkeletonSkin::CAsset_Sprite(SkeletonPath));
 	return m_Sprites[m_Sprites.size()-1].Bone(BonePath).Layer(LayerPath);
 }
 
 /* IO *****************************************************************/
 
-void CAsset_SkeletonSkin::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, const CAsset_SkeletonSkin::CStorageType* pItem)
+void CAsset_SkeletonSkin::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_SkeletonSkin::CStorageType* pItem)
 {
 	// load name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -36,11 +36,11 @@ void CAsset_SkeletonSkin::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu:
 	m_SkeletonPath = pItem->m_SkeletonPath;
 	
 	// load sprites
-	const CStorageType::CSprite* pSprites = static_cast<CStorageType::CSprite*>(pAssetsFile->GetData(pItem->m_SpritesData));
+	const CStorageType::CAsset_Sprite* pSprites = static_cast<CStorageType::CAsset_Sprite*>(pAssetsFile->GetData(pItem->m_SpritesData));
 	for(int i=0; i<pItem->m_NumSprites; i++)
 	{
-		m_Sprites.add(CSprite());
-		CSprite& Sprite = m_Sprites[m_Sprites.size()-1];
+		m_Sprites.add(CAsset_Sprite());
+		CAsset_Sprite& Sprite = m_Sprites[m_Sprites.size()-1];
 		
 		Sprite.m_SpritePath = pSprites[i].m_SpritePath;
 		Sprite.m_BonePath = pSprites[i].m_BonePath;
@@ -59,16 +59,16 @@ void CAsset_SkeletonSkin::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Pos
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 
-	Item.m_SkeletonPath = m_SkeletonPath.ConvertToInteger();
+	Item.m_SkeletonPath = m_SkeletonPath;
 	
 	//save sprites
 	{
-		CStorageType::CSprite* pSprites = new CStorageType::CSprite[m_Sprites.size()];
+		CStorageType::CAsset_Sprite* pSprites = new CStorageType::CAsset_Sprite[m_Sprites.size()];
 		for(int i=0; i<m_Sprites.size(); i++)
 		{
-			pSprites[i].m_SpritePath = m_Sprites[i].m_SpritePath.ConvertToInteger();
-			pSprites[i].m_BonePath = m_Sprites[i].m_BonePath.ConvertToInteger();
-			pSprites[i].m_LayerPath = m_Sprites[i].m_LayerPath.ConvertToInteger();
+			pSprites[i].m_SpritePath = m_Sprites[i].m_SpritePath;
+			pSprites[i].m_BonePath = m_Sprites[i].m_BonePath;
+			pSprites[i].m_LayerPath = m_Sprites[i].m_LayerPath;
 			pSprites[i].m_TranslationX = m_Sprites[i].m_Translation.x;
 			pSprites[i].m_TranslationY = m_Sprites[i].m_Translation.y;
 			pSprites[i].m_ScaleX = m_Sprites[i].m_Scale.x;
@@ -79,7 +79,7 @@ void CAsset_SkeletonSkin::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Pos
 			pSprites[i].m_Alignment = m_Sprites[i].m_Alignment;
 		}
 		Item.m_NumSprites = m_Sprites.size();
-		Item.m_SpritesData = pFileWriter->AddData(Item.m_NumSprites * sizeof(CStorageType::CSprite), pSprites);
+		Item.m_SpritesData = pFileWriter->AddData(Item.m_NumSprites * sizeof(CStorageType::CAsset_Sprite), pSprites);
 		delete[] pSprites;
 	}
 	
@@ -256,7 +256,7 @@ bool CAsset_SkeletonSkin::SetValue<CAssetPath>(int ValueType, int Path, CAssetPa
 /* VALUE BONEPATH *****************************************************/
 	
 template<>
-CAsset_Skeleton::CBonePath CAsset_SkeletonSkin::GetValue<CAsset_Skeleton::CBonePath>(int ValueType, int Path, CAsset_Skeleton::CBonePath DefaultValue)
+CAsset_Skeleton::CSubPath CAsset_SkeletonSkin::GetValue<CAsset_Skeleton::CSubPath>(int ValueType, int Path, CAsset_Skeleton::CSubPath DefaultValue)
 {
 	switch(ValueType)
 	{
@@ -271,12 +271,12 @@ CAsset_Skeleton::CBonePath CAsset_SkeletonSkin::GetValue<CAsset_Skeleton::CBoneP
 			else
 				return DefaultValue;
 		default:
-			return CAsset::GetValue<CAsset_Skeleton::CBonePath>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue<CAsset_Skeleton::CSubPath>(ValueType, Path, DefaultValue);
 	}
 }
 	
 template<>
-bool CAsset_SkeletonSkin::SetValue<CAsset_Skeleton::CBonePath>(int ValueType, int Path, CAsset_Skeleton::CBonePath Value)
+bool CAsset_SkeletonSkin::SetValue<CAsset_Skeleton::CSubPath>(int ValueType, int Path, CAsset_Skeleton::CSubPath Value)
 {
 	switch(ValueType)
 	{
@@ -296,7 +296,7 @@ bool CAsset_SkeletonSkin::SetValue<CAsset_Skeleton::CBonePath>(int ValueType, in
 			else return false;
 	}
 	
-	return CAsset::SetValue<CAsset_Skeleton::CBonePath>(ValueType, Path, Value);
+	return CAsset::SetValue<CAsset_Skeleton::CSubPath>(ValueType, Path, Value);
 }
 
 }

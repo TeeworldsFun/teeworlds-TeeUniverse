@@ -28,21 +28,6 @@ namespace tu
 
 namespace assetseditor
 {
-		
-const char* CView::s_CursorToolHints[] = {
-	"View: move the view (not implemented)",
-	"Translation: move an object",
-	"Horizontal Translation: move an object along his local X axis",
-	"Vertical Translation: move an object along his local Y axis",
-	"Rotation: rotate an object",
-	"Scale: scale an object",
-	"Horizontal Scale: scale an object along his local X axis",
-	"Vertical Scale: scale an object along his local Y axis",
-	"Bone Length: edit the length of a bone",
-	"Bone Creator: create a new bone from an existing one",
-	"Bone Eraser: delete a bone",
-	"Sprite Creator: create sprite from an image",
-};
 
 const char* CView::s_GizmoHints[] = {
 	"Aim Direction: set the aim direction",
@@ -52,6 +37,8 @@ const char* CView::s_GizmoHints[] = {
 
 const char* CView::s_HintText[] = {
 	"Show/Hide skeleton bones",
+	"Show/Hide zones",
+	"Show/Hide grid",
 };
 
 CView::CView(CAssetsEditor* pAssetsEditor) :
@@ -65,12 +52,14 @@ CView::CView(CAssetsEditor* pAssetsEditor) :
 	m_LastEditedAssetType(-1),
 	m_pCursorTool(0),
 	m_ShowSkeleton(true),
+	m_ShowGrid(false),
+	m_ShowZones(false),
 	m_ViewType(VIEWTYPE_OBJECT),
 	m_ObjectZoom(1.5f),
 	m_MapPos(vec2(0.0f, 0.0f)),
 	m_MapZoom(1.5f)
 {	
-	m_pToolbar = new gui::CHListLayout(m_pConfig);
+	m_pToolbar = new gui::CHListLayout(m_pConfig, gui::CConfig::LAYOUTSTYLE_TOOLBAR);
 	RefreshToolBar();
 	
 	for(int i=0; i<NUM_GIZMOS; i++)
@@ -103,31 +92,50 @@ void CView::RefreshToolBar()
 	m_pZoomSlider = new CView::CZoomSlider(this);
 	m_pToolbar->Add(m_pZoomSlider);
 	
-	//~ m_CursorToolButtons[CURSORTOOL_MOVE] = new CView::CCursorToolButton(this, CAssetsEditor::ICON_CURSORTOOL_MOVE, CURSORTOOL_MOVE);
+	//~ m_CursorToolButtons[CURSORTOOL_MOVE] = new CView::CCursorToolButton(this, CAssetPath::SpriteUniverse(SPRITE_ICON_MOVE), CURSORTOOL_MOVE);
 	//~ m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_MOVE]);
 	
+	//Show
 	switch(AssetsEditor()->m_ViewedAssetPath.GetType())
 	{
-		case CAssetPath::TYPE_IMAGE:
-			//~ m_CursorToolButtons[CURSORTOOL_SPRITE_CREATOR] = new CView::CCursorToolButton(this, CAssetsEditor::ICON_SPRITE, CURSORTOOL_SPRITE_CREATOR);
-			//~ m_pToolbar->Add(m_CursorToolButtons[CURSORTOOL_SPRITE_CREATOR]);
-			break;
 		case CAssetPath::TYPE_SKELETON:
+		case CAssetPath::TYPE_SKELETONANIMATION:
+		case CAssetPath::TYPE_SKELETONSKIN:
 		{
 			m_pToolbar->AddSeparator();
 			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Show:"));
-			m_pToolbar->Add(new CViewSwitch(this, CAssetsEditor::ICON_SKELETON, &m_ShowSkeleton, s_HintText[HINT_SHOW_SKELETON]));
-			
+			m_pToolbar->Add(new CViewSwitch(this, CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETON), &m_ShowSkeleton, s_HintText[HINT_SHOW_SKELETON]));
+			break;
+		}
+		case CAssetPath::TYPE_MAP:
+		case CAssetPath::TYPE_MAPGROUP:
+		case CAssetPath::TYPE_MAPLAYERTILES:
+		case CAssetPath::TYPE_MAPLAYERQUADS:
+		case CAssetPath::TYPE_MAPZONETILES:
+		{
+			m_pToolbar->AddSeparator();
+			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Show:"));
+			m_pToolbar->Add(new CViewSwitch(this, CAssetPath::SpriteUniverse(SPRITE_ICON_GRID), &m_ShowGrid, s_HintText[HINT_SHOW_GRID]));
+			m_pToolbar->Add(new CViewSwitch(this, CAssetPath::SpriteUniverse(SPRITE_ICON_ZONETILES), &m_ShowZones, s_HintText[HINT_SHOW_ZONE]));
+			break;
+		}
+	}
+	
+	//Tools
+	switch(AssetsEditor()->m_ViewedAssetPath.GetType())
+	{
+		case CAssetPath::TYPE_SKELETON:
+		{
 			m_pToolbar->AddSeparator();
 			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
 			
-			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_ROTATE, true));
-			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateXY::CButton(this, CURSORTOOL_TRANSLATE));
-			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateX::CButton(this, CURSORTOOL_TRANSLATE_X));
-			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateY::CButton(this, CURSORTOOL_TRANSLATE_Y));
-			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleXY::CButton(this, CURSORTOOL_SCALE));
-			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleX::CButton(this, CURSORTOOL_SCALE_X));
-			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleY::CButton(this, CURSORTOOL_SCALE_Y));
+			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_BONE_ROTATE, true));
+			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateXY::CButton(this, CURSORTOOL_BONE_TRANSLATE));
+			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateX::CButton(this, CURSORTOOL_BONE_TRANSLATE_X));
+			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateY::CButton(this, CURSORTOOL_BONE_TRANSLATE_Y));
+			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleXY::CButton(this, CURSORTOOL_BONE_SCALE));
+			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleX::CButton(this, CURSORTOOL_BONE_SCALE_X));
+			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleY::CButton(this, CURSORTOOL_BONE_SCALE_Y));
 			m_pToolbar->Add(new CView_CursorTool_Bone_Length::CButton(this, CURSORTOOL_BONE_LENGTH));
 			m_pToolbar->Add(new CView_CursorTool_Bone_Add::CButton(this, CURSORTOOL_BONE_ADD));
 			m_pToolbar->Add(new CView_CursorTool_Bone_Delete::CButton(this, CURSORTOOL_BONE_DELETE));
@@ -137,33 +145,41 @@ void CView::RefreshToolBar()
 		case CAssetPath::TYPE_SKELETONANIMATION:
 		{
 			m_pToolbar->AddSeparator();
-			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Show:"));
-			m_pToolbar->Add(new CViewSwitch(this, CAssetsEditor::ICON_SKELETON, &m_ShowSkeleton, s_HintText[HINT_SHOW_SKELETON]));
-			
-			m_pToolbar->AddSeparator();
 			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
 			
-			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_ROTATE, true));
-			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateXY::CButton(this, CURSORTOOL_TRANSLATE));
-			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateX::CButton(this, CURSORTOOL_TRANSLATE_X));
-			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateY::CButton(this, CURSORTOOL_TRANSLATE_Y));
-			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleXY::CButton(this, CURSORTOOL_SCALE));
-			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleX::CButton(this, CURSORTOOL_SCALE_X));
-			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleY::CButton(this, CURSORTOOL_SCALE_Y));
+			m_pToolbar->Add(new CView_CursorTool_Bone_Rotate::CButton(this, CURSORTOOL_BONE_ROTATE, true));
+			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateXY::CButton(this, CURSORTOOL_BONE_TRANSLATE));
+			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateX::CButton(this, CURSORTOOL_BONE_TRANSLATE_X));
+			m_pToolbar->Add(new CView_CursorTool_Bone_TranslateY::CButton(this, CURSORTOOL_BONE_TRANSLATE_Y));
+			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleXY::CButton(this, CURSORTOOL_BONE_SCALE));
+			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleX::CButton(this, CURSORTOOL_BONE_SCALE_X));
+			m_pToolbar->Add(new CView_CursorTool_Bone_ScaleY::CButton(this, CURSORTOOL_BONE_SCALE_Y));
 			break;
-		}
-		case CAssetPath::TYPE_SKELETONSKIN:
-		{
-			m_pToolbar->AddSeparator();
-			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Show:"));
-			m_pToolbar->Add(new CViewSwitch(this, CAssetsEditor::ICON_SKELETON, &m_ShowSkeleton, s_HintText[HINT_SHOW_SKELETON]));
 		}
 		case CAssetPath::TYPE_MAPLAYERTILES:
 		{
 			m_pToolbar->AddSeparator();
 			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
 			
-			m_pToolbar->Add(new CView_CursorTool_MapLayerTiles_SelectionStamp::CButton(this, CURSORTOOL_SELECTIONSTAMP, true));
+			m_pToolbar->Add(new CView_CursorTool_MapTiles_SelectionStamp::CButton(this, CURSORTOOL_SELECTIONSTAMP, true));
+			break;
+		}
+		case CAssetPath::TYPE_MAPLAYERQUADS:
+		{
+			m_pToolbar->AddSeparator();
+			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
+			
+			m_pToolbar->Add(new CView_CursorTool_MapQuads_Transform::CButton(this, CURSORTOOL_MAPQUADS_TRANSFORM, true));
+			m_pToolbar->Add(new CView_CursorTool_MapQuads_Edit::CButton(this, CURSORTOOL_MAPQUADS_EDIT, true));
+			m_pToolbar->Add(new CView_CursorTool_MapQuads_Stamp::CButton(this, CURSORTOOL_MAPQUADS_STAMP, true));
+			break;
+		}
+		case CAssetPath::TYPE_MAPZONETILES:
+		{
+			m_pToolbar->AddSeparator();
+			m_pToolbar->Add(new gui::CLabel(m_pConfig, "Tools:"));
+			
+			m_pToolbar->Add(new CView_CursorTool_MapTiles_SelectionStamp::CButton(this, CURSORTOOL_SELECTIONSTAMP, true));
 			break;
 		}
 	}
@@ -227,16 +243,22 @@ vec2 CView::GetMotionPos()
 	return MotionPos;
 }
 
-void CView::InitMapRenderer_LayerTiles(CMapRenderer* pMapRenderer, CAssetPath LayerPath)
+void CView::InitMapRenderer(CMapRenderer* pMapRenderer)
 {
+	pMapRenderer->SetTime(AssetsEditor()->GetTime());
+	pMapRenderer->SetLocalTime(AssetsEditor()->Client()->LocalTime());
 	pMapRenderer->SetCanvas(GetViewCenter());
 	pMapRenderer->SetCamera(GetViewPos(), GetViewZoom());
+}
+
+void CView::InitMapRenderer_Layer(CMapRenderer* pMapRenderer, CAssetPath LayerPath)
+{
+	InitMapRenderer(pMapRenderer);
 	
 	//Find the group of this layer
-	CAssetPath ParentGroupPath;
+	if(LayerPath.GetType() == CAssetPath::TYPE_MAPLAYERQUADS || LayerPath.GetType() == CAssetPath::TYPE_MAPLAYERTILES)
 	{
 		int Source = CAssetPath::SRC_LAND;
-		CAsset_MapGroup* pParentGroup = 0;
 
 		for(int g=0; g<AssetsManager()->GetNumAssets<CAsset_MapGroup>(Source); g++)
 		{
@@ -245,18 +267,15 @@ void CView::InitMapRenderer_LayerTiles(CMapRenderer* pMapRenderer, CAssetPath La
 			if(!pMapGroup)
 				continue;
 			
-			for(int i=0; i<pMapGroup->m_Layers.size(); i++)
+			CAsset_MapGroup::CIteratorLayer Iter;
+			for(Iter = pMapGroup->BeginLayer(); Iter != pMapGroup->EndLayer(); ++Iter)
 			{
-				if(pMapGroup->m_Layers[i] == LayerPath)
+				if(pMapGroup->GetLayer(*Iter) == LayerPath)
 				{
-					pMapRenderer->SetGroup(ParentGroupPath);
-					pParentGroup = pMapGroup;
-					break;
+					pMapRenderer->SetGroup(GroupPath);
+					return;
 				}
 			}
-			
-			if(pParentGroup)
-				break;
 		}
 	}
 }
@@ -270,10 +289,10 @@ void CView::Update()
 		m_ToolbarHeight
 	));
 	
-	m_ViewRect.x = m_Rect.x;
-	m_ViewRect.y = m_pToolbar->m_Rect.y + m_pToolbar->m_Rect.h + m_pConfig->m_LayoutMargin;
-	m_ViewRect.w = m_Rect.w;
-	m_ViewRect.h = m_Rect.h - m_pToolbar->m_Rect.h - m_pConfig->m_LayoutMargin;
+	m_ViewRect.x = m_Rect.x+1;
+	m_ViewRect.y = m_pToolbar->m_Rect.y + m_pToolbar->m_Rect.h + 2;
+	m_ViewRect.w = m_Rect.w-2;
+	m_ViewRect.h = m_Rect.h - m_pToolbar->m_Rect.h-3;
 	
 	m_pToolbar->Update();
 }
@@ -286,7 +305,7 @@ void CView::RenderImage()
 	if(!pImage)
 		return;
 		
-	float ImgRatio = static_cast<float>(pImage->m_Width)/static_cast<float>(pImage->m_Height);
+	float ImgRatio = static_cast<float>(pImage->GetWidth())/static_cast<float>(pImage->GetHeight());
 	float WindowRatio = static_cast<float>(m_ViewRect.w)/static_cast<float>(m_ViewRect.h);
 	float SizeX;
 	float SizeY;
@@ -306,41 +325,32 @@ void CView::RenderImage()
 	float y0 = m_ViewRect.y + m_ViewRect.h/2 - SizeY/2;
 	float x1 = x0 + SizeX;
 	float y1 = y0 + SizeY;
-	float xStep = SizeX / static_cast<float>(max(1, pImage->m_GridWidth));
-	float yStep = SizeY / static_cast<float>(max(1, pImage->m_GridHeight));
+	float xStep = SizeX / static_cast<float>(max(1, pImage->GetGridWidth()));
+	float yStep = SizeY / static_cast<float>(max(1, pImage->GetGridHeight()));
 	
 	//Draw sprites
 	Graphics()->TextureClear();
 	Graphics()->QuadsBegin();
 	float alpha = 0.75f;
-	for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_Sprite>(CAssetPath::SRC_UNIVERSE); i++)
+	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
-		CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(CAssetPath::Universe(CAssetPath::TYPE_SPRITE, i));
-		if(pSprite->m_ImagePath == AssetsEditor()->m_ViewedAssetPath)
+		for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_Sprite>(s); i++)
 		{
-			if(AssetsEditor()->IsEditedAsset(CAssetPath::Universe(CAssetPath::TYPE_SPRITE, i)))
-				Graphics()->SetColor(alpha, alpha*0.5f, alpha*0.5f, alpha);
-			else
-				Graphics()->SetColor(alpha, alpha, alpha*0.5f, alpha);
-				
-			IGraphics::CQuadItem QuadItem(x0 + xStep * pSprite->m_X, y0 + yStep * pSprite->m_Y, xStep * pSprite->m_Width, yStep * pSprite->m_Height);
-			Graphics()->QuadsDrawTL(&QuadItem, 1);
+			CAssetPath SpritePath = CAssetPath(CAssetPath::TYPE_SPRITE, s, i);
+			CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(SpritePath);
+			if(pSprite->GetImagePath() == AssetsEditor()->m_ViewedAssetPath)
+			{
+				if(AssetsEditor()->IsEditedAsset(SpritePath))
+					Graphics()->SetColor(alpha, alpha*0.5f, alpha*0.5f, alpha);
+				else
+					Graphics()->SetColor(alpha, alpha, alpha*0.5f, alpha);
+					
+				IGraphics::CQuadItem QuadItem(x0 + xStep * pSprite->GetX(), y0 + yStep * pSprite->GetY(), xStep * pSprite->GetWidth(), yStep * pSprite->GetHeight());
+				Graphics()->QuadsDrawTL(&QuadItem, 1);
+			}
 		}
 	}
-	for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_Sprite>(CAssetPath::SRC_WORLD); i++)
-	{
-		CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(CAssetPath::World(CAssetPath::TYPE_SPRITE, i));
-		if(pSprite->m_ImagePath == AssetsEditor()->m_ViewedAssetPath)
-		{
-			if(AssetsEditor()->IsEditedAsset(CAssetPath::World(CAssetPath::TYPE_SPRITE, i)))
-				Graphics()->SetColor(alpha, alpha*0.5f, alpha*0.5f, alpha);
-			else
-				Graphics()->SetColor(alpha, alpha, alpha*0.5f, alpha);
-				
-			IGraphics::CQuadItem QuadItem(x0 + xStep * pSprite->m_X, y0 + yStep * pSprite->m_Y, xStep * pSprite->m_Width, yStep * pSprite->m_Height);
-			Graphics()->QuadsDrawTL(&QuadItem, 1);
-		}
-	}
+	
 	Graphics()->QuadsEnd();
 	
 	//Draw image
@@ -356,13 +366,13 @@ void CView::RenderImage()
 	Graphics()->LinesBegin();
 	Graphics()->SetColor(0.0f, 0.0f, 0.0f, 0.5f);
 	
-	for(int i=0; i<=pImage->m_GridWidth; i++)
+	for(int i=0; i<=pImage->GetGridWidth(); i++)
 	{
 		float x = x0 + i * xStep;
 		IGraphics::CLineItem Line(x, y0, x, y1);
 		Graphics()->LinesDraw(&Line, 1);
 	}
-	for(int i=0; i<=pImage->m_GridHeight; i++)
+	for(int i=0; i<=pImage->GetGridHeight(); i++)
 	{
 		float y = y0 + i * yStep;
 		IGraphics::CLineItem Line(x0, y, x1, y);
@@ -380,18 +390,15 @@ void CView::RenderSprite()
 	if(!pSprite)
 		return;
 	
-	CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pSprite->m_ImagePath);
+	CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pSprite->GetImagePath());
 	if(!pImage)
 		return;
 	
-	float SpriteWidthPix = (pImage->m_Width / pImage->m_GridWidth) * pSprite->m_Width;
-	float SpriteHeightPix = (pImage->m_Height / pImage->m_GridHeight) * pSprite->m_Height;
-	float SpriteScaling = sqrtf(SpriteWidthPix*SpriteWidthPix + SpriteHeightPix*SpriteHeightPix);
 	vec2 Pos;
 	Pos.x = m_ViewRect.x + m_ViewRect.w/2;
 	Pos.y = m_ViewRect.y + m_ViewRect.h/2;
 	
-	AssetsEditor()->TUGraphics()->DrawSprite(AssetsEditor()->m_ViewedAssetPath, Pos, SpriteScaling, 0.0f, 0x0);
+	AssetsEditor()->TUGraphics()->DrawSprite(AssetsEditor()->m_ViewedAssetPath, Pos, 1.0f, 0.0f, 0x0, 1.0f);
 }
 
 void CView::RenderSkeleton()
@@ -402,7 +409,7 @@ void CView::RenderSkeleton()
 	if(!pSkeleton)
 		return;
 		
-	CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
+	CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
 	SkeletonRenderer.AddSkeletonWithParents(AssetsEditor()->m_ViewedAssetPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
 	SkeletonRenderer.Finalize();
 	SkeletonRenderer.RenderSkins(GetViewPos(), GetViewZoom());
@@ -415,15 +422,15 @@ void CView::RenderSkeleton()
 			for(int i=0; i<pParentSkeleton->m_Bones.size(); i++)
 			{
 				if(m_pCursorTool && m_pCursorTool->GetCursorToolID() == CURSORTOOL_BONE_ADD)
-					SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
+					SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::LocalBone(i));
 				else
-					SkeletonRenderer.RenderBoneOutline(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
+					SkeletonRenderer.RenderBoneOutline(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::LocalBone(i));
 			}
 		}
 		
 		for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 		{
-			SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), AssetsEditor()->m_ViewedAssetPath, CAsset_Skeleton::CSubPath::Bone(i));
+			SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), AssetsEditor()->m_ViewedAssetPath, CAsset_Skeleton::CSubPath::LocalBone(i));
 		}
 	}
 }
@@ -436,7 +443,7 @@ void CView::RenderSkeletonSkin()
 	if(!pSkeletonSkin)
 		return;
 	
-	CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
+	CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
 	SkeletonRenderer.AddSkeletonWithParents(pSkeletonSkin->m_SkeletonPath, CSkeletonRenderer::ADDDEFAULTSKIN_ONLYPARENT);
 	SkeletonRenderer.Finalize();
 	SkeletonRenderer.AddSkin(AssetsEditor()->m_ViewedAssetPath, vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -459,7 +466,7 @@ void CView::RenderSkeletonAnimation()
 	if(!pSkeleton)
 		return;
 	
-	CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
+	CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
 	
 	if(m_GizmoEnabled[GIZMO_AIM])
 		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
@@ -486,19 +493,19 @@ void CView::RenderSkeletonAnimation()
 		{
 			for(int i=0; i<pParentSkeleton->m_Bones.size(); i++)
 			{
-				if(!pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Parent(i), Frame).IsNull())
-					SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
+				if(!pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CSubPath::ParentBone(i), Frame).IsNull())
+					SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::LocalBone(i));
 				else
-					SkeletonRenderer.RenderBoneOutline(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::Bone(i));
+					SkeletonRenderer.RenderBoneOutline(GetViewPos(), GetViewZoom(), pSkeleton->m_ParentPath, CAsset_Skeleton::CSubPath::LocalBone(i));
 			}
 		}
 		
 		for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 		{
-			if(!pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Local(i), Frame).IsNull())
-				SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::CSubPath::Bone(i));
+			if(!pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CSubPath::LocalBone(i), Frame).IsNull())
+				SkeletonRenderer.RenderBone(GetViewPos(), GetViewZoom(), pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::CSubPath::LocalBone(i));
 			else
-				SkeletonRenderer.RenderBoneOutline(GetViewPos(), GetViewZoom(), pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::CSubPath::Bone(i));
+				SkeletonRenderer.RenderBoneOutline(GetViewPos(), GetViewZoom(), pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::CSubPath::LocalBone(i));
 		}
 	}
 }
@@ -511,7 +518,7 @@ void CView::RenderCharacter()
 	if(!pCharacter)
 		return;
 		
-	CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
+	CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
 	
 	if(m_GizmoEnabled[GIZMO_AIM])
 		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
@@ -522,22 +529,17 @@ void CView::RenderCharacter()
 	if(m_GizmoEnabled[GIZMO_HOOK])
 		SkeletonRenderer.SetHook(m_GizmoPos[GIZMO_HOOK]);
 	
-	CAsset_CharacterPart* pCharacterPart;
-	for(int i=0; i<pCharacter->m_Parts.size(); i++)
+	CAsset_Character::CIteratorPart Iter;
+	for(Iter = pCharacter->BeginPart(); Iter != pCharacter->EndPart(); ++Iter)
 	{
-		if(!pCharacter->m_Parts[i].m_DefaultPath.IsNull())
-		{
-			CAssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
-			CAsset_CharacterPart* pCharacterPart = AssetsManager()->GetAsset<CAsset_CharacterPart>(DefaultCharacterPartPath);
+		CAssetPath DefaultCharacterPartPath = pCharacter->GetPartDefaultPath(*Iter);
+		CAsset_CharacterPart* pCharacterPart = AssetsManager()->GetAsset<CAsset_CharacterPart>(DefaultCharacterPartPath);
 
-			if(pCharacterPart)
-			{
-				SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart->m_SkeletonSkinPath, vec4(1.0f, 1.0f, 1.0f, 1.0f));
-			}
-		}
+		if(pCharacterPart)
+			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart->GetSkeletonSkinPath(), vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 	
-	SkeletonRenderer.ApplyAnimation(pCharacter->m_IdlePath, 0.0f);
+	SkeletonRenderer.ApplyAnimation(pCharacter->GetIdlePath(), 0.0f);
 	
 	SkeletonRenderer.Finalize();
 	SkeletonRenderer.RenderSkins(GetViewPos(), GetViewZoom());	
@@ -560,7 +562,7 @@ void CView::RenderWeapon()
 	if(!pCharacter)
 		return;
 		
-	CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
+	CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
 	
 	if(m_GizmoEnabled[GIZMO_AIM])
 		SkeletonRenderer.SetAim(m_GizmoPos[GIZMO_AIM]);
@@ -571,22 +573,17 @@ void CView::RenderWeapon()
 	if(m_GizmoEnabled[GIZMO_HOOK])
 		SkeletonRenderer.SetHook(m_GizmoPos[GIZMO_HOOK]);
 	
-	CAsset_CharacterPart* pCharacterPart;
-	for(int i=0; i<pCharacter->m_Parts.size(); i++)
+	CAsset_Character::CIteratorPart Iter;
+	for(Iter = pCharacter->BeginPart(); Iter != pCharacter->EndPart(); ++Iter)
 	{
-		if(!pCharacter->m_Parts[i].m_DefaultPath.IsNull())
-		{
-			CAssetPath DefaultCharacterPartPath = pCharacter->m_Parts[i].m_DefaultPath;
-			CAsset_CharacterPart* pCharacterPart = AssetsManager()->GetAsset<CAsset_CharacterPart>(DefaultCharacterPartPath);
+		CAssetPath DefaultCharacterPartPath = pCharacter->GetPartDefaultPath(*Iter);
+		CAsset_CharacterPart* pCharacterPart = AssetsManager()->GetAsset<CAsset_CharacterPart>(DefaultCharacterPartPath);
 
-			if(pCharacterPart)
-			{
-				SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart->m_SkeletonSkinPath, vec4(1.0f, 1.0f, 1.0f, 1.0f));
-			}
-		}
+		if(pCharacterPart)
+			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart->GetSkeletonSkinPath(), vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 	
-	SkeletonRenderer.ApplyAnimation(pCharacter->m_IdlePath, 0.0f);
+	SkeletonRenderer.ApplyAnimation(pCharacter->GetIdlePath(), 0.0f);
 	
 	// Weapon
 	SkeletonRenderer.AddSkinWithSkeleton(pWeapon->m_SkinPath, vec4(1.0, 1.0f, 1.0f, 1.0f));
@@ -604,23 +601,29 @@ void CView::RenderMap()
 	
 	//Render map
 	{
-		CMapRenderer MapRenderer(Graphics(), AssetsManager());
-		
-		MapRenderer.SetCanvas(GetViewCenter());
-		MapRenderer.SetCamera(GetViewPos(), GetViewZoom());
+		CMapRenderer MapRenderer(TUGraphics(), AssetsManager());
+		InitMapRenderer(&MapRenderer);
 		MapRenderer.RenderSource(Source);
+		
+		if(m_ShowZones)
+		{
+			MapRenderer.RenderSource_Zones(Source, AssetsEditor()->m_ZoneTexture);
+		}
+		else if(AssetsEditor()->m_ViewedAssetPath.GetType() == CAssetPath::TYPE_MAPZONETILES)
+		{
+			CAsset_MapZoneTiles* pMapZoneTiles = AssetsManager()->GetAsset<CAsset_MapZoneTiles>(AssetsEditor()->m_ViewedAssetPath);
+			if(pMapZoneTiles)
+			{
+				MapRenderer.RenderTiles_Zone(pMapZoneTiles->GetZoneTypePath(), pMapZoneTiles->GetTilesPointer(), pMapZoneTiles->GetWidth(), pMapZoneTiles->GetHeight(), vec2(0.0f, 0.0f), AssetsEditor()->m_ZoneTexture);
+			}				
+		}
 	}
 	
-	//Render additional informations
-	switch(AssetsEditor()->m_ViewedAssetPath.GetType())
-	{
-		case CAssetPath::TYPE_MAPLAYERTILES:
-		{
-			CMapRenderer MapRenderer(Graphics(), AssetsManager());
-			InitMapRenderer_LayerTiles(&MapRenderer, AssetsEditor()->m_ViewedAssetPath);			
-			MapRenderer.RenderTileLayerGrid(AssetsEditor()->m_ViewedAssetPath);
-			break;
-		}
+	if(m_ShowGrid)
+	{	
+		CMapRenderer MapRenderer(TUGraphics(), AssetsManager());
+		InitMapRenderer_Layer(&MapRenderer, AssetsEditor()->m_ViewedAssetPath);
+		MapRenderer.RenderGrid_LayerTiles(AssetsEditor()->m_ViewedAssetPath);
 	}
 }
 
@@ -645,21 +648,19 @@ void CView::RenderGizmos()
 	}
 	
 	Graphics()->LinesEnd();
-	
-	Graphics()->TextureSet(m_pConfig->m_Texture);
-	Graphics()->QuadsBegin();
 			
 	for(int i=0; i<NUM_GIZMOS; i++)
 	{
 		float Radius = min(m_ViewRect.w/2.0f - 20.0f, m_ViewRect.h/2.0f - 20.0f) - 48.0f;
+		vec4 Color;
 		if(m_GizmoEnabled[i] == 0)
 		{
 			Radius += 48.0f;
-			Graphics()->SetColor(1.0f, 0.5f, 0.5f, 1.0f);
+			Color = vec4(1.0f, 0.5f, 0.5f, 1.0f);
 		}
 		else
 		{
-			Graphics()->SetColor(0.5f, 1.0f, 0.5f, 1.0f);
+			Color = vec4(0.5f, 1.0f, 0.5f, 1.0f);
 		}
 		
 		vec2 GizmoPos = TeePos + m_GizmoPos[i]*Radius;
@@ -679,12 +680,11 @@ void CView::RenderGizmos()
 				break;
 		}
 		
-		Graphics()->QuadsSetSubset(SubX/4.0f, SubY/4.0f, (SubX+1)/4.0f, (SubY+1)/4.0f);
-		IGraphics::CQuadItem QuadItem(GizmoPos.x - 32.0f, GizmoPos.y - 32.0f, 64.0f, 64.0f);
-		Graphics()->QuadsDrawTL(&QuadItem, 1);
+		TUGraphics()->DrawSprite(
+			CAssetPath::SpriteUniverse(SPRITE_GIZMODIR_AIM+i),
+			vec2(GizmoPos.x, GizmoPos.y), 1.0f, 0.0f, 0x0, Color
+		);
 	}
-	
-	Graphics()->QuadsEnd();
 }
 
 void CView::Render()
@@ -709,13 +709,12 @@ void CView::Render()
 	}
 	
 	//Render
-	CUIRect rect;
-	rect.x = m_ViewRect.x;
-	rect.y = m_ViewRect.y;
-	rect.w = m_ViewRect.w;
-	rect.h = m_ViewRect.h;
-	
-	RenderTools()->DrawRoundRect(&rect, vec4(1.0f, 1.0f, 1.0f, 0.5f), 5.0f);
+	gui::CRect ViewLayoutRect = m_ViewRect;
+	ViewLayoutRect.x--;
+	ViewLayoutRect.y--;
+	ViewLayoutRect.w += 2;
+	ViewLayoutRect.h += 2;
+	TUGraphics()->DrawGuiRect(&ViewLayoutRect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_LAYOUT_VIEW));
 	
 	//Search Tag: TAG_NEW_ASSET
 	Graphics()->ClipEnable(m_ViewRect.x, m_ViewRect.y, m_ViewRect.w, m_ViewRect.h);
@@ -749,7 +748,9 @@ void CView::Render()
 			RenderWeapon();
 			RenderGizmos();
 			break;
+		case CAssetPath::TYPE_MAP:
 		case CAssetPath::TYPE_MAPGROUP:
+		case CAssetPath::TYPE_MAPZONETILES:
 		case CAssetPath::TYPE_MAPLAYERTILES:
 		case CAssetPath::TYPE_MAPLAYERQUADS:
 			RenderMap();
@@ -865,6 +866,9 @@ void CView::OnButtonRelease(int Button)
 	}
 	else if(Button == KEY_MOUSE_1 && m_DragType != DRAGTYPE_VIEW)
 	{
+		if(m_DragType == DRAGTYPE_CURSORTOOL && m_pCursorTool)
+			m_pCursorTool->OnButtonRelease(Button);
+		
 		m_DragType = DRAGTYPE_NONE;
 	}
 	
@@ -901,263 +905,6 @@ void CView::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 	{
 		if(m_pCursorTool)
 			m_pCursorTool->OnMouseOver(X, Y, RelX, RelY, KeyState);
-		
-		//TAG_CURSORTOOL
-		/*
-		m_CursorToolLastPosition = m_CursorToolPosition;
-		m_CursorToolPosition = vec2(X, Y);
-		switch(AssetsEditor()->m_ViewedAssetPath.GetType())
-		{
-			case CAssetPath::TYPE_SKELETON:
-			{
-				vec2 Origin, AxisX, AxisY;
-						
-				CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
-				SkeletonRenderer.AddSkeletonWithParents(AssetsEditor()->m_ViewedAssetPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
-				SkeletonRenderer.Finalize();
-				
-				switch(m_CursorTool)
-				{
-					case CURSORTOOL_TRANSLATE:
-					case CURSORTOOL_TRANSLATE_X:
-					case CURSORTOOL_TRANSLATE_Y:
-					{
-						if(SkeletonRenderer.GetParentAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							if(m_CursorTool != CURSORTOOL_TRANSLATE_Y)
-							{
-								float TranslationX = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_X, m_SelectedBone.ConvertToInteger(), 0.0f);
-								TranslationX += dot(AxisX, vec2(RelX, RelY));
-								AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_X, m_SelectedBone.ConvertToInteger(), TranslationX);
-							}
-							
-							if(m_CursorTool != CURSORTOOL_TRANSLATE_X)
-							{
-								float TranslationY = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
-								TranslationY += dot(AxisY, vec2(RelX, RelY));
-								AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_TRANSLATION_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
-							}
-						}
-						break;					
-					}
-					case CURSORTOOL_SCALE:
-					{
-						if(SkeletonRenderer.GetParentAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							float TranslationX = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), 0.0f);
-							float TranslationY = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
-							float Translation =  (length(m_CursorToolPosition - m_CursorPivot) - length(m_CursorToolLastPosition - m_CursorPivot))/10.0f;
-							TranslationX += Translation;
-							TranslationY += Translation;
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), TranslationX);
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
-						}
-						break;					
-					}
-					case CURSORTOOL_SCALE_X:
-					case CURSORTOOL_SCALE_Y:
-					{
-						if(SkeletonRenderer.GetParentAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							if(m_CursorTool != CURSORTOOL_SCALE_Y)
-							{
-								float TranslationX = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), 0.0f);
-								TranslationX += dot(AxisX, vec2(RelX, RelY))/5.0f;
-								AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_X, m_SelectedBone.ConvertToInteger(), TranslationX);
-							}
-							
-							if(m_CursorTool != CURSORTOOL_SCALE_X)
-							{
-								float TranslationY = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), 0.0f);
-								TranslationY += dot(AxisY, vec2(RelX, RelY))/5.0f;
-								AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_SCALE_Y, m_SelectedBone.ConvertToInteger(), TranslationY);
-							}
-						}
-						break;					
-					}
-					case CURSORTOOL_ROTATE:
-					{
-						if(SkeletonRenderer.GetLocalAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							float Angle = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), 0.0f);
-							Angle += angle(m_CursorToolLastPosition - Origin, m_CursorToolPosition - Origin);
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
-						}
-						break;				
-					}
-					case CURSORTOOL_BONE_LENGTH:
-					{
-						if(SkeletonRenderer.GetLocalAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							float Angle = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), 0.0f);
-							float Length = AssetsManager()->GetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), 32.0f);
-							Angle += angle(m_CursorToolLastPosition - Origin, m_CursorToolPosition - Origin);
-							Length += dot(AxisX, vec2(RelX, RelY));
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), Length);
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
-						}
-						break;					
-					}
-					case CURSORTOOL_BONE_ADD:
-					{
-						if(SkeletonRenderer.GetLocalAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							vec2 RelPos = (m_CursorToolPosition - Origin);
-							float LengthX = dot(AxisX, RelPos);
-							float LengthY = dot(AxisY, RelPos);
-							float Length = sqrt(LengthX*LengthX + LengthY*LengthY);
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_LENGTH, m_SelectedBone.ConvertToInteger(), Length);
-							float Angle = angle(AxisX, RelPos);
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
-						}
-						vec2 OriginParent, AxisXParent, AxisYParent;
-						if(SkeletonRenderer.GetParentAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, OriginParent, AxisXParent, AxisYParent))
-						{
-							float Angle = angle(AxisXParent, m_CursorToolPosition - Origin);
-							AssetsManager()->SetAssetValue<float>(m_SelectedAsset, CAsset_Skeleton::BONE_ANGLE, m_SelectedBone.ConvertToInteger(), Angle);
-						}
-						break;					
-					}
-				}
-				break;
-			}
-			case CAssetPath::TYPE_SKELETONANIMATION:
-			{
-				CAsset_SkeletonAnimation* pSkeletonAnimation = AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(AssetsEditor()->m_ViewedAssetPath);
-				if(!pSkeletonAnimation)
-					return;
-				
-				float Time = AssetsEditor()->GetTime();
-				int Frame = static_cast<int>(round(Time*static_cast<float>(TU_SKELETONANIMATION_TIMESTEP)));
-				int BoneId = m_SelectedBone.GetId();
-				CAsset_SkeletonAnimation::CSubPath FramePath = pSkeletonAnimation->GetBoneKeyFramePath(CAsset_Skeleton::CBonePath::Local(BoneId), Frame);
-				if(FramePath.IsNull())
-					return;
-				
-				CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<CAsset_Skeleton>(pSkeletonAnimation->m_SkeletonPath);
-				if(!pSkeleton)
-					return;
-					
-				vec2 Origin, AxisX, AxisY;
-						
-				CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
-				SkeletonRenderer.AddSkeletonWithParents(pSkeletonAnimation->m_SkeletonPath, CSkeletonRenderer::ADDDEFAULTSKIN_YES);
-				SkeletonRenderer.ApplyAnimation(AssetsEditor()->m_ViewedAssetPath, AssetsEditor()->GetTime());
-				SkeletonRenderer.Finalize();
-						
-				switch(m_CursorTool)
-				{
-					case CURSORTOOL_TRANSLATE:
-					case CURSORTOOL_TRANSLATE_X:
-					case CURSORTOOL_TRANSLATE_Y:
-					{
-						if(SkeletonRenderer.GetParentAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							if(m_CursorTool != CURSORTOOL_TRANSLATE_Y)
-							{
-								float TranslationX = AssetsManager()->GetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_X, FramePath.ConvertToInteger(), 0.0f);
-								TranslationX += dot(AxisX, vec2(RelX, RelY));
-								AssetsManager()->SetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_X, FramePath.ConvertToInteger(), TranslationX);
-							}
-							
-							if(m_CursorTool != CURSORTOOL_TRANSLATE_X)
-							{
-								float TranslationY = AssetsManager()->GetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_Y, FramePath.ConvertToInteger(), 0.0f);
-								TranslationY += dot(AxisY, vec2(RelX, RelY));
-								AssetsManager()->SetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_TRANSLATION_Y, FramePath.ConvertToInteger(), TranslationY);
-							}
-						}
-						break;					
-					}
-					case CURSORTOOL_SCALE:
-					{
-						if(SkeletonRenderer.GetParentAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							float TranslationX = AssetsManager()->GetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), 0.0f);
-							float TranslationY = AssetsManager()->GetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), 0.0f);
-							float Translation =  (length(m_CursorToolPosition - m_CursorPivot) - length(m_CursorToolLastPosition - m_CursorPivot))/10.0f;
-							TranslationX += Translation;
-							TranslationY += Translation;
-							AssetsManager()->SetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), TranslationX);
-							AssetsManager()->SetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), TranslationY);
-						}
-						break;					
-					}
-					case CURSORTOOL_SCALE_X:
-					case CURSORTOOL_SCALE_Y:
-					{
-						if(SkeletonRenderer.GetParentAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							if(m_CursorTool != CURSORTOOL_SCALE_Y)
-							{
-								float TranslationX = AssetsManager()->GetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), 0.0f);
-								TranslationX += dot(AxisX, vec2(RelX, RelY))/5.0f;
-								AssetsManager()->SetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_X, FramePath.ConvertToInteger(), TranslationX);
-							}
-							
-							if(m_CursorTool != CURSORTOOL_SCALE_X)
-							{
-								float TranslationY = AssetsManager()->GetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), 0.0f);
-								TranslationY += dot(AxisY, vec2(RelX, RelY))/5.0f;
-								AssetsManager()->SetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_SCALE_Y, FramePath.ConvertToInteger(), TranslationY);
-							}
-						}
-						break;					
-					}
-					case CURSORTOOL_ROTATE:
-					{
-						if(SkeletonRenderer.GetLocalAxis(GetViewPos(), GetViewZoom(), m_SelectedAsset, m_SelectedBone, Origin, AxisX, AxisY))
-						{
-							float Angle = AssetsManager()->GetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_ANGLE, FramePath.ConvertToInteger(), 0.0f);
-							Angle += angle(m_CursorToolLastPosition - Origin, m_CursorToolPosition - Origin);
-							AssetsManager()->SetAssetValue<float>(AssetsEditor()->m_ViewedAssetPath, CAsset_SkeletonAnimation::BONEKEYFRAME_ANGLE, FramePath.ConvertToInteger(), Angle);
-						}
-						break;				
-					}
-				}
-				break;
-			}
-			case CAssetPath::TYPE_MAPLAYERTILES:
-			{
-				CAsset_MapLayerTiles* pLayer = AssetsManager()->GetAsset<CAsset_MapLayerTiles>(AssetsEditor()->m_ViewedAssetPath);
-				if(!pLayer)
-					return;
-				
-				CMapRenderer MapRenderer(Graphics(), AssetsManager());
-				InitMapRenderer_LayerTiles(&MapRenderer, AssetsEditor()->m_ViewedAssetPath);
-				
-				vec2 CursorMapPos = MapRenderer.ScreenPosToMapPos(vec2(X, Y));
-				
-				switch(m_CursorTool)
-				{
-					case CURSORTOOL_SELECTIONSTAMP:
-					{
-						if(m_pMapTilesetSelection && m_DragType == DRAGTYPE_CURSORTOOL)
-						{
-							int TileX = CursorMapPos.x/32.0f;
-							int TileY = CursorMapPos.y/32.0f;
-							
-							for(int j=0; j<m_MapTilesetSelectionHeight; j++)
-							{
-								for(int i=0; i<m_MapTilesetSelectionWidth; i++)
-								{
-									CAsset_MapLayerTiles::CTile* pTile = pLayer->GetTile(TileX+i, TileY+j);
-									if(pTile)
-									{
-										pTile->m_Index = m_pMapTilesetSelection[j*m_MapTilesetSelectionWidth+i].m_Index;
-										pTile->m_Flags = m_pMapTilesetSelection[j*m_MapTilesetSelectionWidth+i].m_Flags;
-										pTile->m_Index = m_pMapTilesetSelection[j*m_MapTilesetSelectionWidth+i].m_Index;
-									}
-								}
-							}
-						}
-						break;					
-					}
-				}
-				break;
-			}
-		}
-		*/
 	}
 	else
 	{

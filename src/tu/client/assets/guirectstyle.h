@@ -19,13 +19,19 @@ public:
 	{
 		int m_Flags;
 		int m_BackgroundColor;
+		float m_BackgroundPadding;
 		int m_BorderColor;
 		int m_BorderFlags;
 		float m_CornerRadius;
 		int m_CornerFlags;
+		int m_ImagePath;
+		float m_ImageUV_X_Min;
+		float m_ImageUV_X_Max;
+		float m_ImageUV_Y_Min;
+		float m_ImageUV_Y_Max;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 	
 /* MEMBERS ************************************************************/
@@ -35,6 +41,7 @@ public:
 		FLAG_BACKGROUND=1,
 		FLAG_BORDER=2,
 		FLAG_ROUNDCORNER=4,
+		FLAG_IMAGE=8,
 	};
 	
 	enum
@@ -64,10 +71,15 @@ public:
 
 	int m_Flags;
 	vec4 m_BackgroundColor;
+	float m_BackgroundPadding;
 	vec4 m_BorderColor;
 	int m_BorderFlags;
 	float m_CornerRadius;
 	int m_CornerFlags;
+	CAssetPath m_ImagePath;
+	vec2 m_ImageUV_Min;
+	vec2 m_ImageUV_Max;
+	
 
 /* FUNCTIONS **********************************************************/
 public:

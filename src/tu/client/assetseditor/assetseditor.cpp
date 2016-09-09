@@ -31,37 +31,20 @@ namespace tu
 namespace assetseditor
 {
 
-/* BUTTONS ************************************************************/
-
-class CTextButton : public gui::CTextButton
-{
-protected:
-	CAssetsEditor* m_pAssetsEditor;
-
-public:
-	CTextButton(CAssetsEditor* pAssetsEditor, const char* pText = 0, int IconId = -1) :
-		gui::CTextButton(pAssetsEditor->m_pGuiConfig, pText, IconId),
-		m_pAssetsEditor(pAssetsEditor)
-	{
-		
-	}
-};
-
-class CIconButton : public gui::CIconButton
-{
-protected:
-	CAssetsEditor* m_pAssetsEditor;
-
-public:
-	CIconButton(CAssetsEditor* pAssetsEditor, int IconId) :
-		gui::CIconButton(pAssetsEditor->m_pGuiConfig, IconId),
-		m_pAssetsEditor(pAssetsEditor)
-	{
-		
-	}
-};
-
 /* ITEM LIST **********************************************************/
+
+class CAssetListTitleDisabled : public gui::CIconLabel
+{
+protected:
+	CAssetsEditor* m_pAssetsEditor;
+	CAssetPath m_AssetPath;
+	
+public:
+	CAssetListTitleDisabled(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, const char* pText, CAssetPath IconPath) :
+		gui::CIconLabel(pAssetsEditor->m_pGuiConfig, pText, IconPath),
+		m_pAssetsEditor(pAssetsEditor)
+	{ }
+};
 
 class CAssetListTitle : public gui::CExternalTextButton
 {
@@ -91,6 +74,10 @@ public:
 		m_Tab(0)
 	{
 		m_Centered = false;
+		
+		CAssetState* pState = m_pAssetsEditor->AssetsManager()->GetAssetState(m_AssetPath);
+		if(pState)
+			pState->m_ListedInEditor = true;
 	}
 	
 	void SetSubPath(int SubPath, int Tab)
@@ -131,37 +118,43 @@ public:
 		switch(AssetPath.GetType())
 		{
 			case CAssetPath::TYPE_IMAGE:
-				IconId = CAssetsEditor::ICON_IMAGE;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_IMAGE);
 				break;
 			case CAssetPath::TYPE_SPRITE:
-				IconId = CAssetsEditor::ICON_SPRITE;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SPRITE);
 				break;
 			case CAssetPath::TYPE_SKELETON:
-				IconId = CAssetsEditor::ICON_SKELETON;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETON);
 				break;
 			case CAssetPath::TYPE_SKELETONSKIN:
-				IconId = CAssetsEditor::ICON_SKELETONSKIN;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONSKIN);
 				break;
 			case CAssetPath::TYPE_SKELETONANIMATION:
-				IconId = CAssetsEditor::ICON_SKELETONANIMATION;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONANIMATION);
 				break;
 			case CAssetPath::TYPE_CHARACTER:
-				IconId = CAssetsEditor::ICON_CHARACTER;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTER);
 				break;
 			case CAssetPath::TYPE_CHARACTERPART:
-				IconId = CAssetsEditor::ICON_CHARACTERPART;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTERPART);
 				break;
 			case CAssetPath::TYPE_WEAPON:
-				IconId = CAssetsEditor::ICON_WEAPON;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_WEAPON);
+				break;
+			case CAssetPath::TYPE_MAPZONETILES:
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_ZONETILES);
 				break;
 			case CAssetPath::TYPE_MAPGROUP:
-				IconId = CAssetsEditor::ICON_MAPGROUP;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_FOLDER);
 				break;
 			case CAssetPath::TYPE_MAPLAYERTILES:
-				IconId = CAssetsEditor::ICON_MAPLAYERTILES;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_TILES);
 				break;
 			case CAssetPath::TYPE_MAPLAYERQUADS:
-				IconId = CAssetsEditor::ICON_MAPLAYERQUADS;
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_QUAD);
+				break;
+			case CAssetPath::TYPE_ZONETYPE:
+				IconId = CAssetPath::SpriteUniverse(SPRITE_ICON_ZONETYPE);
 				break;
 		}
 		
@@ -188,7 +181,6 @@ class CAssetListImage : public gui::CExpand
 protected:
 	CAssetsEditor* m_pAssetsEditor;
 	CAssetPath m_AssetPath;
-	CAssetListTitle* m_Button;
 	int m_Source;
 	bool m_SourceFound;
 
@@ -203,9 +195,16 @@ public:
 		SetHeight(m_pConfig->m_ButtonHeight);
 		
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
-		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_IMAGE);
-		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
-		SetTitle(m_Button);
+		
+		if(m_AssetPath.GetSource() == m_Source)
+		{
+			CAssetListTitle* pButton = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_IMAGE));
+			pButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			SetTitle(pButton);
+		}
+		else
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_IMAGE)));
+		
 		
 		for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<CAsset_Sprite>(m_Source); i++)
 		{
@@ -233,7 +232,6 @@ class CAssetListSkeleton : public gui::CExpand
 protected:
 	CAssetsEditor* m_pAssetsEditor;
 	CAssetPath m_AssetPath;
-	CAssetListTitle* m_Button;
 	int m_Source;
 	bool m_SourceFound;
 
@@ -248,9 +246,16 @@ public:
 		SetHeight(m_pConfig->m_ButtonHeight);
 		
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
-		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_SKELETON);
-		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
-		SetTitle(m_Button);
+		
+		if(m_AssetPath.GetSource() == m_Source)
+		{
+			CAssetListTitle* pButton = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETON));
+			pButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			SetTitle(pButton);
+		}
+		else
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETON)));
+			
 		
 		for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<CAsset_SkeletonSkin>(m_Source); i++)
 		{
@@ -289,7 +294,6 @@ protected:
 	CAssetsEditor* m_pAssetsEditor;
 	CAssetPath m_AssetPath;
 	CAsset_Character::CSubPath m_SubPath;
-	CAssetListTitle* m_Button;
 	int m_Source;
 	bool m_SourceFound;
 
@@ -304,18 +308,25 @@ public:
 	{
 		SetHeight(m_pConfig->m_ButtonHeight);
 		
-		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset_Character::PART_NAME, SubPath.ConvertToInteger(), 0);
-		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_DEFAULT);
-		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
-		m_Button->SetSubPath(m_SubPath.ConvertToInteger(), CEditor::TAB_CHARACTER_PARTS);
-		SetTitle(m_Button);
+		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset_Character::PART_NAME, SubPath, 0);
+		
+		if(m_AssetPath.GetSource() == m_Source)
+		{
+			CAssetListTitle* pButton = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_DEFAULT));
+			pButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			pButton->SetSubPath(m_SubPath, CEditor::TAB_CHARACTER_PARTS);
+			SetTitle(pButton);
+		}
+		else
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_DEFAULT)));
+		
 		
 		for(int i=0; i<m_pAssetsEditor->AssetsManager()->GetNumAssets<CAsset_CharacterPart>(m_Source); i++)
 		{
 			CAssetPath CharacterPartPath = CAssetPath::Asset(CAsset_CharacterPart::TypeId, m_Source, i);
 			CAssetPath CharacterPath = m_pAssetsEditor->AssetsManager()->GetAssetValue<CAssetPath>(CharacterPartPath, CAsset_CharacterPart::CHARACTERPATH, -1, CAssetPath::Null());
 			int CharacterPart = m_pAssetsEditor->AssetsManager()->GetAssetValue<int>(CharacterPartPath, CAsset_CharacterPart::CHARACTERPART, -1, 0);
-			if(CharacterPath == m_AssetPath && CharacterPart == m_SubPath.ConvertToInteger())
+			if(CharacterPath == m_AssetPath && CharacterPart == m_SubPath)
 			{
 				Add(new CAssetListItem(m_pAssetsEditor, CharacterPartPath));
 				m_SourceFound = true;
@@ -336,7 +347,6 @@ class CAssetListCharacter : public gui::CExpand
 protected:
 	CAssetsEditor* m_pAssetsEditor;
 	CAssetPath m_AssetPath;
-	CAssetListTitle* m_Button;
 	int m_Source;
 	bool m_SourceFound;
 
@@ -351,16 +361,24 @@ public:
 		SetHeight(m_pConfig->m_ButtonHeight);
 		
 		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
-		m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_CHARACTER);
-		m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
-		SetTitle(m_Button);
+		
+		if(m_AssetPath.GetSource() == m_Source)
+		{
+			CAssetListTitle* pButton = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTER));
+			pButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			SetTitle(pButton);
+		}
+		else
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTER)));
+		
 		
 		CAsset_Character* pCharacter = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Character>(m_AssetPath);
 		if(pCharacter)
 		{
-			for(int i=0; i<pCharacter->m_Parts.size(); i++)
+			CAsset_Character::CIteratorPart Iter;
+			for(Iter = pCharacter->BeginPart(); Iter != pCharacter->EndPart(); ++Iter)
 			{
-				CAssetListCharacterPartType* pItem = new CAssetListCharacterPartType(m_pAssetsEditor, m_AssetPath, CAsset_Character::CSubPath::Part(i), m_Source);
+				CAssetListCharacterPartType* pItem = new CAssetListCharacterPartType(m_pAssetsEditor, m_AssetPath, *Iter, m_Source);
 				
 				if(pItem->SourceFound())
 				{
@@ -386,7 +404,6 @@ class CAssetListMapGroup : public gui::CExpand
 protected:
 	CAssetsEditor* m_pAssetsEditor;
 	CAssetPath m_AssetPath;
-	CAssetListTitle* m_Button;
 	int m_Source;
 	bool m_SourceFound;
 
@@ -394,9 +411,7 @@ public:
 	CAssetListMapGroup(
 		CAssetsEditor* pAssetsEditor,
 		CAssetPath AssetPath,
-		int Source,
-		bool* MapLayerTilesFound,
-		bool* MapLayerQuadsFound
+		int Source
 	) :
 		gui::CExpand(pAssetsEditor->m_pGuiConfig),
 		m_pAssetsEditor(pAssetsEditor),
@@ -405,36 +420,39 @@ public:
 		m_SourceFound(false)
 	{		
 		SetHeight(m_pConfig->m_ButtonHeight);
+			
+		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
+		
+		if(m_AssetPath.GetSource() == m_Source)
+		{
+			CAssetListTitle* pButton = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_FOLDER));
+			pButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			SetTitle(pButton);
+		}
+		else
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_FOLDER)));
+		
 		
 		CAsset_MapGroup* pMapGroup = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_MapGroup>(m_AssetPath);
 		if(pMapGroup)
-		{			
-			char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
-			m_Button = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetsEditor::ICON_MAPGROUP);
-			m_Button->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
-			SetTitle(m_Button);
-			
-			for(int i=0; i<pMapGroup->m_Layers.size(); i++)
+		{
+			CAsset_MapGroup::CIteratorLayer Iter;
+			for(Iter = pMapGroup->BeginLayer(); Iter != pMapGroup->EndLayer(); ++Iter)
 			{
 				bool AddItem = false;
 				
-				if(pMapGroup->m_Layers[i].GetSource() == m_Source)
+				if(pMapGroup->GetLayer(*Iter).GetType() == CAssetPath::TYPE_MAPLAYERTILES)
 				{
-					if(pMapGroup->m_Layers[i].GetType() == CAssetPath::TYPE_MAPLAYERTILES)
-					{
-						MapLayerTilesFound[pMapGroup->m_Layers[i].GetId()] = true;
-						AddItem = true;
-					}
-					else if(pMapGroup->m_Layers[i].GetType() == CAssetPath::TYPE_MAPLAYERQUADS)
-					{
-						MapLayerQuadsFound[pMapGroup->m_Layers[i].GetId()] = true;
-						AddItem = true;
-					}
+					AddItem = true;
+				}
+				else if(pMapGroup->GetLayer(*Iter).GetType() == CAssetPath::TYPE_MAPLAYERQUADS)
+				{
+					AddItem = true;
 				}
 				
 				if(AddItem)
 				{
-					CAssetListItem* pItem = new CAssetListItem(m_pAssetsEditor, pMapGroup->m_Layers[i], m_Source);
+					CAssetListItem* pItem = new CAssetListItem(m_pAssetsEditor, pMapGroup->GetLayer(*Iter), m_Source);
 					Add(pItem);
 					m_SourceFound = true;
 				}
@@ -447,6 +465,191 @@ public:
 	bool SourceFound()
 	{
 		return m_SourceFound || (m_AssetPath.GetSource() == m_Source);
+	}
+};
+
+class CAssetListMap : public gui::CExpand
+{
+protected:
+	class CZoneLayers : public gui::CExpand
+	{
+	protected:
+		CAssetsEditor* m_pAssetsEditor;
+		CAssetPath m_AssetPath;
+		gui::CWidget* m_Button;
+		int m_Source;
+		bool m_SourceFound;
+	public:
+		CZoneLayers( CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int Source ) :
+			gui::CExpand(pAssetsEditor->m_pGuiConfig),
+			m_pAssetsEditor(pAssetsEditor),
+			m_AssetPath(AssetPath),
+			m_Source(Source),
+			m_SourceFound(false)
+		{		
+			SetHeight(m_pConfig->m_ButtonHeight);
+				
+			char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
+			
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, "Zones", CAssetPath::SpriteUniverse(SPRITE_ICON_DEFAULT)));
+			
+			CAsset_Map* pMap = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Map>(m_AssetPath);
+			if(pMap)
+			{
+				CAsset_Map::CIteratorZoneLayer Iter;
+				for(Iter = pMap->BeginZoneLayer(); Iter != pMap->EndZoneLayer(); ++Iter)
+				{
+					if(pMap->GetZoneLayer(*Iter).GetSource() == m_Source)
+					{					
+						CAssetListItem* pItem = new CAssetListItem(m_pAssetsEditor, pMap->GetZoneLayer(*Iter), m_Source);
+						Add(pItem);
+						m_SourceFound = true;
+					}
+				}
+			}
+			
+			Update();
+		}
+		
+		bool SourceFound() { return true; }
+	};
+	
+	class CBgGroups : public gui::CExpand
+	{
+	protected:
+		CAssetsEditor* m_pAssetsEditor;
+		CAssetPath m_AssetPath;
+		gui::CWidget* m_Button;
+		int m_Source;
+		bool m_SourceFound;
+	public:
+		CBgGroups( CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int Source ) :
+			gui::CExpand(pAssetsEditor->m_pGuiConfig),
+			m_pAssetsEditor(pAssetsEditor),
+			m_AssetPath(AssetPath),
+			m_Source(Source),
+			m_SourceFound(false)
+		{		
+			SetHeight(m_pConfig->m_ButtonHeight);
+				
+			char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
+			
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, "Background", CAssetPath::SpriteUniverse(SPRITE_ICON_DEFAULT)));
+			
+			CAsset_Map* pMap = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Map>(m_AssetPath);
+			if(pMap)
+			{
+				CAsset_Map::CIteratorBgGroup Iter;
+				for(Iter = pMap->BeginBgGroup(); Iter != pMap->EndBgGroup(); ++Iter)
+				{
+					if(pMap->GetBgGroup(*Iter).GetSource() == m_Source)
+					{					
+						CAssetListMapGroup* pItem = new CAssetListMapGroup(m_pAssetsEditor, pMap->GetBgGroup(*Iter), m_Source);
+						Add(pItem);
+						m_SourceFound = true;
+					}
+				}
+			}
+			
+			Update();
+		}
+		
+		bool SourceFound() { return true; }
+	};
+	
+	class CFgGroups : public gui::CExpand
+	{
+	protected:
+		CAssetsEditor* m_pAssetsEditor;
+		CAssetPath m_AssetPath;
+		gui::CWidget* m_Button;
+		int m_Source;
+		bool m_SourceFound;
+	public:
+		CFgGroups( CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int Source ) :
+			gui::CExpand(pAssetsEditor->m_pGuiConfig),
+			m_pAssetsEditor(pAssetsEditor),
+			m_AssetPath(AssetPath),
+			m_Source(Source),
+			m_SourceFound(false)
+		{		
+			SetHeight(m_pConfig->m_ButtonHeight);
+				
+			char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
+			
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, "Foreground", CAssetPath::SpriteUniverse(SPRITE_ICON_DEFAULT)));
+			
+			CAsset_Map* pMap = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Map>(m_AssetPath);
+			if(pMap)
+			{
+				CAsset_Map::CIteratorFgGroup Iter;
+				for(Iter = pMap->BeginFgGroup(); Iter != pMap->EndFgGroup(); ++Iter)
+				{
+					if(pMap->GetFgGroup(*Iter).GetSource() == m_Source)
+					{					
+						CAssetListMapGroup* pItem = new CAssetListMapGroup(m_pAssetsEditor, pMap->GetFgGroup(*Iter), m_Source);
+						Add(pItem);
+						m_SourceFound = true;
+					}
+				}
+			}
+			
+			Update();
+		}
+		
+		bool SourceFound() { return true; }
+	};
+	
+protected:
+	CAssetsEditor* m_pAssetsEditor;
+	CAssetPath m_AssetPath;
+	CBgGroups* m_pBgGroups;
+	CFgGroups* m_pFgGroups;
+	CZoneLayers* m_pZoneLayers;
+	gui::CWidget* m_Button;
+	int m_Source;
+
+public:
+	CAssetListMap(
+		CAssetsEditor* pAssetsEditor,
+		CAssetPath AssetPath,
+		int Source
+	) :
+		gui::CExpand(pAssetsEditor->m_pGuiConfig),
+		m_pAssetsEditor(pAssetsEditor),
+		m_AssetPath(AssetPath),
+		m_Source(Source)
+	{		
+		SetHeight(m_pConfig->m_ButtonHeight);
+			
+		char* pName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
+		
+		if(m_AssetPath.GetSource() == m_Source)
+		{
+			CAssetListTitle* pButton = new CAssetListTitle(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_MAP));
+			pButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_LINK);
+			SetTitle(pButton);
+		}
+		else
+			SetTitle(new CAssetListTitleDisabled(m_pAssetsEditor, m_AssetPath, pName, CAssetPath::SpriteUniverse(SPRITE_ICON_MAP)));
+			
+		CAsset_Map* pMap = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Map>(m_AssetPath);
+		if(pMap)
+		{	
+			m_pZoneLayers = new CZoneLayers(m_pAssetsEditor, m_AssetPath, m_Source);
+			Add(m_pZoneLayers);
+			m_pBgGroups = new CBgGroups(m_pAssetsEditor, m_AssetPath, m_Source);
+			Add(m_pBgGroups);
+			m_pFgGroups = new CFgGroups(m_pAssetsEditor, m_AssetPath, m_Source);
+			Add(m_pFgGroups);
+		}
+		
+		Update();
+	}
+	
+	bool SourceFound()
+	{
+		return m_pZoneLayers->SourceFound() || m_pBgGroups->SourceFound() || m_pFgGroups->SourceFound();
 	}
 };
 
@@ -466,7 +669,7 @@ protected:
 
 public:
 	CLoadAssetsButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Load", CAssetsEditor::ICON_LOAD),
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Load", CAssetPath::SpriteUniverse(SPRITE_ICON_LOAD)),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -488,7 +691,7 @@ protected:
 
 public:
 	CSaveAssetsButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Save", CAssetsEditor::ICON_SAVE),
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "Save", CAssetPath::SpriteUniverse(SPRITE_ICON_SAVE)),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -510,7 +713,7 @@ protected:
 
 public:
 	CNewAssetButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "New asset", CAssetsEditor::ICON_INCREASE),
+		gui::CTextButton(pAssetsEditor->m_pGuiConfig, "New asset", CAssetPath::SpriteUniverse(SPRITE_ICON_INCREASE)),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -524,6 +727,7 @@ CAssetsEditor::CAssetsEditor()
 {
 	m_pGuiConfig = 0;
 	m_pHintLabel = 0;
+	m_pStatusLabel = 0;
 }
 
 CAssetsEditor::~CAssetsEditor()
@@ -531,7 +735,7 @@ CAssetsEditor::~CAssetsEditor()
 	delete m_pGuiAssetListTabs;
 	delete m_pGuiAssetsEditor;
 	delete m_pGuiView;
-	delete m_pGuiToolbar;
+	delete m_pGuiStatusBar;
 	for(int i=0; i<m_GuiPopups.size(); i++)
 	{
 		if(m_GuiPopups[i]) delete m_GuiPopups[i];
@@ -540,7 +744,7 @@ CAssetsEditor::~CAssetsEditor()
 	if(m_pGuiConfig) delete m_pGuiConfig;
 }
 	
-void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGraphics)
+void CAssetsEditor::Init(CAssetsManager** ppAssetsManager, CGraphics** ppTUGraphics)
 {
 	m_pClient = Kernel()->RequestInterface<IClient>();
 	m_pInput = Kernel()->RequestInterface<IInput>();
@@ -548,45 +752,46 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pTextRender = Kernel()->RequestInterface<ITextRender>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 	m_pAssetsFile = Kernel()->RequestInterface<tu::IAssetsFile>();
-	m_pTUGraphics = pTUGraphics;
-	m_pAssetsManager = pAssetsManager;
+	m_ppAssetsManager = ppAssetsManager;
+	m_ppTUGraphics = ppTUGraphics;
 	
 	m_RenderTools.m_pGraphics = m_pGraphics;
-		
-	m_CursorTexture = Graphics()->LoadTexture("editor/cursor.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
-	m_AssetsEditorTexture = Graphics()->LoadTexture("tu/assetseditor.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
 	
-	m_pGuiConfig = new gui::CConfig(TUGraphics(), RenderTools(), TextRender(), Input(), m_AssetsEditorTexture);
+	m_CursorTexture = Graphics()->LoadTexture("editor/cursor.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+	m_ZoneTexture = Graphics()->LoadTexture("tu/assetseditor_zone.png", IStorage::TYPE_ALL, CImageInfo::FORMAT_AUTO, 0);
+	
+	m_pGuiConfig = new gui::CConfig(TUGraphics(ASSETS_EDITORGUI), RenderTools(), TextRender(), Input(), AssetsManager(ASSETS_EDITORGUI));
 	m_pGuiConfig->m_fShowHint = CAssetsEditor::ShowHint;
 	m_pGuiConfig->m_pShowHintData = (void*) this;
 	
-	int Margin = 3;
+	int Margin = 1;
 	
-	int MenuBarHeight = 26;
+	int StatusBarHeight = 26;
 	int PanelWidth = 250;
 	int PanelHeight = 250;
-	gui::CRect ToolbarRect(Margin, Graphics()->ScreenHeight()-MenuBarHeight-Margin, Graphics()->ScreenWidth()-2*Margin, MenuBarHeight);
-	gui::CRect AssetListRect(Margin, Margin, PanelWidth, Graphics()->ScreenHeight()-3*Margin-ToolbarRect.h);
-	gui::CRect ViewRect(AssetListRect.x + AssetListRect.w + Margin, AssetListRect.y, Graphics()->ScreenWidth() - 2*PanelWidth - 4*Margin, Graphics()->ScreenHeight() - 4*Margin - PanelHeight - MenuBarHeight);
+	gui::CRect StatusBarRect(Margin, Graphics()->ScreenHeight()-StatusBarHeight-Margin, Graphics()->ScreenWidth()-2*Margin, StatusBarHeight);
+	gui::CRect AssetListRect(Margin, Margin, PanelWidth, Graphics()->ScreenHeight()-3*Margin-StatusBarRect.h);
+	gui::CRect ViewRect(AssetListRect.x + AssetListRect.w + Margin, AssetListRect.y, Graphics()->ScreenWidth() - 2*PanelWidth - 4*Margin, Graphics()->ScreenHeight() - 4*Margin - PanelHeight - StatusBarHeight);
 	gui::CRect AssetsEditorRect(ViewRect.x + ViewRect.w + Margin, AssetListRect.y, PanelWidth, AssetListRect.h);
 	gui::CRect TimelineRect(AssetListRect.x + AssetListRect.w + Margin, ViewRect.y + ViewRect.h + Margin, ViewRect.w, PanelHeight);
 	
 	m_pHintLabel = new gui::CLabel(m_pGuiConfig, "");
+	m_pStatusLabel = new gui::CLabel(m_pGuiConfig, "");
 	
 	m_pGuiAssetListTabs = new gui::CTabs(m_pGuiConfig);
 	m_pGuiAssetListTabs->SetRect(AssetListRect);
 	
 	m_pGuiAssetList[CAssetPath::SRC_UNIVERSE] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_UNIVERSE], CAssetsEditor::ICON_INTERNAL_ASSET, "Universe");
+	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_UNIVERSE], CAssetPath::SpriteUniverse(SPRITE_ICON_UNIVERSE), "Universe");
 	
 	m_pGuiAssetList[CAssetPath::SRC_WORLD] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_WORLD], CAssetsEditor::ICON_EXTERNAL_ASSET, "World");
+	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_WORLD], CAssetPath::SpriteUniverse(SPRITE_ICON_WORLD), "World");
 	
 	m_pGuiAssetList[CAssetPath::SRC_LAND] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_LAND], CAssetsEditor::ICON_MAP_ASSET, "Land");
+	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_LAND], CAssetPath::SpriteUniverse(SPRITE_ICON_LAND), "Land");
 	
 	m_pGuiAssetList[CAssetPath::SRC_SKIN] = new gui::CVListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_SKIN], CAssetsEditor::ICON_SKIN_ASSET, "Skins");
+	m_pGuiAssetListTabs->AddTab(m_pGuiAssetList[CAssetPath::SRC_SKIN], CAssetPath::SpriteUniverse(SPRITE_ICON_SKIN), "Skins");
 	
 	m_pGuiAssetListTabs->Update();
 	RefreshAssetsList();
@@ -603,10 +808,11 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_pGuiAssetsEditor->SetRect(AssetsEditorRect);
 	m_pGuiAssetsEditor->Update();
 	
-	m_pGuiToolbar = new gui::CHListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_DEFAULT, gui::LAYOUTFILLING_LAST);
-	m_pGuiToolbar->SetRect(ToolbarRect);
-	m_pGuiToolbar->Add(m_pHintLabel);
-	m_pGuiToolbar->Update();
+	m_pGuiStatusBar = new gui::CHListLayout(m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_TOOLBAR, gui::LAYOUTFILLING_ALL);
+	m_pGuiStatusBar->SetRect(StatusBarRect);
+	m_pGuiStatusBar->Add(m_pStatusLabel);
+	m_pGuiStatusBar->Add(m_pHintLabel);
+	m_pGuiStatusBar->Update();
 	
 	m_RefreshAssetsEditor = false;
 	m_EditorTab = -1;
@@ -621,6 +827,15 @@ void CAssetsEditor::Init(CAssetsManager* pAssetsManager, CClient_Graphics* pTUGr
 	m_AssetsListSource = CAssetPath::SRC_WORLD;
 }
 
+void CAssetsEditor::ShowStatus(const char* pText)
+{
+	if(m_pHintLabel)
+	{
+		m_pStatusLabel->SetText(pText);
+		m_Status = true;
+	}
+}
+
 void CAssetsEditor::ShowHint(const char* pText, void* pData)
 {
 	CAssetsEditor* pThis = (CAssetsEditor*) pData;
@@ -633,6 +848,8 @@ void CAssetsEditor::ShowHint(const char* pText, void* pData)
 
 void CAssetsEditor::RefreshAssetsList(int Source)
 {
+	float Scroll = m_pGuiAssetList[Source]->GetScrollPos();
+	
 	m_pGuiAssetList[Source]->Clear();
 	
 	switch(Source)
@@ -661,16 +878,28 @@ void CAssetsEditor::RefreshAssetsList(int Source)
 	}
 	m_pGuiAssetList[Source]->Add(new CNewAssetButton(this, Source));
 	
-	//AntiDoubleEntries
-	bool MapLayerTilesFound[1024];
-	bool MapLayerQuadsFound[1024];
+	//Init asset state
+	{
+		CAssetState State;
+		State.m_ListedInEditor = false;
+		AssetsManager()->InitAssetState(Source, State);
+	}
 	
-	for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_MapLayerTiles>(Source); i++)
-		MapLayerTilesFound[i] = false;
-	for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_MapLayerQuads>(Source); i++)
-		MapLayerQuadsFound[i] = false;
+	#define REFRESH_ASSET_LIST(ClassName) {\
+		int nbAssets = AssetsManager()->GetNumAssets<ClassName>(Source);\
+		for(int i=0; i<nbAssets; i++)\
+		{\
+			CAssetPath Path = CAssetPath::Asset(ClassName::TypeId, Source, i);\
+			CAssetState* pState = AssetsManager()->GetAssetState(Path);\
+			if(pState && !pState->m_ListedInEditor)\
+			{\
+				m_pGuiAssetList[Source]->Add(new CAssetListItem(this, Path));\
+			}\
+		}\
+	}
 	
 	//Images
+	//	Sprites
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
 		for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_Image>(s); i++)
@@ -683,24 +912,11 @@ void CAssetsEditor::RefreshAssetsList(int Source)
 		}
 	}
 	
-	//Sprites
-	{
-		int nbAssets = AssetsManager()->GetNumAssets<CAsset_Sprite>(Source);
-		if(nbAssets > 0)
-		{
-			for(int i=0; i<nbAssets; i++)
-			{
-				CAssetPath SpritePath = CAssetPath::Asset(CAsset_Sprite::TypeId, Source, i);
-				CAssetPath ImagePath = AssetsManager()->GetAssetValue<CAssetPath>(SpritePath, CAsset_Sprite::IMAGEPATH, -1, 0);
-				if(!AssetsManager()->GetAsset<CAsset_Image>(ImagePath))
-				{
-					m_pGuiAssetList[Source]->Add(new CAssetListItem(this, SpritePath));
-				}
-			}
-		}
-	}
+	REFRESH_ASSET_LIST(CAsset_Sprite)
 	
 	//Skeletons
+	//	SkeletonSkins
+	//	SkeletonAnimations
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
 		for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_Skeleton>(s); i++)
@@ -713,43 +929,14 @@ void CAssetsEditor::RefreshAssetsList(int Source)
 		}
 	}
 	
-	//SkeletonSkins
-	{
-		int nbAssets = AssetsManager()->GetNumAssets<CAsset_SkeletonSkin>(Source);
-		if(nbAssets > 0)
-		{
-			for(int i=0; i<nbAssets; i++)
-			{
-				CAssetPath SkeletonSkinPath = CAssetPath::Asset(CAsset_SkeletonSkin::TypeId, Source, i);
-				CAssetPath SkeletonPath = AssetsManager()->GetAssetValue<CAssetPath>(SkeletonSkinPath, CAsset_SkeletonSkin::SKELETONPATH, -1, 0);
-				if(!AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath))
-				{
-					m_pGuiAssetList[Source]->Add(new CAssetListItem(this, SkeletonSkinPath));
-				}
-			}
-		}
-	}
-	
-	//SkeletonAnimations
-	{
-		int nbAssets = AssetsManager()->GetNumAssets<CAsset_SkeletonAnimation>(Source);
-		if(nbAssets > 0)
-		{
-			for(int i=0; i<nbAssets; i++)
-			{
-				CAssetPath SkeletonAnimationPath = CAssetPath::Asset(CAsset_SkeletonAnimation::TypeId, Source, i);
-				CAssetPath SkeletonPath = AssetsManager()->GetAssetValue<CAssetPath>(SkeletonAnimationPath, CAsset_SkeletonAnimation::SKELETONPATH, -1, 0);
-				if(!AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath))
-				{
-					m_pGuiAssetList[Source]->Add(new CAssetListItem(this, SkeletonAnimationPath));
-				}
-			}
-		}
-	}
+	REFRESH_ASSET_LIST(CAsset_SkeletonSkin)
+	REFRESH_ASSET_LIST(CAsset_SkeletonAnimation)
 	
 	//Search Tag: TAG_NEW_ASSET
 	
-	//Character
+	//Characters
+	//	CharacterParts
+	//	Weapons
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
 		for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_Character>(s); i++)
@@ -762,95 +949,48 @@ void CAssetsEditor::RefreshAssetsList(int Source)
 		}
 	}
 	
-	//CharacterPart
-	{
-		int nbAssets = AssetsManager()->GetNumAssets<CAsset_CharacterPart>(Source);
-		if(nbAssets > 0)
-		{
-			for(int i=0; i<nbAssets; i++)
-			{
-				CAssetPath CharacterPartPath = CAssetPath::Asset(CAsset_CharacterPart::TypeId, Source, i);
-				CAssetPath CharacterPath = AssetsManager()->GetAssetValue<CAssetPath>(CharacterPartPath, CAsset_CharacterPart::CHARACTERPATH, -1, 0);
-				CAsset_Character* pCharacter = AssetsManager()->GetAsset<CAsset_Character>(CharacterPath);
-				if(!pCharacter)
-				{
-					m_pGuiAssetList[Source]->Add(new CAssetListItem(this, CharacterPartPath));
-				}
-				else
-				{
-					int CharacterPart = AssetsManager()->GetAssetValue<int>(CharacterPartPath, CAsset_CharacterPart::CHARACTERPART, -1, 0);
-					if(CharacterPart >= pCharacter->m_Parts.size() || CharacterPart < 0)
-					{
-						m_pGuiAssetList[Source]->Add(new CAssetListItem(this, CharacterPartPath));
-					}
-				}
-			}
-		}
-	}
-	
-	#define REFRESH_ASSET_LIST(TypeName) \
-	{\
-		int nbAssets = AssetsManager()->GetNumAssets<TypeName>(Source);\
-		if(nbAssets > 0)\
-		{\
-			for(int i=0; i<nbAssets; i++)\
-			{\
-				m_pGuiAssetList[Source]->Add(new CAssetListItem(this, CAssetPath::Asset(TypeName::TypeId, Source, i)));\
-			}\
-		}\
-	}
-	
+	REFRESH_ASSET_LIST(CAsset_CharacterPart)
 	REFRESH_ASSET_LIST(CAsset_Weapon)
+	
+	//Map
+	for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_Map>(Source); i++)
+	{
+		CAssetListMap* pItem = new CAssetListMap(
+			this,
+			CAssetPath::Asset(CAsset_Map::TypeId, Source, i),
+			Source
+		);
+		m_pGuiAssetList[Source]->Add(pItem);
+	}
 	
 	//MapGroup
 	for(int s=0; s<CAssetPath::NUM_SOURCES; s++)
 	{
 		for(int i=0; i<AssetsManager()->GetNumAssets<CAsset_MapGroup>(s); i++)
 		{
-			CAssetListMapGroup* pItem = new CAssetListMapGroup(
-				this,
-				CAssetPath::Asset(CAsset_MapGroup::TypeId, s, i),
-				Source,
-				MapLayerTilesFound,
-				MapLayerQuadsFound
-			);
+			CAssetPath Path = CAssetPath::Asset(CAsset_MapGroup::TypeId, Source, i);
+			CAssetState* pState = AssetsManager()->GetAssetState(Path);
+			if(pState && !pState->m_ListedInEditor)
+			{
+				CAssetListMapGroup* pItem = new CAssetListMapGroup(
+					this,
+					CAssetPath::Asset(CAsset_MapGroup::TypeId, s, i),
+					Source
+				);
 			
-			if(pItem->SourceFound())
-				m_pGuiAssetList[Source]->Add(pItem);
-			else
-				delete pItem;
+				if(pItem->SourceFound())
+					m_pGuiAssetList[Source]->Add(pItem);
+				else
+					delete pItem;
+			}
 		}
 	}
 	
-	//MapLayer
-	{
-		int nbAssets = AssetsManager()->GetNumAssets<CAsset_MapLayerTiles>(Source);
-		if(nbAssets > 0)
-		{
-			for(int i=0; i<nbAssets; i++)
-			{
-				if(!MapLayerTilesFound[i])
-				{
-					CAssetPath MapLayerPath = CAssetPath::Asset(CAsset_MapLayerTiles::TypeId, Source, i);
-					m_pGuiAssetList[Source]->Add(new CAssetListItem(this, MapLayerPath));
-				}
-			}
-		}
-	}
-	{
-		int nbAssets = AssetsManager()->GetNumAssets<CAsset_MapLayerQuads>(Source);
-		if(nbAssets > 0)
-		{
-			for(int i=0; i<nbAssets; i++)
-			{
-				if(!MapLayerQuadsFound[i])
-				{
-					CAssetPath MapLayerPath = CAssetPath::Asset(CAsset_MapLayerQuads::TypeId, Source, i);
-					m_pGuiAssetList[Source]->Add(new CAssetListItem(this, MapLayerPath));
-				}
-			}
-		}
-	}
+	REFRESH_ASSET_LIST(CAsset_MapLayerTiles)
+	REFRESH_ASSET_LIST(CAsset_MapLayerQuads)
+	REFRESH_ASSET_LIST(CAsset_ZoneType)
+	
+	m_pGuiAssetList[Source]->SetScrollPos(Scroll);
 	
 	m_pGuiAssetList[Source]->Update();
 }
@@ -876,7 +1016,7 @@ void CAssetsEditor::Render()
 	{
 		Graphics()->TextureClear();
 		Graphics()->QuadsBegin();
-		Graphics()->SetColor(0.5f, 0.5f, 0.5f, 1.0f);
+		Graphics()->SetColor(58.0f/255.0f, 58.0f/255.0f, 58.0f/255.0f, 1.0f);
 		
 		IGraphics::CQuadItem QuadItem(Graphics()->ScreenWidth()/2, Graphics()->ScreenHeight()/2, Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
 		Graphics()->QuadsDraw(&QuadItem, 1);
@@ -884,7 +1024,7 @@ void CAssetsEditor::Render()
 		Graphics()->QuadsEnd();
 	}
 	
-	m_pGuiToolbar->Render();
+	m_pGuiStatusBar->Render();
 	m_pGuiAssetListTabs->Render();
 	m_pGuiAssetsEditor->Render();
 	m_pGuiView->Render();
@@ -922,6 +1062,11 @@ void CAssetsEditor::UpdateAndRender()
 	if(Input()->KeyIsPressed(KEY_ESCAPE))
 	{
 		CloseEditor();
+	}
+	
+	if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyPress(KEY_Z, true))
+	{
+		AssetsManager()->Undo();
 	}
 	
 	m_Hint = false;
@@ -978,13 +1123,13 @@ void CAssetsEditor::UpdateAndRender()
 	}
 	else
 	{
-		m_pGuiToolbar->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
+		m_pGuiStatusBar->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
 		m_pGuiAssetListTabs->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
 		m_pGuiAssetsEditor->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
 		m_pGuiView->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
 		m_pGuiTimeline->OnMouseOver(m_MousePos.x, m_MousePos.y, m_MouseDelta.x, m_MouseDelta.y, Keys);
 		
-		m_pGuiToolbar->OnInputEvent();
+		m_pGuiStatusBar->OnInputEvent();
 		m_pGuiAssetListTabs->OnInputEvent();
 		m_pGuiAssetsEditor->OnInputEvent();
 		m_pGuiView->OnInputEvent();
@@ -1024,7 +1169,7 @@ void CAssetsEditor::UpdateAndRender()
 				}
 				else
 				{
-					m_pGuiToolbar->OnButtonClick(m_MousePos.x, m_MousePos.y, Button, Count);
+					m_pGuiStatusBar->OnButtonClick(m_MousePos.x, m_MousePos.y, Button, Count);
 					m_pGuiAssetListTabs->OnButtonClick(m_MousePos.x, m_MousePos.y, Button, Count);
 					m_pGuiAssetsEditor->OnButtonClick(m_MousePos.x, m_MousePos.y, Button, Count);
 					m_pGuiView->OnButtonClick(m_MousePos.x, m_MousePos.y, Button, Count);
@@ -1047,7 +1192,7 @@ void CAssetsEditor::UpdateAndRender()
 				}
 				else
 				{
-					m_pGuiToolbar->OnButtonRelease(Button);
+					m_pGuiStatusBar->OnButtonRelease(Button);
 					m_pGuiAssetListTabs->OnButtonRelease(Button);
 					m_pGuiAssetsEditor->OnButtonRelease(Button);
 					m_pGuiView->OnButtonRelease(Button);
@@ -1063,6 +1208,10 @@ void CAssetsEditor::UpdateAndRender()
 	if(!m_Hint)
 	{
 		m_pHintLabel->SetText("");
+	}
+	if(!m_Status)
+	{
+		m_pStatusLabel->SetText("");
 	}
 
 	Input()->Clear();
@@ -1097,7 +1246,6 @@ void CAssetsEditor::EditAsset(CAssetPath AssetPath)
 {
 	m_EditedAssetPath = AssetPath;
 	m_EditedAssetSubPath = -1;
-	m_Paused = true;
 	RefreshAssetsEditor(-1);
 }
 
@@ -1105,7 +1253,6 @@ void CAssetsEditor::EditAssetSubItem(CAssetPath AssetPath, int SubPath, int Tab)
 {
 	m_EditedAssetPath = AssetPath;
 	m_EditedAssetSubPath = SubPath;
-	m_Paused = true;
 	RefreshAssetsEditor(Tab);
 }
 
@@ -1274,6 +1421,13 @@ void CAssetsEditor::DeleteAsset(CAssetPath AssetPath)
 	RefreshAssetsList();
 }
 
+void CAssetsEditor::DeleteSubItem(CAssetPath AssetPath, int SubPath)
+{
+	AssetsManager()->DeleteSubItem(AssetPath, SubPath);
+	
+	RefreshAssetsEditor(-1);
+}
+
 void CAssetsEditor::SetPause(bool Pause)
 {
 	m_Paused = Pause;
@@ -1292,6 +1446,11 @@ void CAssetsEditor::SetTime(float Time)
 float CAssetsEditor::GetTime()
 {
 	return m_Time;
+}
+
+vec2 CAssetsEditor::GetScreenSize() const
+{
+	return vec2(Graphics()->ScreenWidth(), Graphics()->ScreenHeight());
 }
 
 vec2 CAssetsEditor::GetCursorPos() const

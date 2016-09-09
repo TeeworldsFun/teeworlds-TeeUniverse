@@ -33,6 +33,51 @@ void CLabel::Render()
 	TextRender()->TextEx(&Cursor, m_aText, -1);
 }
 
+CIconLabel::CIconLabel(CConfig *pConfig, const char* pText, CAssetPath IconPath, int Style) :
+	CWidget(pConfig),
+	m_IconPath(IconPath),
+	m_TextStyle(Style)
+{	
+	SetText(pText);
+}
+
+void CIconLabel::SetText(const char* pText)
+{
+	str_copy(m_aText, pText, sizeof(m_aText));
+	
+	m_Rect.w = 2*m_pConfig->m_LabelMargin + TextRender()->TextWidth(0, m_pConfig->m_TextSize[m_TextStyle], m_aText, -1);
+	m_Rect.h = 2*m_pConfig->m_LabelMargin + m_pConfig->m_TextSize[m_TextStyle];
+}
+
+void CIconLabel::SetIcon(CAssetPath IconPath)
+{
+	m_IconPath = IconPath;
+}
+	
+void CIconLabel::Render()
+{
+	int PosX = m_Rect.x + m_pConfig->m_LabelMargin;
+	
+	if(!m_IconPath.IsNull())
+		PosX += m_pConfig->m_IconSize;
+	
+	CTextCursor Cursor;
+	TextRender()->SetCursor(&Cursor, PosX, m_Rect.y - m_pConfig->m_TextSize[m_TextStyle]/4 + m_pConfig->m_LabelMargin, m_pConfig->m_TextSize[m_TextStyle], TEXTFLAG_RENDER);
+	TextRender()->TextColor(m_pConfig->m_TextColor[m_TextStyle].x, m_pConfig->m_TextColor[m_TextStyle].y, m_pConfig->m_TextColor[m_TextStyle].z, m_pConfig->m_TextColor[m_TextStyle].w);
+	TextRender()->TextEx(&Cursor, m_aText, -1);
+	
+	int CenterY = m_Rect.y + m_Rect.h/2;
+	
+	if(!m_IconPath.IsNull())
+	{		
+		TUGraphics()->DrawSprite(
+			m_IconPath,
+			vec2(PosX-m_pConfig->m_IconSize/2-4, CenterY),
+			1.0f, 0.0f, 0x0, 1.0f
+		);
+	}
+}
+
 }
 
 }

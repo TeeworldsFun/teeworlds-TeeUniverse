@@ -61,6 +61,7 @@ protected:
 
 protected:
 	IGraphics* m_pGraphics;
+	CGraphics* m_pTUGraphics;
 	CAssetsManager* m_pAssetsManager;
 	
 	array<CSkeletonState> m_Skeletons;
@@ -72,15 +73,7 @@ protected:
 	vec2 m_Hook;
 	
 public:
-	CSkeletonRenderer(IGraphics* pGraphics, CAssetsManager* pAssetsManager) :
-		m_pGraphics(pGraphics),
-		m_pAssetsManager(pAssetsManager),
-		m_NumLayers(0)
-	{
-		m_Aim = vec2(1.0f, 0.0f);
-		m_Motion = vec2(1.0f, 0.0f);
-		m_Hook = vec2(1.0f, 0.0f);
-	}
+	CSkeletonRenderer(CGraphics* pTUGraphics, CAssetsManager* pAssetsManager);
 	
 	void SetAim(vec2 Aim) { m_Aim = Aim; }
 	void SetMotion(vec2 Motion) { m_Motion = Motion; }
@@ -102,6 +95,7 @@ public:
 	bool GetLocalAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
 	bool GetParentAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
 	
+	CGraphics* TUGraphics() { return m_pTUGraphics; }
 	IGraphics* Graphics() { return m_pGraphics; }
 	CAssetsManager* AssetsManager() { return m_pAssetsManager; }
 };

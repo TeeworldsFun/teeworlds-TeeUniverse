@@ -288,12 +288,14 @@ public:
 		if(str_check_pathname(pFilename) != 0)
 		{
 			pBuffer[0] = 0;
+			dbg_msg("Storage", "OpenFile: check failed with %s", pFilename);
 			return 0;
 		}
 
 		// open file
 		if(Flags&IOFLAG_WRITE)
 		{
+			dbg_msg("Storage", "OpenFile: io_open with %s", GetPath(TYPE_SAVE, pFilename, pBuffer, BufferSize));
 			return io_open(GetPath(TYPE_SAVE, pFilename, pBuffer, BufferSize), Flags);
 		}
 		else

@@ -11,7 +11,7 @@ CAsset_SkeletonAnimation::CAsset_SkeletonAnimation()
 	
 }
 	
-CAsset_SkeletonAnimation::CBoneAnimation::CKeyFrame& CAsset_SkeletonAnimation::AddBoneKeyFrame(CAsset_Skeleton::CBonePath BonePath, int Time)
+CAsset_SkeletonAnimation::CBoneAnimation::CKeyFrame& CAsset_SkeletonAnimation::AddBoneKeyFrame(CAsset_Skeleton::CSubPath BonePath, int Time)
 {
 	//Find BoneAnimation
 	int BoneAnimationId = -1;
@@ -46,7 +46,7 @@ CAsset_SkeletonAnimation::CBoneAnimation::CKeyFrame& CAsset_SkeletonAnimation::A
 	return m_BoneAnimations[BoneAnimationId].m_KeyFrames[KeyFrameId];
 }
 
-CAsset_SkeletonAnimation::CLayerAnimation::CKeyFrame& CAsset_SkeletonAnimation::AddLayerKeyFrame(CAsset_Skeleton::CBonePath LayerPath, int Time)
+CAsset_SkeletonAnimation::CLayerAnimation::CKeyFrame& CAsset_SkeletonAnimation::AddLayerKeyFrame(CAsset_Skeleton::CSubPath LayerPath, int Time)
 {
 	//Find BoneAnimation
 	int LayerAnimationId = -1;
@@ -82,7 +82,7 @@ CAsset_SkeletonAnimation::CLayerAnimation::CKeyFrame& CAsset_SkeletonAnimation::
 	return m_LayerAnimations[LayerAnimationId].m_KeyFrames[KeyFrameId];
 }
 
-void CAsset_SkeletonAnimation::SetCycle(CAsset_Skeleton::CBonePath BonePath, int CycleType)
+void CAsset_SkeletonAnimation::SetCycle(CAsset_Skeleton::CSubPath BonePath, int CycleType)
 {
 	//Find BoneAnimation
 	for(int i=0; i<m_BoneAnimations.size(); i++)
@@ -95,7 +95,7 @@ void CAsset_SkeletonAnimation::SetCycle(CAsset_Skeleton::CBonePath BonePath, int
 	}
 }
 
-CAsset_SkeletonAnimation::CSubPath CAsset_SkeletonAnimation::GetBoneKeyFramePath(CAsset_Skeleton::CBonePath BonePath, int IntTime)
+CAsset_SkeletonAnimation::CSubPath CAsset_SkeletonAnimation::GetBoneKeyFramePath(CAsset_Skeleton::CSubPath BonePath, int IntTime)
 {
 	//Find BoneAnimation
 	for(int i=0; i<m_BoneAnimations.size(); i++)
@@ -134,7 +134,7 @@ CAsset_SkeletonAnimation::CSubPath CAsset_SkeletonAnimation::GetBoneKeyFramePath
 	return CSubPath::Null();
 }
 
-CAsset_SkeletonAnimation::CSubPath CAsset_SkeletonAnimation::GetLayerKeyFramePath(CAsset_Skeleton::CBonePath LayerPath, int IntTime)
+CAsset_SkeletonAnimation::CSubPath CAsset_SkeletonAnimation::GetLayerKeyFramePath(CAsset_Skeleton::CSubPath LayerPath, int IntTime)
 {
 	//Find BoneAnimation
 	for(int i=0; i<m_LayerAnimations.size(); i++)
@@ -175,7 +175,7 @@ CAsset_SkeletonAnimation::CSubPath CAsset_SkeletonAnimation::GetLayerKeyFramePat
 
 /* IO *****************************************************************/
 
-void CAsset_SkeletonAnimation::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_SkeletonAnimation::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -245,7 +245,7 @@ void CAsset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWriter, in
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 
-	Item.m_SkeletonPath = m_SkeletonPath.ConvertToInteger();
+	Item.m_SkeletonPath = m_SkeletonPath;
 	
 	{
 		int KeyFramesIter = 0;
@@ -263,7 +263,7 @@ void CAsset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWriter, in
 		KeyFramesIter = 0;
 		for(int i=0; i<m_BoneAnimations.size(); i++)
 		{
-			pAnimations[i].m_BonePath = m_BoneAnimations[i].m_BonePath.ConvertToInteger();
+			pAnimations[i].m_BonePath = m_BoneAnimations[i].m_BonePath;
 			pAnimations[i].m_CycleType = m_BoneAnimations[i].m_CycleType;
 			
 			pAnimations[i].m_FirstKeyFrame = KeyFramesIter;
@@ -306,7 +306,7 @@ void CAsset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWriter, in
 		KeyFramesIter = 0;
 		for(int i=0; i<m_LayerAnimations.size(); i++)
 		{
-			pAnimations[i].m_LayerPath = m_LayerAnimations[i].m_LayerPath.ConvertToInteger();
+			pAnimations[i].m_LayerPath = m_LayerAnimations[i].m_LayerPath;
 			pAnimations[i].m_CycleType = m_LayerAnimations[i].m_CycleType;
 			
 			pAnimations[i].m_FirstKeyFrame = KeyFramesIter;

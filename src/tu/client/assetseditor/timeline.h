@@ -61,7 +61,7 @@ class CTimeline : public gui::CWidget
 		
 	public:
 		CFirstFrameButton(CAssetsEditor* pAssetsEditor) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_FIRST_FRAME),
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_FIRST_FRAME)),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -88,7 +88,7 @@ class CTimeline : public gui::CWidget
 		
 	public:
 		CLastFrameButton(CAssetsEditor* pAssetsEditor) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_LAST_FRAME),
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_LAST_FRAME)),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -115,7 +115,7 @@ class CTimeline : public gui::CWidget
 		
 	public:
 		CPrevFrameButton(CAssetsEditor* pAssetsEditor) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_PREV_FRAME),
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_PREV_FRAME)),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -142,7 +142,7 @@ class CTimeline : public gui::CWidget
 		
 	public:
 		CNextFrameButton(CAssetsEditor* pAssetsEditor) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetsEditor::ICON_NEXT_FRAME),
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_NEXT_FRAME)),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -169,7 +169,7 @@ class CTimeline : public gui::CWidget
 		
 	public:
 		CPlayPauseButton(CAssetsEditor* pAssetsEditor) :
-			gui::CIconButton(pAssetsEditor->m_pGuiConfig, (pAssetsEditor->IsPaused() ? CAssetsEditor::ICON_PLAY : CAssetsEditor::ICON_PAUSE)),
+			gui::CIconButton(pAssetsEditor->m_pGuiConfig, (pAssetsEditor->IsPaused() ? CAssetPath::SpriteUniverse(SPRITE_ICON_PLAY) : CAssetPath::SpriteUniverse(SPRITE_ICON_PAUSE))),
 			m_pAssetsEditor(pAssetsEditor)
 		{
 			
@@ -178,9 +178,9 @@ class CTimeline : public gui::CWidget
 		virtual void Render()
 		{
 			if(m_pAssetsEditor->IsPaused())
-				SetIcon(CAssetsEditor::ICON_PLAY);
+				SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_PLAY));
 			else
-				SetIcon(CAssetsEditor::ICON_PAUSE);
+				SetIcon(CAssetPath::SpriteUniverse(SPRITE_ICON_PAUSE));
 			
 			gui::CIconButton::Render();
 		}
@@ -311,15 +311,15 @@ public:
 	CTimeline(CAssetsEditor* pAssetsEditor);
 	virtual ~CTimeline();
 	
-	void OnEditedAssetChange();
-	void OnEditedAssetFrameChange();
+	CAssetPath GetSkeletonPath();
+	CAssetPath GetSkeletonAnimationPath();
+	void CreateAnimationIfNeeded();
 	
 	int GetCursorTool() { return m_CursorTool; }
 	void SetCursorTool(int CursorTool) { m_CursorTool = CursorTool; }
 	
 	CAsset_SkeletonAnimation::CSubPath KeyFramePicking(int X, int Y);
-	CAsset_Skeleton::CBonePath BonePicking(int X, int Y);
-	CAsset_Skeleton::CBonePath LayerPicking(int X, int Y);
+	CAsset_Skeleton::CSubPath AnimationPicking(int X, int Y);
 	
 	virtual void Update();
 	virtual void Render();

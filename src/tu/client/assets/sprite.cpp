@@ -17,7 +17,7 @@ CAsset_Sprite::CAsset_Sprite() :
 
 /* IO *****************************************************************/
 
-void CAsset_Sprite::InitFromAssetsFile(CAssetsManager* pAssetsManager, IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Sprite::InitFromAssetsFile(IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// copy name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -34,7 +34,7 @@ void CAsset_Sprite::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 {
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
-	Item.m_ImagePath = m_ImagePath.ConvertToInteger();
+	Item.m_ImagePath = m_ImagePath;
 	Item.m_X = m_X;
 	Item.m_Y = m_Y;
 	Item.m_Width = m_Width;
@@ -46,70 +46,55 @@ void CAsset_Sprite::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_Sprite::GetValue(int ValueType, int Path, int DefaultValue)
+int CAsset_Sprite::GetValue(int ValueType, int PathInt, int DefaultValue)
 {
 	switch(ValueType)
 	{
-		case X:
-			return m_X;
-		case Y:
-			return m_Y;
-		case WIDTH:
-			return m_Width;
-		case HEIGHT:
-			return m_Height;
-		default:
-			return CAsset::GetValue<int>(ValueType, Path, DefaultValue);
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, X, GetX())
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, Y, GetY())
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, WIDTH, GetWidth())
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, HEIGHT, GetHeight())
 	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(int)
 }
 	
 template<>
-bool CAsset_Sprite::SetValue<int>(int ValueType, int Path, int Value)
+bool CAsset_Sprite::SetValue<int>(int ValueType, int PathInt, int Value)
 {
 	switch(ValueType)
 	{
-		case X:
-			m_X = Value;
-			return true;
-		case Y:
-			m_Y = Value;
-			return true;
-		case WIDTH:
-			m_Width = Value;
-			return true;
-		case HEIGHT:
-			m_Height = Value;
-			return true;
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(int, X, m_X)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(int, Y, m_Y)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(int, WIDTH, m_Width)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(int, HEIGHT, m_Height)
 	}
 	
-	return CAsset::SetValue<int>(ValueType, Path, Value);
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(int)
 }
 
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CAssetPath CAsset_Sprite::GetValue(int ValueType, int Path, CAssetPath DefaultValue)
+CAssetPath CAsset_Sprite::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue)
 {
 	switch(ValueType)
 	{
-		case IMAGEPATH:
-			return m_ImagePath;
-		default:
-			return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(CAssetPath, IMAGEPATH, GetImagePath())
 	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(CAssetPath)
 }
 	
 template<>
-bool CAsset_Sprite::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
+bool CAsset_Sprite::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
 {
 	switch(ValueType)
 	{
-		case IMAGEPATH:
-			m_ImagePath = Value;
-			return true;
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(CAssetPath, IMAGEPATH, m_ImagePath)
 	}
 	
-	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(CAssetPath)
 }
 
 }

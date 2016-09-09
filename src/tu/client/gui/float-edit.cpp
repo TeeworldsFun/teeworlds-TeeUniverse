@@ -28,9 +28,9 @@ void CAbstractFloatEdit::Render()
 	//Float
 	{
 		if(m_UnderMouse)
-			TUGraphics()->Draw_GuiRect(&m_Rect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT_MOUSEOVER));
+			TUGraphics()->DrawGuiRect(&m_Rect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT_MOUSEOVER));
 		else
-			TUGraphics()->Draw_GuiRect(&m_Rect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT));
+			TUGraphics()->DrawGuiRect(&m_Rect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT));
 		
 		float Value = GetValue();
 		if(RefreshText || m_LastValue != Value)

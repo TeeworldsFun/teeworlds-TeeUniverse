@@ -332,8 +332,8 @@ public:
 	void ToggleWindowVSync();
 	
 	//TU
-	tu::CClient_Graphics* m_pTUGraphics;
-	tu::CAssetsManager* m_pAssetsManager;
+	tu::CGraphics* m_apTUGraphics[tu::NUM_ASSETS];
+	tu::CAssetsManager* m_apAssetsManager[tu::NUM_ASSETS];
 	char m_aCurrentMod[256];
 	unsigned m_CurrentModCrc;
 
@@ -350,8 +350,8 @@ public:
 	const char *LoadWorld(const char *pName, const char *pFilename, unsigned WantedCrc);
 	const char *LoadWorldSearch(const char *pModName, int WantedCrc);
 	
-	virtual tu::CClient_Graphics *TUGraphics() const { return m_pTUGraphics; }
-	virtual tu::CAssetsManager *AssetsManager() const { return m_pAssetsManager; }
+	virtual tu::CGraphics *TUGraphics(int Type = tu::ASSETS_GAME) const { return m_apTUGraphics[Type]; }
+	virtual tu::CAssetsManager *AssetsManager(int Type = tu::ASSETS_GAME) const { return m_apAssetsManager[Type]; }
 
 	int m_ClientMode;
 	

@@ -190,7 +190,7 @@ bool CDataFileReader::Open(class IStorage *pStorage, const char *pFilename, int 
 	m_pDataFile->m_Info.m_pDataStart = m_pDataFile->m_Info.m_pItemStart + m_pDataFile->m_Header.m_ItemSize;
 
 	dbg_msg("datafile", "loading done. datafile='%s'", pFilename);
-
+	
 	if(DEBUG)
 	{
 		/*
@@ -249,6 +249,12 @@ int CDataFileReader::GetDataSize(int Index) const
 void *CDataFileReader::GetDataImpl(int Index, int Swap)
 {
 	if(!m_pDataFile) { return 0; }
+
+	if(Index < 0 || Index >= m_pDataFile->m_Header.m_NumRawData)
+	{
+		dbg_msg("datafile", "getdata error, wrong index (index: %d, number of indices: %d)", Index, m_pDataFile->m_Header.m_NumRawData);
+		return 0;
+	}
 
 	// load it if needed
 	if(!m_pDataFile->m_ppDataPtrs[Index])

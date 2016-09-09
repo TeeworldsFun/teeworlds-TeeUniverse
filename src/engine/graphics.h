@@ -169,6 +169,7 @@ public:
 	virtual void SetColor(vec4 rgba, bool AlphaBlend) = 0;
 	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight) = 0;
 	virtual void SetColor4(vec4 TopLeft, vec4 TopRight, vec4 BottomLeft, vec4 BottomRight, bool AlphaBlend) = 0;
+	virtual void SetColor2(vec4 Color0, vec4 Color1, bool AlphaBlend) = 0;
 
 	virtual void ReadBackbuffer(unsigned char **ppPixels, int x, int y, int w, int h) = 0;
 	virtual void TakeScreenshot(const char *pFilename) = 0;

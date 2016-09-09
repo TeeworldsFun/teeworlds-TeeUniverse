@@ -14,7 +14,7 @@ namespace gui
 {
 
 CAbstractIntegerEdit::CIncreaseButton::CIncreaseButton(CAbstractIntegerEdit *pIntegerEdit) :
-	CIconButton(pIntegerEdit->m_pConfig, 3),
+	CIconButton(pIntegerEdit->m_pConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_INCREASE)),
 	m_pIntegerEdit(pIntegerEdit)
 {
 	
@@ -26,7 +26,7 @@ void CAbstractIntegerEdit::CIncreaseButton::MouseClickAction()
 }
 
 CAbstractIntegerEdit::CDecreaseButton::CDecreaseButton(CAbstractIntegerEdit *pIntegerEdit) :
-	CIconButton(pIntegerEdit->m_pConfig, 2),
+	CIconButton(pIntegerEdit->m_pConfig, CAssetPath::SpriteUniverse(SPRITE_ICON_DECREASE)),
 	m_pIntegerEdit(pIntegerEdit)
 {
 	
@@ -86,9 +86,9 @@ void CAbstractIntegerEdit::Render()
 	//Integer
 	{
 		if(m_UnderMouse)
-			TUGraphics()->Draw_GuiRect(&m_IntegerRect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT_MOUSEOVER));
+			TUGraphics()->DrawGuiRect(&m_IntegerRect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT_MOUSEOVER));
 		else
-			TUGraphics()->Draw_GuiRect(&m_IntegerRect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT));
+			TUGraphics()->DrawGuiRect(&m_IntegerRect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT));
 		
 		int Value = GetValue();
 		if(m_LastValue != Value)
@@ -173,7 +173,7 @@ void CAbstractIntegerEdit::OnButtonClick(int X, int Y, int Button, int Count)
 			
 			m_CursorCharPos = CursorCharPos;
 		}
-		else
+		else if(m_Clicked)
 		{
 			ApplyTextEntry();
 		}
@@ -217,7 +217,7 @@ void CAbstractIntegerEdit::ApplyTextEntry()
 
 void CAbstractIntegerEdit::OnInputEvent()
 {
-	if(Input()->KeyIsPressed(KEY_RETURN) || Input()->KeyIsPressed(KEY_KP_ENTER))
+	if(Input()->KeyIsPressed(KEY_KP_ENTER))
 	{
 		ApplyTextEntry();
 	}

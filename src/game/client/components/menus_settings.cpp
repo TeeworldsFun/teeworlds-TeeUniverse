@@ -464,7 +464,7 @@ void CMenus::RenderSkinSelection(CUIRect MainView)
 
 void CMenus::RenderTee(CUIRect Rect, CTeeRenderInfo& Info)
 {	
-	tu::CSkeletonRenderer SkeletonRenderer(Graphics(), AssetsManager());
+	tu::CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
 	SkeletonRenderer.SetAim(vec2(1.0f, 0.0f));
 	
 	tu::CAsset_CharacterPart* pCharacterPart[6];
@@ -474,15 +474,15 @@ void CMenus::RenderTee(CUIRect Rect, CTeeRenderInfo& Info)
 		pCharacterPart[p] = AssetsManager()->GetAsset<tu::CAsset_CharacterPart>(Info.m_aCharacterParts[p]);
 		if(pCharacterPart[p])
 		{
-			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart[p]->m_SkeletonSkinPath, Info.m_aColors[p]);
+			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart[p]->GetSkeletonSkinPath(), Info.m_aColors[p]);
 			if(CharacterPath.IsNull())
-				CharacterPath = pCharacterPart[p]->m_CharacterPath;
+				CharacterPath = pCharacterPart[p]->GetCharacterPath();
 		}
 	}
 	
 	tu::CAsset_Character* pCharacter = AssetsManager()->GetAsset<tu::CAsset_Character>(CharacterPath);
 	if(pCharacter)
-		SkeletonRenderer.ApplyAnimation(pCharacter->m_IdlePath, 0.0f);
+		SkeletonRenderer.ApplyAnimation(pCharacter->GetIdlePath(), 0.0f);
 	
 	vec2 Position = vec2(Rect.x+Rect.w/2, Rect.y+Rect.h/2);
 	float Size = 50.0f/64.0f;

@@ -13,34 +13,22 @@
 namespace tu
 {
 	
-CClient_Graphics::CClient_Graphics(IGraphics* pGraphics, CAssetsManager* pAssetsManager)
+CGraphics::CGraphics(IGraphics* pGraphics, CAssetsManager* pAssetsManager)
 {
 	m_pGraphics = pGraphics;
 	m_pAssetsManager = pAssetsManager;
 }
 
-bool CClient_Graphics::TextureSet(CAssetPath AssetPath)
+void CGraphics::TextureSet(CAssetPath AssetPath)
 {
 	const CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(AssetPath);
-	if(pImage == 0)
-		return false;
-	
-	m_pGraphics->TextureSet(pImage->m_Texture);
-	
-	return true;
+	if(pImage)
+		m_pGraphics->TextureSet(pImage->GetTexture());
+	else
+		m_pGraphics->TextureClear();
 }
 
-void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, float Size, float Angle, int Flags)
-{
-	DrawSprite(SpritePath, Pos, Size, Angle, Flags, vec4(1.0f, 1.0f, 1.0f, 1.0f));
-}
-
-void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, float Size, float Angle, int Flags, vec4 Color)
-{
-	DrawSprite(SpritePath, Pos, vec2(Size, Size), Angle, Flags, Color);
-}
-
-void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, vec2 Size, float Angle, int Flags, vec4 Color)
+void CGraphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, vec2 Size, float Angle, int Flags, vec4 Color)
 {
 	//Get sprite
 	const CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(SpritePath);
@@ -48,21 +36,21 @@ void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, vec2 Size, fl
 		return;
 	
 	//Get texture
-	const CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pSprite->m_ImagePath);
-	if(pImage == 0)
-		return;
+	const CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pSprite->GetImagePath());
 
 	m_pGraphics->BlendNormal();
-	m_pGraphics->TextureSet(pImage->m_Texture);
+	m_pGraphics->TextureSet(pImage->GetTexture());
 	m_pGraphics->QuadsBegin();
-	m_pGraphics->SetColor(Color.r*Color.a, Color.g*Color.a, Color.b*Color.a, Color.a);
+	m_pGraphics->SetColor(Color, true);
 	
 	//Compute texture subquad
-	float texX0 = pSprite->m_X/(float)max(1, pImage->m_GridWidth);
-	float texX1 = (pSprite->m_X + pSprite->m_Width - 1.0f/32.0f)/(float)max(1, pImage->m_GridWidth);
-	float texY0 = pSprite->m_Y/(float)max(1, pImage->m_GridHeight);
-	float texY1 = (pSprite->m_Y + pSprite->m_Height - 1.0f/32.0f)/(float)max(1, pImage->m_GridHeight);
-	
+	float texStepX = 1.0f/pImage->GetGridWidth();
+	float texStepY = 1.0f/pImage->GetGridHeight();
+	float texX0 = pSprite->GetX()*texStepX;
+	float texX1 = texX0 + pSprite->GetWidth()*texStepX;
+	float texY0 = pSprite->GetY()*texStepY;
+	float texY1 = texY0 + pSprite->GetHeight()*texStepY;
+
 	float Temp = 0;
 	if(Flags&CAsset_Sprite::FLAG_FLIP_Y)
 	{
@@ -79,16 +67,13 @@ void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, vec2 Size, fl
 	}
 
 	m_pGraphics->QuadsSetSubset(texX0, texY0, texX1, texY1);
-	
 	m_pGraphics->QuadsSetRotation(Angle);
 
 	//Compute sprite size
-	float ratio = sqrtf(pSprite->m_Width * pSprite->m_Width + pSprite->m_Height * pSprite->m_Height);
-	
-	if(Flags & CAsset_Sprite::FLAG_SIZE_HEIGHT)
-		ratio = pSprite->m_Height;
-		
-	vec2 QuadSize = vec2(pSprite->m_Width/ratio, pSprite->m_Height/ratio) * Size;
+	vec2 QuadSize = vec2(
+		pSprite->GetWidth() * static_cast<float>(pImage->GetWidth())/pImage->GetGridWidth(),
+		pSprite->GetHeight() * static_cast<float>(pImage->GetHeight())/pImage->GetGridHeight()
+	) * Size;
 	
 	//Draw
 	IGraphics::CQuadItem QuadItem(Pos.x, Pos.y, QuadSize.x, QuadSize.y);
@@ -97,7 +82,7 @@ void CClient_Graphics::DrawSprite(CAssetPath SpritePath, vec2 Pos, vec2 Size, fl
 	m_pGraphics->QuadsEnd();
 }
 
-void CClient_Graphics::DrawText(ITextRender* pTextRender, const char *pText, vec2 Pos, vec4 Color, float Size, int Alignment)
+void CGraphics::DrawText(ITextRender* pTextRender, const char *pText, vec2 Pos, vec4 Color, float Size, int Alignment)
 {	
 	float width = pTextRender->TextWidth(0, Size, pText, -1);
 	float height = pTextRender->TextHeight(Size);
@@ -143,7 +128,7 @@ void CClient_Graphics::DrawText(ITextRender* pTextRender, const char *pText, vec
 	pTextRender->TextColor(255,255,255,1);
 }
 
-void CClient_Graphics::Draw_RoundRect_Background(float x, float y, float w, float h, float r, int Corners)
+void CGraphics::Draw_RoundRect_Background(float x, float y, float w, float h, float r, int Corners)
 {
 	IGraphics::CFreeformItem ArrayF[32];
 	int NumItems = 0;
@@ -206,7 +191,7 @@ void CClient_Graphics::Draw_RoundRect_Background(float x, float y, float w, floa
 	Graphics()->QuadsDrawTL(ArrayQ, NumItems);
 }
 
-void CClient_Graphics::Draw_RoundRect_Border(float x, float y, float w, float h, float r, int Borders, int Corners)
+void CGraphics::Draw_RoundRect_Border(float x, float y, float w, float h, float r, int Borders, int Corners)
 {
 	IGraphics::CLineItem ArrayL[64+12];
 	int NumItems = 0;
@@ -289,7 +274,7 @@ void CClient_Graphics::Draw_RoundRect_Border(float x, float y, float w, float h,
 	Graphics()->LinesDraw(ArrayL, NumItems);
 }
 
-void CClient_Graphics::Draw_GuiRect(const gui::CRect* pRect, CAssetPath StylePath)
+void CGraphics::DrawGuiRect(const gui::CRect* pRect, CAssetPath StylePath)
 {
 	const CAsset_GuiRectStyle* pStyle = AssetsManager()->GetAsset<CAsset_GuiRectStyle>(StylePath);
 	if(!pStyle)
@@ -325,17 +310,157 @@ void CClient_Graphics::Draw_GuiRect(const gui::CRect* pRect, CAssetPath StylePat
 		
 		m_pGraphics->SetColor(pStyle->m_BackgroundColor, true);
 		
+		gui::CRect BGRect;
+		BGRect.x = pRect->x + pStyle->m_BackgroundPadding;
+		BGRect.y = pRect->y + pStyle->m_BackgroundPadding;
+		BGRect.w = pRect->w - 2.0f*pStyle->m_BackgroundPadding;
+		BGRect.h = pRect->h - 2.0f*pStyle->m_BackgroundPadding;
 		if(pStyle->m_Flags&CAsset_GuiRectStyle::FLAG_ROUNDCORNER)
 		{
-			Draw_RoundRect_Background(pRect->x, pRect->y, pRect->w, pRect->h, pStyle->m_CornerRadius, CornerEnabled);
+			Draw_RoundRect_Background(BGRect.x, BGRect.y, BGRect.w, BGRect.h, pStyle->m_CornerRadius, CornerEnabled);
 		}
 		else
 		{
-			IGraphics::CQuadItem QuadItem(pRect->x+pRect->w/2, pRect->y+pRect->h/2, pRect->w, pRect->h);
+			IGraphics::CQuadItem QuadItem(BGRect.x+BGRect.w/2, BGRect.y+BGRect.h/2, BGRect.w, BGRect.h);
 			m_pGraphics->QuadsDraw(&QuadItem, 1);
 		}
 		
 		m_pGraphics->QuadsEnd();
+	}
+	
+	//Image
+	if(pStyle->m_Flags&CAsset_GuiRectStyle::FLAG_IMAGE)
+	{
+		CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pStyle->m_ImagePath);
+		if(pImage)
+		{
+			vec2 UVSize = (pStyle->m_ImageUV_Max - pStyle->m_ImageUV_Min)/3.0f;
+			TextureSet(pStyle->m_ImagePath);
+			
+			m_pGraphics->QuadsBegin();
+			
+			m_pGraphics->SetColor(1.0f, true);
+			
+			vec2 U0V0 = vec2(pStyle->m_ImageUV_Min.x + 0*UVSize.x, pStyle->m_ImageUV_Min.y + 0*UVSize.y);
+			vec2 U1V0 = vec2(pStyle->m_ImageUV_Min.x + 1*UVSize.x, pStyle->m_ImageUV_Min.y + 0*UVSize.y);
+			vec2 U2V0 = vec2(pStyle->m_ImageUV_Min.x + 2*UVSize.x, pStyle->m_ImageUV_Min.y + 0*UVSize.y);
+			vec2 U3V0 = vec2(pStyle->m_ImageUV_Min.x + 3*UVSize.x, pStyle->m_ImageUV_Min.y + 0*UVSize.y);
+			vec2 U0V1 = vec2(pStyle->m_ImageUV_Min.x + 0*UVSize.x, pStyle->m_ImageUV_Min.y + 1*UVSize.y);
+			vec2 U1V1 = vec2(pStyle->m_ImageUV_Min.x + 1*UVSize.x, pStyle->m_ImageUV_Min.y + 1*UVSize.y);
+			vec2 U2V1 = vec2(pStyle->m_ImageUV_Min.x + 2*UVSize.x, pStyle->m_ImageUV_Min.y + 1*UVSize.y);
+			vec2 U3V1 = vec2(pStyle->m_ImageUV_Min.x + 3*UVSize.x, pStyle->m_ImageUV_Min.y + 1*UVSize.y);
+			vec2 U0V2 = vec2(pStyle->m_ImageUV_Min.x + 0*UVSize.x, pStyle->m_ImageUV_Min.y + 2*UVSize.y);
+			vec2 U1V2 = vec2(pStyle->m_ImageUV_Min.x + 1*UVSize.x, pStyle->m_ImageUV_Min.y + 2*UVSize.y);
+			vec2 U2V2 = vec2(pStyle->m_ImageUV_Min.x + 2*UVSize.x, pStyle->m_ImageUV_Min.y + 2*UVSize.y);
+			vec2 U3V2 = vec2(pStyle->m_ImageUV_Min.x + 3*UVSize.x, pStyle->m_ImageUV_Min.y + 2*UVSize.y);
+			vec2 U0V3 = vec2(pStyle->m_ImageUV_Min.x + 0*UVSize.x, pStyle->m_ImageUV_Min.y + 3*UVSize.y);
+			vec2 U1V3 = vec2(pStyle->m_ImageUV_Min.x + 1*UVSize.x, pStyle->m_ImageUV_Min.y + 3*UVSize.y);
+			vec2 U2V3 = vec2(pStyle->m_ImageUV_Min.x + 2*UVSize.x, pStyle->m_ImageUV_Min.y + 3*UVSize.y);
+			vec2 U3V3 = vec2(pStyle->m_ImageUV_Min.x + 3*UVSize.x, pStyle->m_ImageUV_Min.y + 3*UVSize.y);
+			
+			int PartSizeX = UVSize.x * pImage->GetWidth();
+			int PartSizeY = UVSize.y * pImage->GetHeight();
+			
+			//TL Corner
+			{
+				m_pGraphics->QuadsSetSubset(U0V0.x, U0V0.y, U1V1.x, U1V1.y);
+				IGraphics::CQuadItem QuadItem(pRect->x, pRect->y, PartSizeX, PartSizeY);
+				m_pGraphics->QuadsDraw(&QuadItem, 1);
+			}
+			//TR Corner
+			{
+				m_pGraphics->QuadsSetSubset(U2V0.x, U2V0.y, U3V1.x, U3V1.y);
+				IGraphics::CQuadItem QuadItem(pRect->x+pRect->w, pRect->y, PartSizeX, PartSizeY);
+				m_pGraphics->QuadsDraw(&QuadItem, 1);
+			}
+			//BL Corner
+			{
+				m_pGraphics->QuadsSetSubset(U0V2.x, U0V2.y, U1V3.x, U1V3.y);
+				IGraphics::CQuadItem QuadItem(pRect->x, pRect->y+pRect->h, PartSizeX, PartSizeY);
+				m_pGraphics->QuadsDraw(&QuadItem, 1);
+			}
+			//BR Corner
+			{
+				m_pGraphics->QuadsSetSubset(U2V2.x, U2V2.y, U3V3.x, U3V3.y);
+				IGraphics::CQuadItem QuadItem(pRect->x+pRect->w, pRect->y+pRect->h, PartSizeX, PartSizeY);
+				m_pGraphics->QuadsDraw(&QuadItem, 1);
+			}
+			
+			//Top
+			{
+				int TotalLength = pRect->w - PartSizeX;
+				if(TotalLength > 0)
+				{
+					int Iter = 0;
+					while(Iter < TotalLength)
+					{
+						int Length = ((Iter + PartSizeX > TotalLength) ? (TotalLength - Iter) : PartSizeX);
+						float Tex = UVSize.x * static_cast<float>(Length)/PartSizeX;
+						m_pGraphics->QuadsSetSubset(U1V0.x, U1V0.y, U1V1.x + Tex, U1V1.y);
+						IGraphics::CQuadItem QuadItem(pRect->x+PartSizeX/2+Iter+Length/2, pRect->y, Length, PartSizeY);
+						m_pGraphics->QuadsDraw(&QuadItem, 1);
+						
+						Iter += PartSizeX;
+					}
+				}
+			}
+			//Bottom
+			{
+				int TotalLength = pRect->w - PartSizeX;
+				if(TotalLength > 0)
+				{
+					int Iter = 0;
+					while(Iter < TotalLength)
+					{
+						int Length = ((Iter + PartSizeX > TotalLength) ? (TotalLength - Iter) : PartSizeX);
+						float Tex = UVSize.x * static_cast<float>(Length)/PartSizeX;
+						m_pGraphics->QuadsSetSubset(U1V2.x, U1V2.y, U1V3.x + Tex, U1V3.y);
+						IGraphics::CQuadItem QuadItem(pRect->x+PartSizeX/2+Iter+Length/2, pRect->y + pRect->h, Length, PartSizeY);
+						m_pGraphics->QuadsDraw(&QuadItem, 1);
+						
+						Iter += PartSizeX;
+					}
+				}
+			}
+			//Left
+			{
+				int TotalLength = pRect->h - PartSizeX;
+				if(TotalLength > 0)
+				{
+					int Iter = 0;
+					while(Iter < TotalLength)
+					{
+						int Length = ((Iter + PartSizeY > TotalLength) ? (TotalLength - Iter) : PartSizeY);
+						float Tex = UVSize.y * static_cast<float>(Length)/PartSizeY;
+						m_pGraphics->QuadsSetSubset(U0V1.x, U0V1.y, U1V1.x, U1V1.y + Tex);
+						IGraphics::CQuadItem QuadItem(pRect->x, pRect->y+PartSizeY/2+Iter+Length/2, PartSizeX, Length);
+						m_pGraphics->QuadsDraw(&QuadItem, 1);
+						
+						Iter += PartSizeY;
+					}
+				}
+			}
+			//Right
+			{
+				int TotalLength = pRect->h - PartSizeX;
+				if(TotalLength > 0)
+				{
+					int Iter = 0;
+					while(Iter < TotalLength)
+					{
+						int Length = ((Iter + PartSizeY > TotalLength) ? (TotalLength - Iter) : PartSizeY);
+						float Tex = UVSize.y * static_cast<float>(Length)/PartSizeY;
+						m_pGraphics->QuadsSetSubset(U2V1.x, U2V1.y, U3V1.x, U3V1.y + Tex);
+						IGraphics::CQuadItem QuadItem(pRect->x+pRect->w, pRect->y+PartSizeY/2+Iter+Length/2, PartSizeX, Length);
+						m_pGraphics->QuadsDraw(&QuadItem, 1);
+						
+						Iter += PartSizeY;
+					}
+				}
+			}
+			
+			m_pGraphics->QuadsEnd();
+		}
 	}
 	
 	//Border

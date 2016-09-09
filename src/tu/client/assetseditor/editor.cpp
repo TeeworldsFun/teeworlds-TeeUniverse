@@ -51,131 +51,20 @@ const char* g_aBoneAlignText[] = {
     "Motion",
     "Hook",
 };
-		
-class CAssetListItem : public gui::CHListLayout
-{
-protected:
-	class CEditButton : public gui::CIconButton
-	{
-	protected:
-		CAssetListItem* m_pAssetListItem;
-	
-	protected:
-		virtual void MouseClickAction()
-		{
-			m_pAssetListItem->EditAsset();
-		}
-		
-	public:
-		CEditButton(CAssetListItem* pAssetListItem) :
-			gui::CIconButton(pAssetListItem->m_pConfig, CAssetsEditor::ICON_EDIT),
-			m_pAssetListItem(pAssetListItem)
-		{
-			
-		}
-	};
-	
-	class CDisplayButton : public gui::CIconButton
-	{
-	protected:
-		CAssetListItem* m_pAssetListItem;
-	
-	protected:
-		virtual void MouseClickAction()
-		{
-			m_pAssetListItem->DisplayAsset();
-		}
-		
-	public:
-		CDisplayButton(CAssetListItem* pAssetListItem) :
-			gui::CIconButton(pAssetListItem->m_pConfig, CAssetsEditor::ICON_VIEW),
-			m_pAssetListItem(pAssetListItem)
-		{
-			
-		}
-	};
-	
-	class CItemListButton : public gui::CExternalTextButton
-	{
-	protected:
-		CAssetListItem* m_pAssetListItem;
-	
-	protected:
-		virtual void MouseClickAction()
-		{
-			m_pAssetListItem->EditAsset();
-			m_pAssetListItem->DisplayAsset();
-		}
-		
-	public:
-		CItemListButton(CAssetListItem* pAssetListItem, char* pText) :
-			gui::CExternalTextButton(pAssetListItem->m_pConfig, pText),
-			m_pAssetListItem(pAssetListItem)
-		{
-			m_Centered = false;
-		}
-	};
-	
-protected:
-	CAssetsEditor* m_pAssetsEditor;
-	CAssetPath m_AssetPath;
-	
-	CEditButton* m_pEditButton;
-	CDisplayButton* m_pDisplayButton;
 
-public:
-	CAssetListItem(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath) :
-		gui::CHListLayout(pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_FIRST),
-		m_pAssetsEditor(pAssetsEditor),
-		m_AssetPath(AssetPath)
-	{		
-		SetHeight(m_pConfig->m_ButtonHeight);
-		
-		char* aName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(m_AssetPath, CAsset::NAME, -1, 0);
-		Add(new CItemListButton(this, aName));
-		
-		m_pDisplayButton = new CDisplayButton(this);
-		Add(m_pDisplayButton);
-		
-		m_pEditButton = new CEditButton(this);
-		Add(m_pEditButton);
-		
-		Update();
-	}
+CEditor::CMeshPreview::CMeshPreview(CAssetsEditor* pAssetsEditor, CAssetPath AssetPath, int SubPath) :
+	gui::CWidget(pAssetsEditor->m_pGuiConfig),
+	m_pAssetsEditor(pAssetsEditor),
+	m_AssetPath(AssetPath),
+	m_SubPath(SubPath)
+{
 	
-	void EditAsset()
-	{
-		m_pAssetsEditor->EditAsset(m_AssetPath);
-	}
+}
+
+void CEditor::CMeshPreview::Render()
+{
 	
-	void DisplayAsset()
-	{
-		m_pAssetsEditor->DisplayAsset(m_AssetPath);
-	}
-	
-	virtual void Render()
-	{
-		if(m_pAssetsEditor->IsEditedAsset(m_AssetPath))
-		{
-			m_pEditButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_DEFAULT_HIGHLIGHT);
-		}
-		else
-		{
-			m_pEditButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_DEFAULT);
-		}
-		
-		if(m_pAssetsEditor->IsDisplayedAsset(m_AssetPath))
-		{
-			m_pDisplayButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_DEFAULT_HIGHLIGHT);
-		}
-		else
-		{
-			m_pDisplayButton->SetButtonStyle(gui::CConfig::BUTTONSTYLE_DEFAULT);
-		}
-		
-		gui::CHListLayout::Render();
-	}
-};
+}
 
 CEditor::CEditor(CAssetsEditor* pAssetsEditor) :
 	gui::CTabs(pAssetsEditor->m_pGuiConfig),
@@ -251,14 +140,16 @@ void CEditor::AddFloatField(gui::CVListLayout* pList, int Member, int SubId, con
 {
 	CEditor::CFloatAssetMemberEdit* pWidget = new CEditor::CFloatAssetMemberEdit(
 		m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath, Member, SubId);
+	pWidget->SetToken(m_pAssetsEditor->AssetsManager()->GenerateToken());
 	
 	AddField(pList, pWidget, pLabelText);
 }
 
 void CEditor::AddAngleField(gui::CVListLayout* pList, int Member, int SubId, const char* pLabelText)
 {
-	CEditor::CAnglerEdit* pWidget = new CEditor::CAnglerEdit(
+	CEditor::CAngleEdit* pWidget = new CEditor::CAngleEdit(
 		m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath, Member, SubId);
+	pWidget->SetToken(m_pAssetsEditor->AssetsManager()->GenerateToken());
 	
 	AddField(pList, pWidget, pLabelText);
 }
@@ -268,12 +159,16 @@ void CEditor::AddFloat2Field(gui::CVListLayout* pList, int Member1, int Member2,
 	gui::CHListLayout* pWidget = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
 	pWidget->SetHeight(m_pConfig->m_ButtonHeight);
 	
+	int Token = m_pAssetsEditor->AssetsManager()->GenerateToken();
+	
 	CEditor::CFloatAssetMemberEdit* pEdit1 = new CEditor::CFloatAssetMemberEdit(
 		m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath, Member1, SubId);
+	pEdit1->SetToken(Token);
 	pWidget->Add(pEdit1);
 	
 	CEditor::CFloatAssetMemberEdit* pEdit2 = new CEditor::CFloatAssetMemberEdit(
 		m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath, Member2, SubId);
+	pEdit2->SetToken(Token);
 	pWidget->Add(pEdit2);
 			
 	AddField(pList, pWidget, pLabelText);
@@ -283,6 +178,7 @@ void CEditor::AddIntegerField(gui::CVListLayout* pList, int Member, int SubId, c
 {
 	CEditor::CIntegerAssetMemberEdit* pWidget = new CEditor::CIntegerAssetMemberEdit(
 		m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath, Member, SubId);
+	pWidget->SetToken(m_pAssetsEditor->AssetsManager()->GenerateToken());
 	
 	AddField(pList, pWidget, pLabelText);
 }
@@ -291,6 +187,7 @@ void CEditor::AddCycleField(gui::CVListLayout* pList, int Member, int SubId, con
 {
 	CEditor::CEnumEdit* pWidget = new CEditor::CEnumEdit(
 		m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath, Member, SubId, g_aCycleTypeText, sizeof(g_aCycleTypeText)/sizeof(const char*));
+	pWidget->SetToken(m_pAssetsEditor->AssetsManager()->GenerateToken());
 	
 	AddField(pList, pWidget, pLabelText);
 }
@@ -431,9 +328,9 @@ void CEditor::RefreshTab_Skeleton_Bones(bool KeepStatus)
 	
 	for(int i=0; i<pSkeleton->m_Bones.size(); i++)
 	{
-		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_BONE);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, pSkeleton->GetBonePath(i));
-		pItem->SetText(m_pAssetsEditor->m_EditedAssetPath, CAsset_Skeleton::BONE_NAME, pSkeleton->GetBonePath(i));
+		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_BONE));
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_Skeleton::CSubPath::LocalBone(i));
+		pItem->SetText(m_pAssetsEditor->m_EditedAssetPath, CAsset_Skeleton::BONE_NAME, CAsset_Skeleton::CSubPath::LocalBone(i));
 		m_pLists[LIST_SKELETON_BONES]->Add(pItem);
 	}
 	if(KeepStatus)
@@ -446,7 +343,7 @@ void CEditor::RefreshTab_Skeleton_Bones(bool KeepStatus)
 		m_pAssetsEditor->m_EditedAssetPath,
 		CAsset_Skeleton::CSubPath::TYPE_BONE,
 		"Add bone",
-		CAssetsEditor::ICON_INCREASE,
+		CAssetPath::SpriteUniverse(SPRITE_ICON_INCREASE),
 		TAB_SKELETON_BONES
 	));
 
@@ -485,9 +382,9 @@ void CEditor::RefreshTab_Skeleton_Layers(bool KeepStatus)
 	
 	for(int i=0; i<pSkeleton->m_Layers.size(); i++)
 	{
-		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_LAYERS);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, pSkeleton->GetLayerPath(i));
-		pItem->SetText(m_pAssetsEditor->m_EditedAssetPath, CAsset_Skeleton::LAYER_NAME, pSkeleton->GetLayerPath(i));
+		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERS));
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_Skeleton::CSubPath::LocalLayer(i));
+		pItem->SetText(m_pAssetsEditor->m_EditedAssetPath, CAsset_Skeleton::LAYER_NAME, CAsset_Skeleton::CSubPath::LocalLayer(i));
 		m_pLists[LIST_SKELETON_LAYERS]->Add(pItem);
 	}
 	if(KeepStatus)
@@ -500,7 +397,7 @@ void CEditor::RefreshTab_Skeleton_Layers(bool KeepStatus)
 		m_pAssetsEditor->m_EditedAssetPath,
 		CAsset_Skeleton::CSubPath::TYPE_LAYER,
 		"Add layer",
-		CAssetsEditor::ICON_INCREASE,
+		CAssetPath::SpriteUniverse(SPRITE_ICON_INCREASE),
 		TAB_SKELETON_LAYERS
 	));
 	
@@ -531,14 +428,23 @@ void CEditor::RefreshTab_SkeletonSkin_Sprites(bool KeepStatus)
 		return;
 		
 	m_pLists[LIST_SKELETONSKIN_SPRITES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
-	m_pLists[LIST_SKELETONSKIN_SPRITES]->SetHeight(m_Rect.h/2);
 	m_pTabs[TAB_SKELETONSKIN_SPRITES]->Add(m_pLists[LIST_SKELETONSKIN_SPRITES]);
+	
+	m_pLists[LIST_SKELETONSKIN_SPRITES]->Add(new CAddSubItem(
+		m_pAssetsEditor,
+		m_pAssetsEditor->m_EditedAssetPath,
+		CAsset_SkeletonSkin::CSubPath::TYPE_SPRITE,
+		"Add sprite",
+		CAssetPath::SpriteUniverse(SPRITE_ICON_INCREASE),
+		TAB_SKELETONSKIN_SPRITES
+	));
+	
 	m_pLists[LIST_SKELETONSKIN_SPRITES]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Sprites", gui::TEXTSTYLE_HEADER2));
 	
 	for(int i=0; i<pSkeletonSkin->m_Sprites.size(); i++)
 	{
-		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_SPRITE);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, pSkeletonSkin->GetSpritePath(i));
+		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_SPRITE));
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonSkin::CSubPath::Sprite(i));
 		pItem->SetText(pSkeletonSkin->m_Sprites[i].m_SpritePath, CAsset::NAME, -1);
 		m_pLists[LIST_SKELETONSKIN_SPRITES]->Add(pItem);
 	}
@@ -546,20 +452,20 @@ void CEditor::RefreshTab_SkeletonSkin_Sprites(bool KeepStatus)
 	{
 		m_pLists[LIST_SKELETONSKIN_SPRITES]->SetScrollPos(Scroll);
 	}
-
-	m_pTabs[TAB_SKELETONSKIN_SPRITES]->Add(new CAddSubItem(
-		m_pAssetsEditor,
-		m_pAssetsEditor->m_EditedAssetPath,
-		CAsset_SkeletonSkin::CSubPath::TYPE_SPRITE,
-		"Add sprite",
-		CAssetsEditor::ICON_INCREASE,
-		TAB_SKELETONSKIN_SPRITES
-	));
-	
-	m_pTabs[TAB_SKELETONSKIN_SPRITES]->AddSeparator();	
 		
 	if(m_pAssetsEditor->m_EditedAssetSubPath >= 0)
 	{
+		m_pTabs[TAB_SKELETONSKIN_SPRITES]->AddSeparator();	
+		
+		{
+			gui::CHListLayout* pLayout = new gui::CHListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_NONE, gui::LAYOUTFILLING_ALL);
+			pLayout->SetHeight(m_pConfig->m_ButtonHeight);
+			m_pTabs[TAB_SKELETONSKIN_SPRITES]->Add(pLayout);
+			
+			//~ pLayout->Add(new CEditor::CDuplicateSubItem(m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath));
+			pLayout->Add(new CEditor::CDeleteSubItem(m_pAssetsEditor, m_pAssetsEditor->m_EditedAssetPath, m_pAssetsEditor->m_EditedAssetSubPath));
+		}
+		
 		AddAssetField(m_pTabs[TAB_SKELETONSKIN_SPRITES], CAsset_SkeletonSkin::SPRITE_PATH, CAssetPath::TYPE_SPRITE, m_pAssetsEditor->m_EditedAssetSubPath, "Sprite:");
 		AddBoneField(m_pTabs[TAB_SKELETONSKIN_SPRITES], CAsset_SkeletonSkin::SPRITE_BONE, m_pAssetsEditor->m_EditedAssetSubPath, pSkeletonSkin->m_SkeletonPath, "Bone:");
 		AddLayerField(m_pTabs[TAB_SKELETONSKIN_SPRITES], CAsset_SkeletonSkin::SPRITE_LAYER, m_pAssetsEditor->m_EditedAssetSubPath, pSkeletonSkin->m_SkeletonPath, "Layer:");
@@ -600,15 +506,15 @@ void CEditor::RefreshTab_SkeletonAnimation_Animations(bool KeepStatus)
 	m_pLists[LIST_SKELETONANIMATION_ANIMATIONS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Bone Animations", gui::TEXTSTYLE_HEADER2));
 	for(int i=0; i<pSkeletonAnimation->m_BoneAnimations.size(); i++)
 	{
-		CAsset_Skeleton::CSubPath BonePath = CAsset_Skeleton::CSubPath::Bone(pSkeletonAnimation->m_BoneAnimations[i].m_BonePath.GetId());
+		CAsset_Skeleton::CSubPath BonePath = pSkeletonAnimation->m_BoneAnimations[i].m_BonePath;
 		
-		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_SKELETONANIMATION);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::BoneAnimation(i).ConvertToInteger());
+		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONANIMATION));
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::BoneAnimation(i));
 		
-		if(pSkeletonAnimation->m_BoneAnimations[i].m_BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_PARENT)
-			pItem->SetText(pSkeleton->m_ParentPath, CAsset_Skeleton::BONE_NAME, BonePath.ConvertToInteger());
+		if(BonePath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT)
+			pItem->SetText(pSkeleton->m_ParentPath, CAsset_Skeleton::BONE_NAME, BonePath.Local());
 		else
-			pItem->SetText(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::BONE_NAME, BonePath.ConvertToInteger());
+			pItem->SetText(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::BONE_NAME, BonePath);
 		
 		m_pLists[LIST_SKELETONANIMATION_ANIMATIONS]->Add(pItem);
 	}
@@ -616,15 +522,15 @@ void CEditor::RefreshTab_SkeletonAnimation_Animations(bool KeepStatus)
 	m_pLists[LIST_SKELETONANIMATION_ANIMATIONS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Layer Animations", gui::TEXTSTYLE_HEADER2));
 	for(int i=0; i<pSkeletonAnimation->m_LayerAnimations.size(); i++)
 	{
-		CAsset_Skeleton::CSubPath LayerPath = CAsset_Skeleton::CSubPath::Layer(pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath.GetId());
+		CAsset_Skeleton::CSubPath LayerPath = pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath;
 		
-		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_LAYERANIMATION);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::LayerAnimation(i).ConvertToInteger());
+		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERANIMATION));
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::LayerAnimation(i));
 		
-		if(pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_PARENT)
-			pItem->SetText(pSkeleton->m_ParentPath, CAsset_Skeleton::LAYER_NAME, LayerPath.ConvertToInteger());
+		if(LayerPath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT)
+			pItem->SetText(pSkeleton->m_ParentPath, CAsset_Skeleton::LAYER_NAME, LayerPath.Local());
 		else
-			pItem->SetText(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::LAYER_NAME, LayerPath.ConvertToInteger());
+			pItem->SetText(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::LAYER_NAME, LayerPath);
 		
 		m_pLists[LIST_SKELETONANIMATION_ANIMATIONS]->Add(pItem);
 	}
@@ -666,21 +572,21 @@ void CEditor::RefreshTab_SkeletonAnimation_KeyFrames(bool KeepStatus)
 	m_pLists[LIST_SKELETONANIMATION_KEYFRAMES]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Bone Key Frames", gui::TEXTSTYLE_HEADER2));
 	for(int i=0; i<pSkeletonAnimation->m_BoneAnimations.size(); i++)
 	{
-		CAsset_Skeleton::CSubPath BonePath = CAsset_Skeleton::CSubPath::Bone(pSkeletonAnimation->m_BoneAnimations[i].m_BonePath.GetId());
+		CAsset_Skeleton::CSubPath BonePath = pSkeletonAnimation->m_BoneAnimations[i].m_BonePath;
 		const char* pBoneName;
 		
-		if(pSkeletonAnimation->m_BoneAnimations[i].m_BonePath.GetSource() == CAsset_Skeleton::CBonePath::SRC_PARENT)
-			pBoneName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeleton->m_ParentPath, CAsset_Skeleton::BONE_NAME, BonePath.ConvertToInteger(), 0);
+		if(BonePath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT)
+			pBoneName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeleton->m_ParentPath, CAsset_Skeleton::BONE_NAME, BonePath.Local(), 0);
 		else
-			pBoneName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::BONE_NAME, BonePath.ConvertToInteger(), 0);
+			pBoneName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::BONE_NAME, BonePath, 0);
 				
 		for(int j=0; j<pSkeletonAnimation->m_BoneAnimations[i].m_KeyFrames.size(); j++)
 		{
 			char aBuf[128];
 			str_format(aBuf, sizeof(aBuf), "%s, frame #%d", pBoneName, pSkeletonAnimation->m_BoneAnimations[i].m_KeyFrames[j].m_Time);
 			
-			CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_KEYFRAME_BONE);
-			pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::BoneKeyFrame(i, j).ConvertToInteger());
+			CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_KEYFRAME_BONE));
+			pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::BoneKeyFrame(i, j));
 			pItem->SetText(aBuf);
 			m_pLists[LIST_SKELETONANIMATION_KEYFRAMES]->Add(pItem);
 		}
@@ -689,21 +595,21 @@ void CEditor::RefreshTab_SkeletonAnimation_KeyFrames(bool KeepStatus)
 	m_pLists[LIST_SKELETONANIMATION_KEYFRAMES]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Layer Key Frames", gui::TEXTSTYLE_HEADER2));
 	for(int i=0; i<pSkeletonAnimation->m_LayerAnimations.size(); i++)
 	{
-		CAsset_Skeleton::CSubPath LayerPath = CAsset_Skeleton::CSubPath::Layer(pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath.GetId());
+		CAsset_Skeleton::CSubPath LayerPath = pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath;
 		const char* pLayerName;
 		
-		if(pSkeletonAnimation->m_LayerAnimations[i].m_LayerPath.GetSource() == CAsset_Skeleton::CBonePath::SRC_PARENT)
-			pLayerName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeleton->m_ParentPath, CAsset_Skeleton::LAYER_NAME, LayerPath.ConvertToInteger(), 0);
+		if(LayerPath.GetSource() == CAsset_Skeleton::CSubPath::SRC_PARENT)
+			pLayerName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeleton->m_ParentPath, CAsset_Skeleton::LAYER_NAME, LayerPath.Local(), 0);
 		else
-			pLayerName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::LAYER_NAME, LayerPath.ConvertToInteger(), 0);
+			pLayerName = m_pAssetsEditor->AssetsManager()->GetAssetValue<char*>(pSkeletonAnimation->m_SkeletonPath, CAsset_Skeleton::LAYER_NAME, LayerPath, 0);
 		
 		for(int j=0; j<pSkeletonAnimation->m_LayerAnimations[i].m_KeyFrames.size(); j++)
 		{
 			char aBuf[128];
 			str_format(aBuf, sizeof(aBuf), "%s, frame #%d", pLayerName, pSkeletonAnimation->m_LayerAnimations[i].m_KeyFrames[j].m_Time);
 			
-			CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_KEYFRAME_LAYER);
-			pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::LayerKeyFrame(i, j).ConvertToInteger());
+			CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_KEYFRAME_LAYER));
+			pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_SkeletonAnimation::CSubPath::LayerKeyFrame(i, j));
 			pItem->SetText(aBuf);
 			m_pLists[LIST_SKELETONANIMATION_KEYFRAMES]->Add(pItem);
 		}
@@ -763,11 +669,12 @@ void CEditor::RefreshTab_Character_Parts(bool KeepStatus)
 	m_pTabs[TAB_CHARACTER_PARTS]->Add(m_pLists[LIST_CHARACTER_PARTS]);
 	
 	m_pLists[LIST_CHARACTER_PARTS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Parts", gui::TEXTSTYLE_HEADER2));
-	for(int i=0; i<pCharacter->m_Parts.size(); i++)
+	CAsset_Character::CIteratorPart Iter;
+	for(Iter = pCharacter->BeginPart(); Iter != pCharacter->EndPart(); ++Iter)
 	{
-		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetsEditor::ICON_CHARACTERPART);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_Character::CSubPath::Part(i).ConvertToInteger());
-		pItem->SetText(m_pAssetsEditor->m_EditedAssetPath, CAsset_Character::PART_NAME, CAsset_Character::CSubPath::Part(i).ConvertToInteger());
+		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTERPART));
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, *Iter);
+		pItem->SetText(m_pAssetsEditor->m_EditedAssetPath, CAsset_Character::PART_NAME, *Iter);
 		
 		m_pLists[LIST_CHARACTER_PARTS]->Add(pItem);
 	}
@@ -781,7 +688,7 @@ void CEditor::RefreshTab_Character_Parts(bool KeepStatus)
 		m_pAssetsEditor->m_EditedAssetPath,
 		CAsset_Character::CSubPath::TYPE_PART,
 		"Add part",
-		CAssetsEditor::ICON_INCREASE,
+		CAssetPath::SpriteUniverse(SPRITE_ICON_INCREASE),
 		TAB_CHARACTER_PARTS
 	));
 
@@ -791,7 +698,7 @@ void CEditor::RefreshTab_Character_Parts(bool KeepStatus)
 	if(!EditedSubPath.IsNull() && EditedSubPath.GetType() == CAsset_Character::CSubPath::TYPE_PART)
 	{
 		AddTextField(m_pTabs[TAB_CHARACTER_PARTS], CAsset_Character::PART_NAME, m_pAssetsEditor->m_EditedAssetSubPath, sizeof(CAsset_Character::CPart::m_aName), "Name:");
-		AddAssetField(m_pTabs[TAB_CHARACTER_PARTS], CAsset_Character::PART_DEFAULTPATH, CAssetPath::TYPE_CHARACTERPART, EditedSubPath.ConvertToInteger(), "Name:");
+		AddAssetField(m_pTabs[TAB_CHARACTER_PARTS], CAsset_Character::PART_DEFAULTPATH, CAssetPath::TYPE_CHARACTERPART, EditedSubPath, "Default part:");
 	}
 }
 
@@ -802,7 +709,7 @@ void CEditor::RefreshTab_CharacterPart_Asset(bool KeepStatus)
 		return;
 	
 	AddAssetField(m_pTabs[TAB_ASSET], CAsset_CharacterPart::CHARACTERPATH, CAssetPath::TYPE_CHARACTER, -1, "Character:");
-	AddCharacterPartField(m_pTabs[TAB_ASSET], CAsset_CharacterPart::CHARACTERPART, -1, pCharacterPart->m_CharacterPath, "Part:");
+	AddCharacterPartField(m_pTabs[TAB_ASSET], CAsset_CharacterPart::CHARACTERPART, -1, pCharacterPart->GetCharacterPath(), "Part:");
 	AddAssetField(m_pTabs[TAB_ASSET], CAsset_CharacterPart::SKELETONSKINPATH, CAssetPath::TYPE_SKELETONSKIN, -1, "Skin:");
 }
 
@@ -816,6 +723,77 @@ void CEditor::RefreshTab_Weapon_Asset(bool KeepStatus)
 	AddAssetField(m_pTabs[TAB_ASSET], CAsset_Weapon::CURSORPATH, CAssetPath::TYPE_SPRITE, -1, "Cursor:");
 	AddAssetField(m_pTabs[TAB_ASSET], CAsset_Weapon::SKINPATH, CAssetPath::TYPE_SKELETONSKIN, -1, "Skin:");
 	AddAssetField(m_pTabs[TAB_ASSET], CAsset_Weapon::ATTACKANIMATIONPATH, CAssetPath::TYPE_SKELETONANIMATION, -1, "Attack Animation:");
+}
+
+void CEditor::RefreshTab_Map_Asset(bool KeepStatus)
+{
+	CAsset_Map* pMap = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Map>(m_pAssetsEditor->m_EditedAssetPath);
+	if(!pMap)
+		return;
+}
+
+void CEditor::RefreshTab_Map_Groups(bool KeepStatus)
+{
+	float Scroll = 0;
+	if(KeepStatus && m_pLists[LIST_MAP_GROUPS])
+	{
+		Scroll = m_pLists[LIST_MAP_GROUPS]->GetScrollPos();
+	}
+	m_pTabs[TAB_MAP_GROUPS]->Clear();
+	
+	CAsset_Map* pMap = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_Map>(m_pAssetsEditor->m_EditedAssetPath);
+	if(!pMap)
+		return;
+		
+	m_pLists[LIST_MAP_GROUPS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
+	m_pLists[LIST_MAP_GROUPS]->SetHeight(m_Rect.h/2);
+	m_pTabs[TAB_MAP_GROUPS]->Add(m_pLists[LIST_MAP_GROUPS]);
+	
+	{
+		m_pLists[LIST_MAP_GROUPS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Zone layers", gui::TEXTSTYLE_HEADER2));
+	
+		CAsset_Map::CIteratorZoneLayer Iter;
+		for(Iter = pMap->BeginZoneLayer(); Iter != pMap->EndZoneLayer(); ++Iter)
+		{
+			CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, -1);
+			pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, *Iter);
+			pItem->SetText(pMap->GetZoneLayer(*Iter), CAsset::NAME, -1);
+			
+			m_pLists[LIST_MAP_GROUPS]->Add(pItem);
+		}
+	}
+	{
+		m_pLists[LIST_MAP_GROUPS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Background", gui::TEXTSTYLE_HEADER2));
+	
+		CAsset_Map::CIteratorBgGroup Iter;
+		for(Iter = pMap->BeginBgGroup(); Iter != pMap->EndBgGroup(); ++Iter)
+		{
+			CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, -1);
+			pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, *Iter);
+			pItem->SetText(pMap->GetBgGroup(*Iter), CAsset::NAME, -1);
+			
+			m_pLists[LIST_MAP_GROUPS]->Add(pItem);
+		}
+	}
+	{
+		m_pLists[LIST_MAP_GROUPS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Foreground", gui::TEXTSTYLE_HEADER2));
+	
+		CAsset_Map::CIteratorFgGroup Iter;
+		for(Iter = pMap->BeginFgGroup(); Iter != pMap->EndFgGroup(); ++Iter)
+		{
+			CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, -1);
+			pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, *Iter);
+			pItem->SetText(pMap->GetFgGroup(*Iter), CAsset::NAME, -1);
+			
+			m_pLists[LIST_MAP_GROUPS]->Add(pItem);
+		}
+	}
+	if(KeepStatus)
+	{
+		m_pLists[LIST_MAP_GROUPS]->SetScrollPos(Scroll);
+	}
+
+	m_pTabs[TAB_MAP_GROUPS]->AddSeparator();
 }
 
 void CEditor::RefreshTab_MapGroup_Asset(bool KeepStatus)
@@ -846,11 +824,13 @@ void CEditor::RefreshTab_MapGroup_Layers(bool KeepStatus)
 	m_pTabs[TAB_MAPGROUP_LAYERS]->Add(m_pLists[LIST_MAPGROUP_LAYERS]);
 	
 	m_pLists[LIST_MAPGROUP_LAYERS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Layers", gui::TEXTSTYLE_HEADER2));
-	for(int i=0; i<pMapGroup->m_Layers.size(); i++)
+	
+	CAsset_MapGroup::CIteratorLayer Iter;
+	for(Iter = pMapGroup->BeginLayer(); Iter != pMapGroup->EndLayer(); ++Iter)
 	{
 		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, -1);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_MapGroup::CSubPath::Layer(i).ConvertToInteger());
-		pItem->SetText(pMapGroup->m_Layers[i], CAsset::NAME, -1);
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, *Iter);
+		pItem->SetText(pMapGroup->GetLayer(*Iter), CAsset::NAME, -1);
 		
 		m_pLists[LIST_MAPGROUP_LAYERS]->Add(pItem);
 	}
@@ -860,6 +840,17 @@ void CEditor::RefreshTab_MapGroup_Layers(bool KeepStatus)
 	}
 
 	m_pTabs[TAB_MAPGROUP_LAYERS]->AddSeparator();
+}
+
+void CEditor::RefreshTab_MapZoneTiles_Asset(bool KeepStatus)
+{
+	CAsset_MapZoneTiles* pMapZoneTiles = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_MapZoneTiles>(m_pAssetsEditor->m_EditedAssetPath);
+	if(!pMapZoneTiles)
+		return;
+	
+	AddAssetField(m_pTabs[TAB_ASSET], CAsset_MapZoneTiles::ZONETYPEPATH, CAssetPath::TYPE_ZONETYPE, -1, "Zone type:");
+	AddIntegerField(m_pTabs[TAB_ASSET], CAsset_MapZoneTiles::WIDTH, -1, "Width:");
+	AddIntegerField(m_pTabs[TAB_ASSET], CAsset_MapZoneTiles::HEIGHT, -1, "Height:");
 }
 
 void CEditor::RefreshTab_MapLayerTiles_Asset(bool KeepStatus)
@@ -876,7 +867,7 @@ void CEditor::RefreshTab_MapLayerTiles_Asset(bool KeepStatus)
 
 void CEditor::RefreshTab_MapLayerQuads_Asset(bool KeepStatus)
 {
-	CAsset_MapLayerTiles* pMapLayer = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_MapLayerTiles>(m_pAssetsEditor->m_EditedAssetPath);
+	CAsset_MapLayerQuads* pMapLayer = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_MapLayerQuads>(m_pAssetsEditor->m_EditedAssetPath);
 	if(!pMapLayer)
 		return;
 		
@@ -903,12 +894,13 @@ void CEditor::RefreshTab_MapLayerQuads_Quads(bool KeepStatus)
 	m_pTabs[TAB_MAPLAYERQUADS_QUADS]->Add(m_pLists[LIST_MAPLAYERQUADS_QUADS]);
 	
 	m_pLists[LIST_MAPLAYERQUADS_QUADS]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Quads", gui::TEXTSTYLE_HEADER2));
-	for(int i=0; i<pMapLayer->m_Quads.size(); i++)
+	CAsset_MapLayerQuads::CIteratorQuad Iter;
+	for(Iter = pMapLayer->BeginQuad(); Iter != pMapLayer->EndQuad(); ++Iter)
 	{
-		str_format(aBuf, sizeof(aBuf), "Quad #%d", i);
+		str_format(aBuf, sizeof(aBuf), "Quad #%d", (*Iter).GetId());
 		
 		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, -1);
-		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, CAsset_MapLayerQuads::CSubPath::Quad(i).ConvertToInteger());
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, *Iter);
 		pItem->SetText(aBuf);
 		
 		m_pLists[LIST_MAPLAYERQUADS_QUADS]->Add(pItem);
@@ -919,28 +911,84 @@ void CEditor::RefreshTab_MapLayerQuads_Quads(bool KeepStatus)
 	}
 	
 	m_pTabs[TAB_MAPLAYERQUADS_QUADS]->AddSeparator();	
-		
+	
 	CAsset_MapLayerQuads::CSubPath EditedSubPath(m_pAssetsEditor->m_EditedAssetSubPath);
+	
 	if(!EditedSubPath.IsNull())
 	{
 		if(EditedSubPath.GetType() == CAsset_MapLayerQuads::CSubPath::TYPE_QUAD)
 		{
-			AddFloat2Field(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_PIVOT_POSITION_X, CAsset_MapLayerQuads::QUAD_PIVOT_POSITION_Y, m_pAssetsEditor->m_EditedAssetSubPath, "Pivot:");
+			AddFloat2Field(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_POSITION_X, CAsset_MapLayerQuads::QUAD_POSITION_Y, m_pAssetsEditor->m_EditedAssetSubPath, "Position:");
 			AddFloat2Field(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_SIZE_X, CAsset_MapLayerQuads::QUAD_SIZE_Y, m_pAssetsEditor->m_EditedAssetSubPath, "Size:");
-			AddFloatField(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_ANGLE, m_pAssetsEditor->m_EditedAssetSubPath, "Angle:");
+			AddAngleField(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_ANGLE, m_pAssetsEditor->m_EditedAssetSubPath, "Angle:");
+			AddAssetField(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_ANIMATIONPATH, CAssetPath::TYPE_SKELETONANIMATION, m_pAssetsEditor->m_EditedAssetSubPath, "Animation:");
 
-			for(int p=0; p<4; p++)
+			if(EditedSubPath.GetId2() >= CAsset_MapLayerQuads::CSubPath::POINT_VERTEX0 && EditedSubPath.GetId2() <= CAsset_MapLayerQuads::CSubPath::POINT_VERTEX3)
 			{
-				str_format(aBuf, sizeof(aBuf), "Position #%d:", p);
-				AddFloat2Field(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_POINT0_POSITION_X+p, CAsset_MapLayerQuads::QUAD_POINT0_POSITION_Y+p, m_pAssetsEditor->m_EditedAssetSubPath, aBuf);
-				
-				str_format(aBuf, sizeof(aBuf), "Texture #%d:", p);
-				AddFloat2Field(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_POINT0_UV_X+p, CAsset_MapLayerQuads::QUAD_POINT0_UV_Y+p, m_pAssetsEditor->m_EditedAssetSubPath, aBuf);
-				
-				str_format(aBuf, sizeof(aBuf), "Color #%d:", p);
-				AddColorField(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_POINT0_COLOR+p, m_pAssetsEditor->m_EditedAssetSubPath, aBuf);
+				AddFloat2Field(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_POINT_POSITION_X, CAsset_MapLayerQuads::QUAD_POINT_POSITION_Y, EditedSubPath, "Vertex position:");
+				AddColorField(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_POINT_COLOR, EditedSubPath, "Vertex Color:");
+				AddFloat2Field(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAsset_MapLayerQuads::QUAD_POINT_UV_X, CAsset_MapLayerQuads::QUAD_POINT_UV_Y, EditedSubPath, "Texture:");
 			}
 		}
+	}
+}
+
+void CEditor::RefreshTab_ZoneType_Asset(bool KeepStatus)
+{
+	CAsset_ZoneType* pZoneType = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_ZoneType>(m_pAssetsEditor->m_EditedAssetPath);
+	if(!pZoneType)
+		return;
+}
+
+void CEditor::RefreshTab_ZoneType_Indices(bool KeepStatus)
+{
+	float Scroll = 0;
+	if(KeepStatus && m_pLists[LIST_ZONETYPE_INDICES])
+	{
+		Scroll = m_pLists[LIST_ZONETYPE_INDICES]->GetScrollPos();
+	}
+	m_pTabs[TAB_ZONETYPE_INDICES]->Clear();
+			
+	CAsset_ZoneType* pZoneType = m_pAssetsEditor->AssetsManager()->GetAsset<CAsset_ZoneType>(m_pAssetsEditor->m_EditedAssetPath);
+	if(!pZoneType)
+		return;
+		
+	m_pLists[LIST_ZONETYPE_INDICES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig);
+	m_pLists[LIST_ZONETYPE_INDICES]->SetHeight(m_Rect.h/2);
+	m_pTabs[TAB_ZONETYPE_INDICES]->Add(m_pLists[LIST_ZONETYPE_INDICES]);
+	
+	m_pLists[LIST_ZONETYPE_INDICES]->Add(new gui::CLabel(m_pAssetsEditor->m_pGuiConfig, "Indices", gui::TEXTSTYLE_HEADER2));
+	CAsset_ZoneType::CIteratorIndex Iter;
+	for(Iter = pZoneType->BeginIndex(); Iter != pZoneType->EndIndex(); ++Iter)
+	{
+		CEditor::CSubItemListItem* pItem = new CEditor::CSubItemListItem(m_pAssetsEditor, CAssetPath::Null());
+		pItem->SetTarget(m_pAssetsEditor->m_EditedAssetPath, *Iter);
+		pItem->SetText(m_pAssetsEditor->m_EditedAssetPath, CAsset_ZoneType::INDEX_NAME, *Iter);
+		
+		m_pLists[LIST_ZONETYPE_INDICES]->Add(pItem);
+	}
+	if(KeepStatus)
+	{
+		m_pLists[LIST_ZONETYPE_INDICES]->SetScrollPos(Scroll);
+	}
+
+	m_pTabs[TAB_ZONETYPE_INDICES]->Add(new CAddSubItem(
+		m_pAssetsEditor,
+		m_pAssetsEditor->m_EditedAssetPath,
+		CAsset_ZoneType::CSubPath::TYPE_INDEX,
+		"Add index",
+		CAssetPath::SpriteUniverse(SPRITE_ICON_INCREASE),
+		TAB_ZONETYPE_INDICES
+	));
+
+	m_pTabs[TAB_ZONETYPE_INDICES]->AddSeparator();	
+	
+	CAsset_ZoneType::CSubPath EditedSubPath(m_pAssetsEditor->m_EditedAssetSubPath);
+	if(pZoneType->IsValidIndex(EditedSubPath))
+	{
+		AddTextField(m_pTabs[TAB_ZONETYPE_INDICES], CAsset_ZoneType::INDEX_NAME, EditedSubPath, sizeof(CAsset_ZoneType::CIndex::m_aName), "Name:");
+		AddIntegerField(m_pTabs[TAB_ZONETYPE_INDICES], CAsset_ZoneType::INDEX_NUMBER, EditedSubPath, "Server Id:");
+		AddColorField(m_pTabs[TAB_ZONETYPE_INDICES], CAsset_ZoneType::INDEX_COLOR, EditedSubPath, "HUD Color:");
 	}
 }
 
@@ -962,38 +1010,46 @@ void CEditor::Refresh(int Tab)
 		
 		//Add main tab
 		m_pTabs[TAB_ASSET] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-		AddTab(m_pTabs[TAB_ASSET], CAssetsEditor::ICON_ASSET, "Asset properties");
+		AddTab(m_pTabs[TAB_ASSET], CAssetPath::SpriteUniverse(SPRITE_ICON_ASSET), "Asset properties");
 		
 		//Add asset-specific tabs
 		switch(m_pAssetsEditor->m_EditedAssetPath.GetType())
 		{
 			case CAssetPath::TYPE_SKELETON:
 				m_pTabs[TAB_SKELETON_BONES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_SKELETON_BONES], CAssetsEditor::ICON_BONE, "Bones: create, edit and remove bones from the skeleton");
+				AddTab(m_pTabs[TAB_SKELETON_BONES], CAssetPath::SpriteUniverse(SPRITE_ICON_BONE), "Bones: create, edit and remove bones from the skeleton");
 				m_pTabs[TAB_SKELETON_LAYERS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_SKELETON_LAYERS], CAssetsEditor::ICON_LAYERS, "Layers: create, edit and remove layers from the skeleton");
+				AddTab(m_pTabs[TAB_SKELETON_LAYERS], CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERS), "Layers: create, edit and remove layers from the skeleton");
 				break;
 			case CAssetPath::TYPE_SKELETONSKIN:
-				m_pTabs[TAB_SKELETONSKIN_SPRITES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_SKELETONSKIN_SPRITES], CAssetsEditor::ICON_SPRITE, "Sprites: create, edit and remove sprites from the skin");
+				m_pTabs[TAB_SKELETONSKIN_SPRITES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE, gui::LAYOUTFILLING_FIRST);
+				AddTab(m_pTabs[TAB_SKELETONSKIN_SPRITES], CAssetPath::SpriteUniverse(SPRITE_ICON_SPRITE), "Sprites: create, edit and remove sprites from the skin");
 				break;
 			case CAssetPath::TYPE_SKELETONANIMATION:
 				m_pTabs[TAB_SKELETONANIMATION_ANIMATIONS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_SKELETONANIMATION_ANIMATIONS], CAssetsEditor::ICON_SKELETONANIMATION, "Animations: set propeties for bone and layer animations");
+				AddTab(m_pTabs[TAB_SKELETONANIMATION_ANIMATIONS], CAssetPath::SpriteUniverse(SPRITE_ICON_SKELETONANIMATION), "Animations: set propeties for bone and layer animations");
 				m_pTabs[TAB_SKELETONANIMATION_KEYFRAMES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_SKELETONANIMATION_KEYFRAMES], CAssetsEditor::ICON_FRAMES, "Key Frames: edit properties of key frames");
+				AddTab(m_pTabs[TAB_SKELETONANIMATION_KEYFRAMES], CAssetPath::SpriteUniverse(SPRITE_ICON_FRAMES), "Key Frames: edit properties of key frames");
 				break;
 			case CAssetPath::TYPE_CHARACTER:
 				m_pTabs[TAB_CHARACTER_PARTS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_CHARACTER_PARTS], CAssetsEditor::ICON_CHARACTERPART, "Parts: create, edit and remove parts of a character");
+				AddTab(m_pTabs[TAB_CHARACTER_PARTS], CAssetPath::SpriteUniverse(SPRITE_ICON_CHARACTERPART), "Parts: create, edit and remove parts of a character");
+				break;
+			case CAssetPath::TYPE_MAP:
+				m_pTabs[TAB_MAP_GROUPS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
+				AddTab(m_pTabs[TAB_MAP_GROUPS], CAssetPath::SpriteUniverse(SPRITE_ICON_FOLDER), "Groups: organize groups in the map");
 				break;
 			case CAssetPath::TYPE_MAPGROUP:
 				m_pTabs[TAB_MAPGROUP_LAYERS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_MAPGROUP_LAYERS], CAssetsEditor::ICON_LAYERS, "Layers: organize layers in the group");
+				AddTab(m_pTabs[TAB_MAPGROUP_LAYERS], CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERS), "Layers: organize layers in the group");
 				break;
 			case CAssetPath::TYPE_MAPLAYERQUADS:
 				m_pTabs[TAB_MAPLAYERQUADS_QUADS] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
-				AddTab(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAssetsEditor::ICON_LAYERS, "Quads: organize and edit quads");
+				AddTab(m_pTabs[TAB_MAPLAYERQUADS_QUADS], CAssetPath::SpriteUniverse(SPRITE_ICON_LAYERS), "Quads: organize and edit quads");
+				break;
+			case CAssetPath::TYPE_ZONETYPE:
+				m_pTabs[TAB_ZONETYPE_INDICES] = new gui::CVListLayout(m_pAssetsEditor->m_pGuiConfig, gui::CConfig::LAYOUTSTYLE_INVISIBLE);
+				AddTab(m_pTabs[TAB_ZONETYPE_INDICES], CAssetPath::SpriteUniverse(SPRITE_ICON_DEFAULT), "Indices: organize and edit indices");
 				break;
 		}
 		
@@ -1043,9 +1099,16 @@ void CEditor::Refresh(int Tab)
 		case CAssetPath::TYPE_WEAPON:
 			RefreshTab_Weapon_Asset(KeepStatus);
 			break;
+		case CAssetPath::TYPE_MAP:
+			RefreshTab_Map_Asset(KeepStatus);
+			RefreshTab_Map_Groups(KeepStatus);
+			break;
 		case CAssetPath::TYPE_MAPGROUP:
 			RefreshTab_MapGroup_Asset(KeepStatus);
 			RefreshTab_MapGroup_Layers(KeepStatus);
+			break;
+		case CAssetPath::TYPE_MAPZONETILES:
+			RefreshTab_MapZoneTiles_Asset(KeepStatus);
 			break;
 		case CAssetPath::TYPE_MAPLAYERTILES:
 			RefreshTab_MapLayerTiles_Asset(KeepStatus);
@@ -1053,6 +1116,10 @@ void CEditor::Refresh(int Tab)
 		case CAssetPath::TYPE_MAPLAYERQUADS:
 			RefreshTab_MapLayerQuads_Asset(KeepStatus);
 			RefreshTab_MapLayerQuads_Quads(KeepStatus);
+			break;
+		case CAssetPath::TYPE_ZONETYPE:
+			RefreshTab_ZoneType_Asset(KeepStatus);
+			RefreshTab_ZoneType_Indices(KeepStatus);
 			break;
 	}
 	

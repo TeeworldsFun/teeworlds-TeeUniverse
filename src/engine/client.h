@@ -164,8 +164,8 @@ public:
 
 	//TU
 public:
-	virtual tu::CClient_Graphics *TUGraphics() const = 0;
-	virtual tu::CAssetsManager *AssetsManager() const = 0;
+	virtual tu::CGraphics *TUGraphics(int Type = tu::ASSETS_GAME) const = 0;
+	virtual tu::CAssetsManager *AssetsManager(int Type = tu::ASSETS_GAME) const = 0;
 	virtual void LoadAssetsFile(const char* pFileName, int Source) = 0;
 };
 

@@ -24,7 +24,7 @@ public:
 		int m_Height;
 	};
 	
-	void InitFromAssetsFile(class CAssetsManager* pAssetsManager, class IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(class IAssetsFile* pAssetsFile, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 	
 /* MEMBERS ************************************************************/
@@ -38,6 +38,7 @@ public:
 		FLAG_SIZE_HEIGHT = (0x1 << 4),
 	};
 
+private:
 	CAssetPath m_ImagePath;
 	int m_X;
 	int m_Y;
@@ -56,6 +57,12 @@ public:
 		m_Width = W;
 		m_Height = H;
 	}
+	
+	inline int GetImagePath() const { return m_ImagePath; }
+	inline int GetX() const { return m_X; }
+	inline int GetY() const { return m_Y; }
+	inline int GetWidth() const { return m_Width; }
+	inline int GetHeight() const { return m_Height; }
 	
 /* GET/SET ************************************************************/
 public:

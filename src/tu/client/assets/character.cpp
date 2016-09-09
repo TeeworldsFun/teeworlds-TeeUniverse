@@ -21,7 +21,7 @@ CAsset_Character::CPart& CAsset_Character::AddPart()
 
 /* IO *****************************************************************/
 
-void CAsset_Character::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Character::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// load name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -57,10 +57,10 @@ void CAsset_Character::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Positi
 		delete[] pParts;
 	}
 	
-	Item.m_IdlePath = m_IdlePath.ConvertToInteger();
-	Item.m_WalkPath = m_WalkPath.ConvertToInteger();
-	Item.m_ControlledJumpPath = m_ControlledJumpPath.ConvertToInteger();
-	Item.m_UncontrolledJumpPath = m_UncontrolledJumpPath.ConvertToInteger();
+	Item.m_IdlePath = m_IdlePath;
+	Item.m_WalkPath = m_WalkPath;
+	Item.m_ControlledJumpPath = m_ControlledJumpPath;
+	Item.m_UncontrolledJumpPath = m_UncontrolledJumpPath;
 	
 	pFileWriter->AddItem(CAssetPath::TypeToStoredType(TypeId), Position, sizeof(CStorageType), &Item);
 }
@@ -109,22 +109,14 @@ CAssetPath CAsset_Character::GetValue(int ValueType, int PathInt, CAssetPath Def
 	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case IDLEPATH:
-			return m_IdlePath;
-		case WALKPATH:
-			return m_WalkPath;
-		case CONTROLLEDJUMPPATH:
-			return m_ControlledJumpPath;
-		case UNCONTROLLEDJUMPPATH:
-			return m_UncontrolledJumpPath;
-		case PART_DEFAULTPATH:
-			if(Path.GetType() == CSubPath::TYPE_PART && Path.GetId() >= 0 && Path.GetId() < m_Parts.size())
-				return m_Parts[Path.GetId()].m_DefaultPath;
-			else
-				return DefaultValue;
-		default:
-			return CAsset::GetValue<CAssetPath>(ValueType, PathInt, DefaultValue);
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(CAssetPath, IDLEPATH, GetIdlePath())
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(CAssetPath, WALKPATH, GetWalkPath())
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(CAssetPath, CONTROLLEDJUMPPATH, GetControlledJumpPath())
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(CAssetPath, UNCONTROLLEDJUMPPATH, GetUncontrolledJumpPath())
+		TU_ASSET_GET_FUNC_IMPL_ARRAY_VARIABLE(CAssetPath, PART_DEFAULTPATH, TYPE_PART, m_Parts, m_DefaultPath)
 	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(CAssetPath)
 }
 	
 template<>
@@ -133,28 +125,14 @@ bool CAsset_Character::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPa
 	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		case IDLEPATH:
-			m_IdlePath = Value;
-			return true;
-		case WALKPATH:
-			m_WalkPath = Value;
-			return true;
-		case CONTROLLEDJUMPPATH:
-			m_ControlledJumpPath = Value;
-			return true;
-		case UNCONTROLLEDJUMPPATH:
-			m_UncontrolledJumpPath = Value;
-			return true;
-		case PART_DEFAULTPATH:
-			if(Path.GetType() == CSubPath::TYPE_PART && Path.GetId() >= 0 && Path.GetId() < m_Parts.size())
-			{
-				m_Parts[Path.GetId()].m_DefaultPath = Value;
-				return true;
-			}
-			else return false;
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(CAssetPath, IDLEPATH, m_IdlePath)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(CAssetPath, WALKPATH, m_WalkPath)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(CAssetPath, CONTROLLEDJUMPPATH, m_ControlledJumpPath)
+		TU_ASSET_SET_FUNC_IMPL_VARIABLE(CAssetPath, UNCONTROLLEDJUMPPATH, m_UncontrolledJumpPath)
+		TU_ASSET_SET_FUNC_IMPL_ARRAY_VARIABLE(CAssetPath, PART_DEFAULTPATH, TYPE_PART, m_Parts, m_DefaultPath)
 	}
 	
-	return CAsset::SetValue<CAssetPath>(ValueType, PathInt, Value);
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(CAssetPath)
 }
 
 }

@@ -35,7 +35,7 @@ CAsset_Skeleton::CLayer& CAsset_Skeleton::AddLayer()
 
 /* IO *****************************************************************/
 
-void CAsset_Skeleton::InitFromAssetsFile(CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Skeleton::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
 {
 	// load name
 	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
@@ -77,14 +77,14 @@ void CAsset_Skeleton::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Positio
 	CStorageType Item;
 	Item.m_Name = pFileWriter->AddData(str_length(m_aName)+1, m_aName);
 
-	Item.m_ParentPath = m_ParentPath.ConvertToInteger();
-	Item.m_DefaultSkinPath = m_DefaultSkinPath.ConvertToInteger();
+	Item.m_ParentPath = m_ParentPath;
+	Item.m_DefaultSkinPath = m_DefaultSkinPath;
 	
 	{
 		CStorageType::CBone* pBones = new CStorageType::CBone[m_Bones.size()];
 		for(int i=0; i<m_Bones.size(); i++)
 		{
-			pBones[i].m_ParentPath = m_Bones[i].m_ParentPath.ConvertToInteger();
+			pBones[i].m_ParentPath = m_Bones[i].m_ParentPath;
 			pBones[i].m_Length = m_Bones[i].m_Length;
 			pBones[i].m_Anchor = m_Bones[i].m_Anchor;
 			pBones[i].m_TranslationX = m_Bones[i].m_Translation.x;
@@ -341,7 +341,7 @@ bool CAsset_Skeleton::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath V
 /* VALUE BONEPATH *****************************************************/
 	
 template<>
-CAsset_Skeleton::CBonePath CAsset_Skeleton::GetValue<CAsset_Skeleton::CBonePath>(int ValueType, int PathInt, CAsset_Skeleton::CBonePath DefaultValue)
+CAsset_Skeleton::CSubPath CAsset_Skeleton::GetValue<CAsset_Skeleton::CSubPath>(int ValueType, int PathInt, CAsset_Skeleton::CSubPath DefaultValue)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -352,12 +352,12 @@ CAsset_Skeleton::CBonePath CAsset_Skeleton::GetValue<CAsset_Skeleton::CBonePath>
 			else
 				return DefaultValue;
 		default:
-			return CAsset::GetValue<CAsset_Skeleton::CBonePath>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue<CAsset_Skeleton::CSubPath>(ValueType, PathInt, DefaultValue);
 	}
 }
 
 template<>
-bool CAsset_Skeleton::SetValue<CAsset_Skeleton::CBonePath>(int ValueType, int PathInt, CAsset_Skeleton::CBonePath Value)
+bool CAsset_Skeleton::SetValue<CAsset_Skeleton::CSubPath>(int ValueType, int PathInt, CAsset_Skeleton::CSubPath Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -371,7 +371,7 @@ bool CAsset_Skeleton::SetValue<CAsset_Skeleton::CBonePath>(int ValueType, int Pa
 			else return false;
 	}
 	
-	return CAsset::SetValue<CAsset_Skeleton::CBonePath>(ValueType, PathInt, Value);
+	return CAsset::SetValue<CAsset_Skeleton::CSubPath>(ValueType, PathInt, Value);
 }
 
 }
