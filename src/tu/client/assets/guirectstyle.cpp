@@ -1,7 +1,7 @@
 #include "guirectstyle.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -14,10 +14,10 @@ CAsset_GuiRectStyle::CAsset_GuiRectStyle() :
 
 /* IO *****************************************************************/
 
-void CAsset_GuiRectStyle::InitFromAssetsFile(IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_GuiRectStyle::InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	m_Flags = pItem->m_Flags;
 	m_BackgroundColor = tu::IntToColor(pItem->m_BackgroundColor);

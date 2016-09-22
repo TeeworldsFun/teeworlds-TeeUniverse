@@ -268,8 +268,6 @@ public:
 	int m_CurrentModSize;
 	int m_ModChunksPerRequest;
 	
-	tu::IAssetsFileEngine *m_pAssetsFile;
-	
 	const char *GetModName() const;
 	void SendInitialData(int ClientID);
 	

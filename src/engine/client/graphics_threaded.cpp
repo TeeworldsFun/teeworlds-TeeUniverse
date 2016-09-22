@@ -152,6 +152,63 @@ CGraphics_Threaded::CGraphics_Threaded()
 	m_DoScreenshot = false;
 }
 
+void CGraphics_Threaded::ClipPush(int x, int y, int w, int h)
+{
+	CCommandBuffer::SClip ClipRect;
+	if(m_ClipStack.size())
+		ClipRect = m_ClipStack[m_ClipStack.size()-1];
+	else
+	{
+		ClipRect.x = 0;
+		ClipRect.y = 0;
+		ClipRect.w = ScreenWidth();
+		ClipRect.h = ScreenHeight();
+	}
+	
+	x = clamp(x, ClipRect.x, ClipRect.x + ClipRect.w);
+	y = clamp(y, ClipRect.y, ClipRect.y + ClipRect.h);
+	w = clamp(w, 0, ClipRect.x + ClipRect.w - x);
+	h = clamp(h, 0, ClipRect.y + ClipRect.h - y);
+	
+	m_State.m_ClipEnable = true;
+	m_State.m_ClipX = x;
+	m_State.m_ClipY = ScreenHeight()-(y+h);
+	m_State.m_ClipW = w;
+	m_State.m_ClipH = h;
+	
+	ClipRect.x = x;
+	ClipRect.y = y;
+	ClipRect.w = w;
+	ClipRect.h = h;
+	m_ClipStack.add(ClipRect);
+}
+
+void CGraphics_Threaded::ClipPop()
+{
+	if(m_ClipStack.size())
+		m_ClipStack.remove_index(m_ClipStack.size()-1);
+	
+	if(m_ClipStack.size())
+	{
+		CCommandBuffer::SClip ClipRect = m_ClipStack[m_ClipStack.size()-1];
+		
+		int x = ClipRect.x;
+		int y = ClipRect.y;
+		int w = ClipRect.w;
+		int h = ClipRect.h;
+		
+		m_State.m_ClipEnable = true;
+		m_State.m_ClipX = x;
+		m_State.m_ClipY = ScreenHeight()-(y+h);
+		m_State.m_ClipW = w;
+		m_State.m_ClipH = h;
+	}
+	else
+	{
+		m_State.m_ClipEnable = false;
+	}
+}
+
 void CGraphics_Threaded::ClipEnable(int x, int y, int w, int h)
 {
 	if(x < 0)

@@ -166,8 +166,6 @@ void CPlayers::RenderPlayer(
 	int ClientID
 	)
 {
-	if(!TUGraphics()) return;
-	
 	CNetObj_Character Prev;
 	CNetObj_Character Player;
 	Prev = *pPrevChar;
@@ -224,15 +222,15 @@ void CPlayers::RenderPlayer(
 	bool InAir = !Collision()->CheckPoint(Player.m_X, Player.m_Y+16);
 	bool WantOtherDir = (Player.m_Direction == -1 && Vel.x > 0) || (Player.m_Direction == 1 && Vel.x < 0);
 	
-	tu::CSkeletonRenderer SkeletonRenderer(TUGraphics(), AssetsManager());
+	tu::CSkeletonRenderer SkeletonRenderer(TUKernel());
 	SkeletonRenderer.SetAim(AimDir);
 	SkeletonRenderer.SetMotion(MotionDir);
 	
-	tu::CAsset_CharacterPart* pCharacterPart[6];
+	const tu::CAsset_CharacterPart* pCharacterPart[6];
 	tu::CAssetPath CharacterPath;
 	for(int i=0; i<6; i++)
 	{
-		pCharacterPart[i] = AssetsManager()->GetAsset<tu::CAsset_CharacterPart>(RenderInfo.m_aCharacterParts[i]);
+		pCharacterPart[i] = TUKernel()->AssetsManager()->GetAsset<tu::CAsset_CharacterPart>(RenderInfo.m_aCharacterParts[i]);
 		if(pCharacterPart[i])
 		{
 			SkeletonRenderer.AddSkinWithSkeleton(pCharacterPart[i]->GetSkeletonSkinPath(), RenderInfo.m_aColors[i]);
@@ -242,7 +240,7 @@ void CPlayers::RenderPlayer(
 	}
 	
 	// Skin
-	tu::CAsset_Character* pCharacter = AssetsManager()->GetAsset<tu::CAsset_Character>(CharacterPath);
+	const tu::CAsset_Character* pCharacter = TUKernel()->AssetsManager()->GetAsset<tu::CAsset_Character>(CharacterPath);
 	if(pCharacter)
 	{
 		if(InAir)

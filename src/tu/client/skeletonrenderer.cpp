@@ -1,16 +1,13 @@
 #include <engine/graphics.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 #include "skeletonrenderer.h"
 
 namespace tu
 {
 
-CSkeletonRenderer::CSkeletonRenderer(CGraphics* pTUGraphics, CAssetsManager* pAssetsManager) :
-	m_pTUGraphics(pTUGraphics),
-	m_pGraphics(pTUGraphics->Graphics()),
-	m_pAssetsManager(pAssetsManager),
-	m_NumLayers(0)
+CSkeletonRenderer::CSkeletonRenderer(CKernel* pKernel) :
+	CKernel::CGuest(pKernel)
 {
 	m_Aim = vec2(1.0f, 0.0f);
 	m_Motion = vec2(1.0f, 0.0f);
@@ -25,7 +22,7 @@ void CSkeletonRenderer::AddSkeleton(CAssetPath SkeletonPath)
 			return;
 	}
 	
-	CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
+	const CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
 	if(!pSkeleton)
 		return;
 	
@@ -92,7 +89,7 @@ void CSkeletonRenderer::AddSkeleton(CAssetPath SkeletonPath)
 
 void CSkeletonRenderer::AddSkeletonWithParents(CAssetPath SkeletonPath, int AddDefaultSkin)
 {
-	CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
+	const CAsset_Skeleton* pSkeleton = AssetsManager()->GetAsset<CAsset_Skeleton>(SkeletonPath);
 	if(!pSkeleton)
 		return;
 	
@@ -106,7 +103,7 @@ void CSkeletonRenderer::AddSkeletonWithParents(CAssetPath SkeletonPath, int AddD
 
 void CSkeletonRenderer::ApplyAnimation(CAssetPath SkeletonAnimationPath, float Time)
 {
-	CAsset_SkeletonAnimation* pSkeletonAnimation = AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
+	const CAsset_SkeletonAnimation* pSkeletonAnimation = AssetsManager()->GetAsset<CAsset_SkeletonAnimation>(SkeletonAnimationPath);
 	if(!pSkeletonAnimation)
 		return;
 	
@@ -180,7 +177,7 @@ void CSkeletonRenderer::AddSkin(CAssetPath Path, vec4 Color)
 
 void CSkeletonRenderer::AddSkinWithSkeleton(CAssetPath Path, vec4 Color)
 {
-	CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<CAsset_SkeletonSkin>(Path);
+	const CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<CAsset_SkeletonSkin>(Path);
 	if(!pSkeletonSkin)
 		return;
 	
@@ -266,7 +263,7 @@ void CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int LayerSke
 	
 	for(int s=0; s<m_Skins.size(); s++)
 	{
-		CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<CAsset_SkeletonSkin>(m_Skins[s].m_Path);
+		const CAsset_SkeletonSkin* pSkeletonSkin = AssetsManager()->GetAsset<CAsset_SkeletonSkin>(m_Skins[s].m_Path);
 		if(!pSkeletonSkin)
 			continue;
 		
@@ -301,7 +298,7 @@ void CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int LayerSke
 			if(!(pSkeletonSkin->m_Sprites[i].m_LayerPath == LayerPath))
 				continue;
 			
-			CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(pSkeletonSkin->m_Sprites[i].m_SpritePath);
+			const CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(pSkeletonSkin->m_Sprites[i].m_SpritePath);
 			if(!pSprite)
 				continue;
 			
@@ -351,8 +348,8 @@ void CSkeletonRenderer::RenderSkinsLayer(vec2 Position, float Size, int LayerSke
 			}
 			
 			//UVs
-			CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pSprite->GetImagePath());
-			TUGraphics()->TextureSet(pSprite->GetImagePath());
+			const CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(pSprite->GetImagePath());
+			AssetsRenderer()->TextureSet(pSprite->GetImagePath());
 			
 			vec4 Color = m_Skins[s].m_Color * LayerState.m_Color;
 			

@@ -1,8 +1,7 @@
 #ifndef TU_CLIENT_GUI_FLOATEDIT_H
 #define TU_CLIENT_GUI_FLOATEDIT_H
 
-#include "widget.h"
-#include "button.h"
+#include "text-edit.h"
 
 namespace tu
 {
@@ -10,53 +9,43 @@ namespace tu
 namespace gui
 {
 
-class CAbstractFloatEdit : public CWidget
+class CAbstractFloatEdit : public CAbstractTextEdit
 {
 protected:
-	bool RefreshText;
-	float m_LastValue;
-	char m_aFloatText[64];
-	int m_CursorCharPos;
-	bool m_UnderMouse;
-	bool m_Clicked;
+	float m_FloatValue;
 	
-protected:
-	void ApplyTextEntry();
+	virtual void SaveFromTextBuffer();
+	virtual void CopyToTextBuffer();
 	
-	virtual void SetValue(float v) = 0;
-	virtual float GetValue() = 0;
-	virtual void ApplyFormat();
+	virtual float GetValue() const = 0;
+	virtual void SetValue(float Value) = 0;
 	
 public:
-	CAbstractFloatEdit(class CConfig *pConfig);
-	virtual void Render();
-	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
-	virtual void OnButtonClick(int X, int Y, int Button, int Count);
-	virtual void OnInputEvent();
+	CAbstractFloatEdit(class CContext *pConfig);
 };
 
 class CFloatEdit : public CAbstractFloatEdit
 {
 protected:
-	float m_Value;
+	float m_FloatValue;
 	
-	virtual void SetValue(float v);
-	virtual float GetValue();
+	virtual float GetValue() const;
+	virtual void SetValue(float Value);
 	
 public:
-	CFloatEdit(class CConfig *pConfig, float DefaultValue);
+	CFloatEdit(class CContext *pConfig, float DefaultValue);
 };
 
 class CExternalFloatEdit : public CAbstractFloatEdit
 {
 protected:
-	float* m_Memory;
+	float* m_pFloat;
 	
-	virtual void SetValue(float v);
-	virtual float GetValue();
+	virtual float GetValue() const;
+	virtual void SetValue(float Value);
 	
 public:
-	CExternalFloatEdit(class CConfig *pConfig, float* m_Memory);
+	CExternalFloatEdit(class CContext *pConfig, float* m_pFloat);
 };
 
 }

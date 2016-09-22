@@ -48,6 +48,8 @@ public:
 	virtual float TextWidth(void *pFontSetV, float Size, const char *pText, int Length) = 0;
 	virtual float TextHeight(float Size) = 0;
 	virtual int TextLineCount(void *pFontSetV, float Size, const char *pText, float LineWidth) = 0;
+	
+	virtual void Debug_DrawCaches() = 0;
 };
 
 class IEngineTextRender : public ITextRender

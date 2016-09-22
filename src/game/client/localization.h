@@ -58,4 +58,5 @@ public:
 };
 
 extern const char *Localize(const char *pStr, const char *pContext);
+
 #endif

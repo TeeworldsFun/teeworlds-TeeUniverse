@@ -2,6 +2,8 @@
 #define TU_CLIENT_ASSETSMANAGER_H
 
 	//Search Tag: TAG_NEW_ASSET
+#include <engine/shared/datafile.h>
+#include <tu/client/kernel.h>
 #include <tu/client/assets.h>
 #include <tu/client/assetshistory.h>
 #include <tu/client/assetscatalog.h>
@@ -20,33 +22,41 @@
 #include <tu/client/assets/maplayerquads.h>
 #include <tu/client/assets/zonetype.h>
 #include <tu/client/assets/guirectstyle.h>
+#include <tu/client/assets/guilinestyle.h>
+#include <tu/client/assets/guiboxstyle.h>
+#include <tu/client/assets/guiscrollbarstyle.h>
+#include <tu/client/assets/guitabsstyle.h>
 
 namespace tu
 {
 
-enum
-{
-	ASSETS_GAME,
-	ASSETS_EDITORGUI,
-	NUM_ASSETS,
-};
-
-class IAssetsFile;
-
-class CAssetsManager
-{
+class CAssetsManager : public CKernel::CComponent
+{	
 private:
 	struct CStorageType
 	{
 		int m_Version;
 		int m_Source;
 	};
+
+public:
+	class IListener
+	{
+	protected:
+		int m_AssetManagerListener_Token;
+	
+	public:
+		virtual void OnAssetsListModified() = 0;
+		inline void AssetManager_SetToken(int Token) { m_AssetManagerListener_Token = Token; };
+		inline int AssetManager_GetToken() const { return m_AssetManagerListener_Token; };
+	};
 	
 private:
-	IGraphics* m_pGraphics;
-	class IStorage* m_pStorage;
 	CAssetsHistory* m_pHistory;
+	array<IListener*> m_pListeners;
+	bool m_AssetsListModified;
 	
+private:	
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CAssetCatalog<ClassName> CatalogName;
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
@@ -58,12 +68,19 @@ protected:
 		return GetAssetCatalog<ASSETTYPE>()->NewAsset(this, AssetPath);
 	}
 
-public:
-	CAssetsManager(IGraphics* pGraphics, class IStorage* pStorage);
-	virtual ~CAssetsManager();
+	template<class ASSETTYPE>
+	ASSETTYPE* GetEditableAsset(CAssetPath AssetPath)
+	{
+		return GetAssetCatalog<ASSETTYPE>()->GetAsset(AssetPath);
+	}
 	
-	class IGraphics *Graphics() { return m_pGraphics; };
-	class IStorage *Storage() { return m_pStorage; };
+public:
+	CAssetsManager(CKernel* pKernel);
+	virtual ~CAssetsManager();
+	void Init();
+	
+	void AddListener(IListener* pListener);
+	void RemoveListener(int Token);
 	
 	CAssetPath FindSkinPart(CAssetPath CharacterPath, CAsset_Character::CSubPath CharacterPart, const char* pName);
 	
@@ -73,12 +90,18 @@ public:
 	CAssetState* GetAssetState(CAssetPath AssetPath);
 	void InitAssetState(int Source, const CAssetState& State);
 	
-	void UpdateAssets();
+	void Update();
 	int SaveInAssetsFile(const char *pFileName, int Source);
-	int OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile, int Source);
-	int OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Source);
-	int OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile, int Source);
+	int LoadAssetsFile(const char *pFileName, int Source, unsigned Crc = 0);
+	int LoadAssetsFile_Asset(CDataFileReader* pDataFile, int Source);
+	int LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source);
 	int OnAssetsFileUnloaded(int Source);
+	
+	template<class ASSETTYPE>
+	const CAssetCatalog<ASSETTYPE>* GetAssetCatalog() const
+	{
+		return 0;
+	}
 	
 	template<class ASSETTYPE>
 	CAssetCatalog<ASSETTYPE>* GetAssetCatalog()
@@ -87,9 +110,17 @@ public:
 	}
 	
 	template<class ASSETTYPE>
-	ASSETTYPE* GetAsset(CAssetPath AssetPath)
+	const ASSETTYPE* GetAsset(CAssetPath AssetPath) const
 	{
 		return GetAssetCatalog<ASSETTYPE>()->GetAsset(AssetPath);
+	}
+	
+	template<class ASSETTYPE>
+	void SetAsset(CAssetPath AssetPath, const ASSETTYPE* pAsset)
+	{
+		ASSETTYPE* pOldAsset = GetAssetCatalog<ASSETTYPE>()->GetAsset(AssetPath);
+		if(pOldAsset)
+			*pOldAsset = *pAsset;
 	}
 	
 	template<class ASSETTYPE>
@@ -123,7 +154,7 @@ public:
 	{
 		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 		{\
-			ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
+			const ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
 			if(pAsset)\
 				return pAsset->GetValue<T>(FieldType, FieldPath, DefaultValue);\
 			else\
@@ -148,7 +179,7 @@ public:
 		
 		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 		{\
-			ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
+			ClassName* pAsset = GetEditableAsset<ClassName>(AssetPath);\
 			if(pAsset)\
 				return pAsset->SetValue<T>(Field, SubPath, Value);\
 			break;\
@@ -169,8 +200,13 @@ public:
 	int GenerateToken();
 
 public:
+	//System
+	static void InitAssetsManager_System(CAssetsManager* pAssetsManager);
+	
 	//Teeworlds Universe
-	static void InitAssetsManager_TeeWorldsUniverse(CAssetsManager* pAssetsManager);
+	static void InitAssetsManager_Universe_TeeWorlds(CAssetsManager* pAssetsManager);
+	
+	//Skins
 	static void LoadSkins(CAssetsManager* pAssetsManager);
 	static int LoadSkinAssets_BodyScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_FootScan(const char *pName, int IsDir, int DirType, void *pUser);
@@ -178,9 +214,6 @@ public:
 	static int LoadSkinAssets_HandsScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_MarkingScan(const char *pName, int IsDir, int DirType, void *pUser);
 	static int LoadSkinAssets_DecorationScan(const char *pName, int IsDir, int DirType, void *pUser);
-
-	//AssetsEditor GUI
-	static void InitAssetsManager_AssetsEditorGUI(CAssetsManager* pAssetsManager);
 };
 
 }

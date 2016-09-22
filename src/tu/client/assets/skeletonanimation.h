@@ -2,6 +2,7 @@
 #define TU_CLIENT_ASSETS_SKELETONANIMATION_H
 
 #include <tu/client/assets.h>
+#include <engine/shared/datafile.h>
 
 #define TU_SKELETONANIMATION_TIMESTEP 30
 
@@ -65,8 +66,8 @@ public:
 		
 	};
 	
-	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
-	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
+	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 	
 /* SUBITEMS ***********************************************************/
 public:

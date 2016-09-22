@@ -6,13 +6,9 @@
 namespace tu
 {
 
-class CMapRenderer
+class CMapRenderer : public CKernel::CGuest
 {
 public:
-	class IGraphics* m_pGraphics;
-	class CGraphics* m_pTUGraphics;
-	CAssetsManager* m_pAssetsManager;
-	
 	vec2 m_GroupPos;
 	vec2 m_GroupHardParallax;
 	
@@ -24,7 +20,7 @@ public:
 	float m_LocalTime;
 	
 public:	
-	CMapRenderer(class CGraphics* pTUGraphics, CAssetsManager* pAssetsManager);
+	CMapRenderer(CKernel* pKernel);
 	
 	void SetTime(float Time);
 	void SetLocalTime(float Time);
@@ -54,10 +50,6 @@ public:
 	
 	void RenderMap_Zones(CAssetPath MapPath, IGraphics::CTextureHandle& TextureId);
 	void RenderSource_Zones(int Source, IGraphics::CTextureHandle& TextureId);
-	
-	class IGraphics* Graphics() { return m_pGraphics; }
-	class CGraphics* TUGraphics() { return m_pTUGraphics; }
-	CAssetsManager* AssetsManager() { return m_pAssetsManager; }
 };
 
 }

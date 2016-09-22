@@ -2,6 +2,7 @@
 #define TU_CLIENT_GUI_LABEL_H
 
 #include "widget.h"
+#include <tu/client/textrenderer.h>
 
 namespace tu
 {
@@ -9,38 +10,54 @@ namespace tu
 namespace gui
 {
 
-class CLabel : public CWidget
+class CAbstractLabel : public CWidget
 {
+private:
+	CAssetPath m_BoxStylePath;
+	CAssetPath m_IconPath;
+	ivec2 m_RendererTextPosition;
+	int m_FontSize;
+	CRect m_TextRect;
+
 protected:
-	int m_TextStyle;
 	char m_aText[128];
-	
-	int m_TextWidth;
-	int m_TextHeight;
+	char m_aRendererText[128];
+	CTextRenderer::CTextCache m_TextCache;
 	
 public:
-	CLabel(class CConfig *pConfig, const char* pText, int Style = TEXTSTYLE_NORMAL);
+	CAbstractLabel(CContext *pContext);
+	
+	virtual void UpdateBoundingSize();
 	virtual void Render();
 	
+	inline void SetIcon(CAssetPath IconPath) { m_IconPath = IconPath; }
+	inline CAssetPath GetIcon() const { return m_IconPath; }
+	
+	inline void SetBoxStyle(CAssetPath BoxStylePath) { m_BoxStylePath = BoxStylePath; }
+	inline CAssetPath GetBoxStyle() const { return m_BoxStylePath; }
+	
+	inline ivec2 GetTextPosition() const { return m_RendererTextPosition; }
+	inline float GetFontSize() const { return m_FontSize; }
+	
 	void SetText(const char* pText);
+	inline const char* GetText() const { return m_aText; }
+	inline const char* GetRendererText() const { return m_aRendererText; }
+	
+	inline const CRect& GetTextRect() const { return m_TextRect; }
+	
+	void OnTextUpdated();
 };
 
-class CIconLabel : public CWidget
+class CLabel : public CAbstractLabel
 {
-protected:
-	CAssetPath m_IconPath;
-	int m_TextStyle;
-	char m_aText[128];
-	
-	int m_TextWidth;
-	int m_TextHeight;
-	
 public:
-	CIconLabel(class CConfig *pConfig, const char* pText, CAssetPath IconPath, int Style = TEXTSTYLE_NORMAL);
-	virtual void Render();
-	
-	void SetText(const char* pText);
-	void SetIcon(CAssetPath IconPath);
+	CLabel(class CContext *pConfig, const char* pText, CAssetPath IconPath = CAssetPath::Null());
+};
+
+class CLabelHeader : public CAbstractLabel
+{
+public:
+	CLabelHeader(class CContext *pConfig, const char* pText, CAssetPath IconPath = CAssetPath::Null());
 };
 
 }

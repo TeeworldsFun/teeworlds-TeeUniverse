@@ -35,19 +35,18 @@ int CComponent_Items::GetLayer() const
 void CComponent_Items::RenderSprite(const CNetObj_TU_Sprite *pPrev, const CNetObj_TU_Sprite *pCurrent)
 {
 	if(pCurrent->m_ItemLayer != GetLayer()) return;
-	if(!TUGraphics()) return;
 
 	float Angle = mix(2.0*pi*static_cast<float>(pPrev->m_Angle)/360.0f, 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f, Client()->IntraGameTick());
 	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
 	vec2 Pos = mix(vec2(pPrev->m_X, pPrev->m_Y), vec2(pCurrent->m_X, pCurrent->m_Y), Client()->IntraGameTick());
 	
-	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0x0, 1.0f);
+	TUKernel()->AssetsRenderer()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0x0, 1.0f);
 }
 
 void CComponent_Items::RenderSpriteCharacter(const CNetObj_TU_SpriteCharacter *pPrev, const CNetObj_TU_SpriteCharacter *pCurrent)
 {
 	if(pCurrent->m_ItemLayer != GetLayer()) return;
-	if(!TUGraphics()||!m_pClient->m_Snap.m_aCharacters[pCurrent->m_ClientId].m_Active) return;
+	if(!m_pClient->m_Snap.m_aCharacters[pCurrent->m_ClientId].m_Active) return;
 	
 	float Angle = mix(2.0*pi*static_cast<float>(pPrev->m_Angle)/360.0f, 2.0*pi*static_cast<float>(pCurrent->m_Angle)/360.0f, Client()->IntraGameTick());
 	float Size = mix(pPrev->m_Size, pCurrent->m_Size, Client()->IntraGameTick());
@@ -64,7 +63,7 @@ void CComponent_Items::RenderSpriteCharacter(const CNetObj_TU_SpriteCharacter *p
 		Pos = mix(vec2(PrevChar.m_X, PrevChar.m_Y), vec2(CurChar.m_X, CurChar.m_Y), Client()->IntraGameTick()) + Pos;
 	}
 	
-	TUGraphics()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0x0, 1.0f);
+	TUKernel()->AssetsRenderer()->DrawSprite(pCurrent->m_SpriteId, Pos, Size, Angle, 0x0, 1.0f);
 }
 
 void CComponent_Items::RenderText(const CNetObj_TU_Text *pPrev, const CNetObj_TU_Text *pCurrent)
@@ -77,7 +76,7 @@ void CComponent_Items::RenderText(const CNetObj_TU_Text *pPrev, const CNetObj_TU
 	char aText[64];
 	IntsToStr(pCurrent->m_aText, 16, &aText[0]);
 	
-	TUGraphics()->DrawText(TextRender(), aText, Pos, tu::IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
+	TUKernel()->AssetsRenderer()->DrawText(aText, Pos, tu::IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
 }
 
 void CComponent_Items::RenderTextCharacter(const CNetObj_TU_TextCharacter *pPrev, const CNetObj_TU_TextCharacter *pCurrent)
@@ -101,7 +100,7 @@ void CComponent_Items::RenderTextCharacter(const CNetObj_TU_TextCharacter *pPrev
 	char aText[64];
 	IntsToStr(pCurrent->m_aText, 16, &aText[0]);
 	
-	TUGraphics()->DrawText(TextRender(), aText, Pos, tu::IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
+	TUKernel()->AssetsRenderer()->DrawText(aText, Pos, tu::IntToColor(pCurrent->m_Color), pCurrent->m_Size, pCurrent->m_Alignment);
 }
 
 void CComponent_Items::OnRender()

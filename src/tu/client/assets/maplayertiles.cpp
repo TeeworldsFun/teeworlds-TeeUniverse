@@ -1,7 +1,7 @@
 #include "maplayertiles.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -111,10 +111,10 @@ const CAsset_MapLayerTiles::CTile* CAsset_MapLayerTiles::GetTilePointer(int x, i
 
 /* IO *****************************************************************/
 
-void CAsset_MapLayerTiles::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_MapLayerTiles::CStorageType* pItem)
+void CAsset_MapLayerTiles::InitFromAssetsFile(CDataFileReader* pFileReader, const CAsset_MapLayerTiles::CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	SetSize(pItem->m_Width, pItem->m_Height);
 	
@@ -123,7 +123,7 @@ void CAsset_MapLayerTiles::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, cons
 	
 	// load tiles
 	int nbTiles = pItem->m_Width * pItem->m_Height;
-	const CStorageType::CTile* pTiles = static_cast<CStorageType::CTile*>(pAssetsFile->GetData(pItem->m_TilesData));
+	const CStorageType::CTile* pTiles = static_cast<CStorageType::CTile*>(pFileReader->GetData(pItem->m_TilesData));
 	for(int i=0; i<nbTiles; i++)
 	{
 		m_pTiles[i].m_Index = pTiles[i].m_Index;
@@ -159,7 +159,7 @@ void CAsset_MapLayerTiles::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_MapLayerTiles::GetValue(int ValueType, int PathInt, int DefaultValue)
+int CAsset_MapLayerTiles::GetValue(int ValueType, int PathInt, int DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -174,7 +174,7 @@ int CAsset_MapLayerTiles::GetValue(int ValueType, int PathInt, int DefaultValue)
 }
 	
 template<>
-bool CAsset_MapLayerTiles::SetValue<int>(int ValueType, int PathInt, int Value)
+bool CAsset_MapLayerTiles::SetValue(int ValueType, int PathInt, int Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -191,7 +191,7 @@ bool CAsset_MapLayerTiles::SetValue<int>(int ValueType, int PathInt, int Value)
 /* VALUE ASSETPATH ****************************************************/
 	
 template<>
-CAssetPath CAsset_MapLayerTiles::GetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath DefaultValue)
+CAssetPath CAsset_MapLayerTiles::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -202,7 +202,7 @@ CAssetPath CAsset_MapLayerTiles::GetValue<CAssetPath>(int ValueType, int PathInt
 }
 	
 template<>
-bool CAsset_MapLayerTiles::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
+bool CAsset_MapLayerTiles::SetValue(int ValueType, int PathInt, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -215,7 +215,7 @@ bool CAsset_MapLayerTiles::SetValue<CAssetPath>(int ValueType, int PathInt, CAss
 /* VALUE VEC4 *********************************************************/
 	
 template<>
-vec4 CAsset_MapLayerTiles::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue)
+vec4 CAsset_MapLayerTiles::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue) const
 {
 	switch(ValueType)
 	{

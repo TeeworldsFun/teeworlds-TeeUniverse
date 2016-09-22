@@ -41,7 +41,6 @@
 
 //TU
 #include <tu/compatibility.h>
-#include <tu/shared/assetsfile.h>
 #include <tu/client/assetseditor/assetseditor.h>
 #include <tu/client/clientmode.h>
 #include <tu/client/assetsmanager.h>
@@ -259,7 +258,6 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_pSound = 0;
 	m_pGameClient = 0;
 	m_pMap = 0;
-	m_pAssetsFile = 0;
 	m_pConsole = 0;
 
 	m_RenderFrameTime = 0.0001f;
@@ -309,7 +307,6 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	// TU, mod download
 	m_aCurrentMod[0] = 0;
-	m_CurrentModCrc = 0;
 	m_aModdownloadFilename[0] = 0;
 	m_aModdownloadName[0] = 0;
 	m_ModdownloadFile = 0;
@@ -330,11 +327,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
 	
 	//TU
-	for(int i=0; i<tu::NUM_ASSETS; i++)
-	{
-		m_apTUGraphics[i] = 0;
-		m_apAssetsManager[i] = 0;
-	}
+	m_pKernel = 0;
 }
 
 // ----- send functions -----
@@ -612,10 +605,7 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_pMap->Unload();
 	
 	//TU unload mod graphics
-	if(AssetsManager())
-	{
-		AssetsManager()->OnAssetsFileUnloaded(tu::CAssetPath::SRC_WORLD);
-	}
+	TUKernel()->AssetsManager()->OnAssetsFileUnloaded(tu::CAssetPath::SRC_WORLD);
 
 	// disable all downloads
 	m_MapdownloadChunk = 0;
@@ -626,9 +616,8 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_MapdownloadTotalsize = -1;
 	m_MapdownloadAmount = 0;
 	
-	//TU unload the mod and disable all downloads
-	m_pAssetsFile->Unload();
-
+	//TU disable all downloads
+	
 	m_ModdownloadChunk = 0;
 	if(m_ModdownloadFile)
 		io_close(m_ModdownloadFile);
@@ -829,20 +818,6 @@ void CClient::DebugRender()
 
 void CClient::Quit()
 {
-	for(int i=0; i<tu::NUM_ASSETS; i++)
-	{
-		if(m_apTUGraphics[i])
-		{
-			delete m_apTUGraphics[i];
-			m_apTUGraphics[i] = 0;
-		}
-		if(m_apAssetsManager[i])
-		{
-			delete m_apAssetsManager[i];
-			m_apAssetsManager[i] = 0;
-		}
-	}
-	
 	SetState(IClient::STATE_QUITING);
 }
 
@@ -2518,12 +2493,10 @@ void CClient::InitInterfaces()
 {
 	// fetch interfaces
 	m_pEngine = Kernel()->RequestInterface<IEngine>();
-	m_pAssetsEditor = Kernel()->RequestInterface<tu::assetseditor::IAssetsEditor>();
 	m_pSound = Kernel()->RequestInterface<IEngineSound>();
 	m_pGameClient = Kernel()->RequestInterface<IGameClient>();
 	m_pInput = Kernel()->RequestInterface<IEngineInput>();
 	m_pMap = Kernel()->RequestInterface<IEngineMap>();
-	m_pAssetsFile = Kernel()->RequestInterface<tu::IAssetsFileEngine>();
 	m_pMasterServer = Kernel()->RequestInterface<IEngineMasterServer>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
@@ -2563,13 +2536,6 @@ void CClient::Run()
 			dbg_msg("client", "couldn't init graphics");
 			return;
 		}
-		
-		for(int i=0; i<tu::NUM_ASSETS; i++)
-		{
-			m_apAssetsManager[i] = new tu::CAssetsManager(Graphics(), Storage());
-			m_apTUGraphics[i] = new tu::CGraphics(Graphics(), m_apAssetsManager[i]);
-		}
-		m_apAssetsManager[tu::ASSETS_GAME]->EnableAssetsHistory();
 	}
 
 	// init sound, allowed to fail
@@ -2647,12 +2613,18 @@ void CClient::Run()
 	if(!LoadData())
 		return;
 
+	m_pKernel = new tu::CKernel();
+	m_pKernel->Init(Graphics(), Kernel()->RequestInterface<ITextRender>(), Input(), Storage());
+	
+	m_pKernel->AssetsManager()->EnableAssetsHistory();
+	
+	{
+		m_pAssetsEditor = new tu::assetseditor::CAssetsEditor(m_pKernel);
+		m_pAssetsEditor->Init(tu::gui::CRect(0, 0, Graphics()->ScreenWidth(), Graphics()->ScreenHeight()));
+	}
+
 	GameClient()->OnInit();
 	
-	tu::CAssetsManager::InitAssetsManager_TeeWorldsUniverse(m_apAssetsManager[tu::ASSETS_GAME]);
-	tu::CAssetsManager::InitAssetsManager_AssetsEditorGUI(m_apAssetsManager[tu::ASSETS_EDITORGUI]);
-	m_pAssetsEditor->Init(m_apAssetsManager, m_apTUGraphics);
-
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "version %s", GameClient()->NetVersion());
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "client", aBuf);
@@ -2753,8 +2725,7 @@ void CClient::Run()
 				m_ClientMode = g_Config.m_ClMode;
 			}
 
-			for(int i=0; i<tu::NUM_ASSETS; i++)
-				m_apAssetsManager[i]->UpdateAssets();
+			TUKernel()->Update();
 		
 			Update();
 			
@@ -2779,8 +2750,9 @@ void CClient::Run()
 					switch(m_ClientMode)
 					{
 						case TU_CLIENTMODE_ASSETSEDITOR:
-							//GameClient()->DrawBackground();
-							m_pAssetsEditor->UpdateAndRender();
+							m_pAssetsEditor->Update();
+							m_pAssetsEditor->Render();
+							DebugRender();
 							break;
 						case TU_CLIENTMODE_GAME:
 						default:
@@ -2838,6 +2810,9 @@ void CClient::Run()
 		// update local time
 		m_LocalTime = (time_get()-m_LocalStartTime)/(float)time_freq();
 	}
+
+	delete m_pAssetsEditor;
+	delete m_pKernel;
 
 	GameClient()->OnShutdown();
 	Disconnect();
@@ -3242,7 +3217,6 @@ int main(int argc, const char **argv) // ignore_convention
 	IEngineInput *pEngineInput = CreateEngineInput();
 	IEngineTextRender *pEngineTextRender = CreateEngineTextRender();
 	IEngineMap *pEngineMap = CreateEngineMap();
-	tu::IAssetsFileEngine *pEngineAssetsFile = tu::CreateAssetsFileEngine();
 	IEngineMasterServer *pEngineMasterServer = CreateEngineMasterServer();
 
 	{
@@ -3264,13 +3238,9 @@ int main(int argc, const char **argv) // ignore_convention
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMap*>(pEngineMap)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMap*>(pEngineMap));
 
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFileEngine*>(pEngineAssetsFile)); // register as both
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFile*>(pEngineAssetsFile));
-
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMasterServer*>(pEngineMasterServer)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMasterServer*>(pEngineMasterServer));
 
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(tu::assetseditor::CreateAssetsEditor());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateGameClient());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);
 
@@ -3327,7 +3297,6 @@ int main(int argc, const char **argv) // ignore_convention
 	delete pEngineInput;
 	delete pEngineTextRender;
 	delete pEngineMap;
-	delete pEngineAssetsFile;
 	delete pEngineMasterServer;
 
 	return 0;
@@ -3337,15 +3306,8 @@ int main(int argc, const char **argv) // ignore_convention
 
 void CClient::LoadAssetsFile(const char* pFileName, int Source)
 {
-	if(m_pAssetsFile->Load(pFileName))
-	{
-		DemoRecorder_Stop();
-		
-		if(AssetsManager())
-		{
-			AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile, Source);
-		}
-	}
+	DemoRecorder_Stop();
+	TUKernel()->AssetsManager()->LoadAssetsFile(pFileName, Source);
 }
 
 const char *CClient::LoadWorld(const char *pName, const char *pFilename, unsigned WantedCrc)
@@ -3354,18 +3316,9 @@ const char *CClient::LoadWorld(const char *pName, const char *pFilename, unsigne
 
 	SetState(IClient::STATE_LOADING);
 
-	if(!m_pAssetsFile->Load(pFilename))
+	if(!TUKernel()->AssetsManager()->LoadAssetsFile(pFilename, tu::CAssetPath::SRC_WORLD, WantedCrc))
 	{
-		str_format(aErrorMsg, sizeof(aErrorMsg), "assets '%s' not found", pFilename);
-		return aErrorMsg;
-	}
-
-	// get the crc of the mod
-	if(m_pAssetsFile->Crc() != WantedCrc)
-	{
-		str_format(aErrorMsg, sizeof(aErrorMsg), "assets differs from the server. %08x != %08x", m_pAssetsFile->Crc(), WantedCrc);
-		m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aErrorMsg);
-		m_pAssetsFile->Unload();
+		str_format(aErrorMsg, sizeof(aErrorMsg), "assetsfile '%s' with CRC '%d' not found", pFilename, WantedCrc);
 		return aErrorMsg;
 	}
 
@@ -3378,12 +3331,6 @@ const char *CClient::LoadWorld(const char *pName, const char *pFilename, unsigne
 	m_RecivedSnapshots = 0;
 
 	str_copy(m_aCurrentMod, pName, sizeof(m_aCurrentMod));
-	m_CurrentModCrc = m_pAssetsFile->Crc();
-
-	if(AssetsManager())
-	{
-		AssetsManager()->OnAssetsFileLoaded(m_pAssetsFile, tu::CAssetPath::SRC_WORLD);
-	}
 
 	return 0x0;
 }

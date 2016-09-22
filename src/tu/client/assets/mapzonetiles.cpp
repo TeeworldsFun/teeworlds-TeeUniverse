@@ -1,7 +1,7 @@
 #include "mapzonetiles.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -99,16 +99,16 @@ void CAsset_MapZoneTiles::Resize(int Width, int Height)
 
 /* IO *****************************************************************/
 
-void CAsset_MapZoneTiles::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_MapZoneTiles::CStorageType* pItem)
+void CAsset_MapZoneTiles::InitFromAssetsFile(CDataFileReader* pFileReader, const CAsset_MapZoneTiles::CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	SetSize(pItem->m_Width, pItem->m_Height);
 	
 	// load tiles
 	int nbTiles = pItem->m_Width * pItem->m_Height;
-	const CStorageType::CTile* pTiles = static_cast<CStorageType::CTile*>(pAssetsFile->GetData(pItem->m_TilesData));
+	const CStorageType::CTile* pTiles = static_cast<CStorageType::CTile*>(pFileReader->GetData(pItem->m_TilesData));
 	for(int i=0; i<nbTiles; i++)
 	{
 		m_pTiles[i].m_Index = pTiles[i].m_Index;
@@ -139,7 +139,7 @@ void CAsset_MapZoneTiles::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Pos
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_MapZoneTiles::GetValue(int ValueType, int PathInt, int DefaultValue)
+int CAsset_MapZoneTiles::GetValue(int ValueType, int PathInt, int DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -153,7 +153,7 @@ int CAsset_MapZoneTiles::GetValue(int ValueType, int PathInt, int DefaultValue)
 }
 	
 template<>
-bool CAsset_MapZoneTiles::SetValue<int>(int ValueType, int PathInt, int Value)
+bool CAsset_MapZoneTiles::SetValue(int ValueType, int PathInt, int Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -166,10 +166,36 @@ bool CAsset_MapZoneTiles::SetValue<int>(int ValueType, int PathInt, int Value)
 	TU_ASSET_SET_FUNC_IMPL_DEFAULT(int)
 }
 
+/* VALUE IVEC2 ********************************************************/
+
+template<>
+ivec2 CAsset_MapZoneTiles::GetValue(int ValueType, int PathInt, ivec2 DefaultValue) const
+{
+	CSubPath Path(PathInt);
+	switch(ValueType)
+	{
+		TU_ASSET_GET_FUNC_IMPL_FUNC(ivec2, SIZE, GetSize);
+	}
+	
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(ivec2)
+}
+	
+template<>
+bool CAsset_MapZoneTiles::SetValue(int ValueType, int PathInt, ivec2 Value)
+{
+	CSubPath Path(PathInt);
+	switch(ValueType)
+	{
+		TU_ASSET_SET_FUNC_IMPL_FUNC(ivec2, SIZE, SetSize);
+	}
+	
+	TU_ASSET_SET_FUNC_IMPL_DEFAULT(ivec2)
+}
+
 /* VALUE ASSETPATH ****************************************************/
 	
 template<>
-CAssetPath CAsset_MapZoneTiles::GetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath DefaultValue)
+CAssetPath CAsset_MapZoneTiles::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -180,7 +206,7 @@ CAssetPath CAsset_MapZoneTiles::GetValue<CAssetPath>(int ValueType, int PathInt,
 }
 	
 template<>
-bool CAsset_MapZoneTiles::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
+bool CAsset_MapZoneTiles::SetValue(int ValueType, int PathInt, CAssetPath Value)
 {
 	switch(ValueType)
 	{

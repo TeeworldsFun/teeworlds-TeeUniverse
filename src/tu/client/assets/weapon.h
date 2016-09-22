@@ -2,8 +2,7 @@
 #define TU_CLIENT_ASSETS_WEAPON_H
 
 #include <tu/client/assets.h>
-
-class CDataFileWriter;
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -23,7 +22,7 @@ public:
 		int m_AttackAnimationPath;
 	};
 	
-	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 	
 /* MEMBERS ************************************************************/

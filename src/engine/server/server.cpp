@@ -28,7 +28,6 @@
 #include <mastersrv/mastersrv.h>
 
 //TU
-#include <tu/shared/assetsfile.h>
 #include <tu/compatibility.h> 
 #include <tu/server/server.h>
 #include <tu/server/netserver_tw06.h>
@@ -2145,7 +2144,6 @@ void CServer::RegisterCommands()
 	m_pMasterServer = Kernel()->RequestInterface<IMasterServer>();
 	m_pGameServer = Kernel()->RequestInterface<IGameServer>();
 	m_pMap = Kernel()->RequestInterface<IEngineMap>();
-	m_pAssetsFile = Kernel()->RequestInterface<tu::IAssetsFileEngine>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
 	// register console commands
@@ -2236,7 +2234,6 @@ int main(int argc, const char **argv) // ignore_convention
 	int FlagMask = CFGFLAG_SERVER|CFGFLAG_ECON;
 	IEngine *pEngine = CreateEngine("Teeworlds");
 	IEngineMap *pEngineMap = CreateEngineMap();
-	tu::IAssetsFileEngine *pEngineAssetsFile = tu::CreateAssetsFileEngine();
 	IGameServer *pGameServer = CreateGameServer();
 	IConsole *pConsole = CreateConsole(CFGFLAG_SERVER|CFGFLAG_ECON);
 	IEngineMasterServer *pEngineMasterServer = CreateEngineMasterServer();
@@ -2250,8 +2247,6 @@ int main(int argc, const char **argv) // ignore_convention
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pEngine);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMap*>(pEngineMap)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMap*>(pEngineMap));
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFileEngine*>(pEngineAssetsFile)); // register as both
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<tu::IAssetsFile*>(pEngineAssetsFile));
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pGameServer);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pConsole);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);
@@ -2302,7 +2297,6 @@ int main(int argc, const char **argv) // ignore_convention
 	delete pKernel;
 	delete pEngine;
 	delete pEngineMap;
-	delete pEngineAssetsFile;
 	delete pGameServer;
 	delete pConsole;
 	delete pEngineMasterServer;
@@ -2324,14 +2318,14 @@ bool CServer::LoadMod(const char* pModName)
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "assets/%s.assets", pModName);
 
-	if(!m_pAssetsFile->Load(aBuf))
-		return 0;
+	//~ if(!m_pAssetsFile->Load(aBuf))
+		//~ return 0;
 
 	// stop recording when we change mod
 	m_DemoRecorder.Stop();
 
 	// get the crc of the mod
-	m_CurrentModCrc = m_pAssetsFile->Crc();
+	//~ m_CurrentModCrc = m_pAssetsFile->Crc();
 	char aBufMsg[256];
 	str_format(aBufMsg, sizeof(aBufMsg), "%s crc is %08x", aBuf, m_CurrentModCrc);
 	Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "server", aBufMsg);

@@ -91,8 +91,7 @@ public:
 	class IFriends *Friends() { return m_pFriends; }
 	
 	//TU
-	class tu::CGraphics *TUGraphics() const { return m_pClient->TUGraphics(); }
-	class tu::CAssetsManager *AssetsManager() const { return m_pClient->AssetsManager(); }
+	class tu::CKernel *TUKernel() const { return m_pClient->TUKernel(); }
 
 	const char *NetobjFailedOn() { return m_NetObjHandler.FailedObjOn(); };
 	int NetobjNumFailures() { return m_NetObjHandler.NumObjFailures(); };

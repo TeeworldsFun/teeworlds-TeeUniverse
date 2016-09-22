@@ -1,7 +1,7 @@
 #include "skeletonskin.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -27,16 +27,16 @@ CAsset_SkeletonSkin::CAsset_Sprite& CAsset_SkeletonSkin::AddSprite(
 
 /* IO *****************************************************************/
 
-void CAsset_SkeletonSkin::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_SkeletonSkin::CStorageType* pItem)
+void CAsset_SkeletonSkin::InitFromAssetsFile(CDataFileReader* pFileReader, const CAsset_SkeletonSkin::CStorageType* pItem)
 {
 	// load name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 				
 	// load info
 	m_SkeletonPath = pItem->m_SkeletonPath;
 	
 	// load sprites
-	const CStorageType::CAsset_Sprite* pSprites = static_cast<CStorageType::CAsset_Sprite*>(pAssetsFile->GetData(pItem->m_SpritesData));
+	const CStorageType::CAsset_Sprite* pSprites = static_cast<CStorageType::CAsset_Sprite*>(pFileReader->GetData(pItem->m_SpritesData));
 	for(int i=0; i<pItem->m_NumSprites; i++)
 	{
 		m_Sprites.add(CAsset_Sprite());
@@ -89,7 +89,7 @@ void CAsset_SkeletonSkin::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Pos
 /* VALUE INT **********************************************************/
 	
 template<>
-int CAsset_SkeletonSkin::GetValue<int>(int ValueType, int Path, int DefaultValue)
+int CAsset_SkeletonSkin::GetValue(int ValueType, int Path, int DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -99,12 +99,12 @@ int CAsset_SkeletonSkin::GetValue<int>(int ValueType, int Path, int DefaultValue
 			else
 				return DefaultValue;
 		default:
-			return CAsset::GetValue<int>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue(ValueType, Path, DefaultValue);
 	}
 }
 	
 template<>
-bool CAsset_SkeletonSkin::SetValue<int>(int ValueType, int Path, int Value)
+bool CAsset_SkeletonSkin::SetValue(int ValueType, int Path, int Value)
 {
 	switch(ValueType)
 	{
@@ -117,13 +117,13 @@ bool CAsset_SkeletonSkin::SetValue<int>(int ValueType, int Path, int Value)
 			else return false;
 	}
 	
-	return CAsset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue(ValueType, Path, Value);
 }
 
 /* VALUE FLOAT ********************************************************/
 
 template<>
-float CAsset_SkeletonSkin::GetValue<float>(int ValueType, int Path, float DefaultValue)
+float CAsset_SkeletonSkin::GetValue(int ValueType, int Path, float DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -158,12 +158,12 @@ float CAsset_SkeletonSkin::GetValue<float>(int ValueType, int Path, float Defaul
 			else
 				return DefaultValue;
 		default:
-			return CAsset::GetValue<float>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue(ValueType, Path, DefaultValue);
 	}
 }
 	
 template<>
-bool CAsset_SkeletonSkin::SetValue<float>(int ValueType, int Path, float Value)
+bool CAsset_SkeletonSkin::SetValue(int ValueType, int Path, float Value)
 {
 	switch(ValueType)
 	{
@@ -211,13 +211,13 @@ bool CAsset_SkeletonSkin::SetValue<float>(int ValueType, int Path, float Value)
 			else return false;
 	}
 	
-	return CAsset::SetValue<float>(ValueType, Path, Value);
+	return CAsset::SetValue(ValueType, Path, Value);
 }
 
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CAssetPath CAsset_SkeletonSkin::GetValue<CAssetPath>(int ValueType, int Path, CAssetPath DefaultValue)
+CAssetPath CAsset_SkeletonSkin::GetValue(int ValueType, int Path, CAssetPath DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -229,12 +229,12 @@ CAssetPath CAsset_SkeletonSkin::GetValue<CAssetPath>(int ValueType, int Path, CA
 			else
 				return DefaultValue;
 		default:
-			return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue(ValueType, Path, DefaultValue);
 	}
 }
 	
 template<>
-bool CAsset_SkeletonSkin::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
+bool CAsset_SkeletonSkin::SetValue(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -250,13 +250,13 @@ bool CAsset_SkeletonSkin::SetValue<CAssetPath>(int ValueType, int Path, CAssetPa
 			else return false;
 	}
 	
-	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue(ValueType, Path, Value);
 }
 
 /* VALUE BONEPATH *****************************************************/
 	
 template<>
-CAsset_Skeleton::CSubPath CAsset_SkeletonSkin::GetValue<CAsset_Skeleton::CSubPath>(int ValueType, int Path, CAsset_Skeleton::CSubPath DefaultValue)
+CAsset_Skeleton::CSubPath CAsset_SkeletonSkin::GetValue<CAsset_Skeleton::CSubPath>(int ValueType, int Path, CAsset_Skeleton::CSubPath DefaultValue) const
 {
 	switch(ValueType)
 	{

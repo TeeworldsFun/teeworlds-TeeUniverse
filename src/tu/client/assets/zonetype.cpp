@@ -1,7 +1,7 @@
 #include "zonetype.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -13,13 +13,13 @@ CAsset_ZoneType::CAsset_ZoneType()
 
 /* IO *****************************************************************/
 
-void CAsset_ZoneType::InitFromAssetsFile(IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_ZoneType::InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	// load indices
-	const CStorageType::CIndex* pIndices = static_cast<CStorageType::CIndex*>(pAssetsFile->GetData(pItem->m_IndicesData));
+	const CStorageType::CIndex* pIndices = static_cast<CStorageType::CIndex*>(pFileReader->GetData(pItem->m_IndicesData));
 	for(int i=0; i<pItem->m_NumIndices; i++)
 	{
 		m_Indices.add(CIndex());
@@ -54,7 +54,7 @@ void CAsset_ZoneType::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Positio
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_ZoneType::GetValue(int ValueType, int PathInt, int DefaultValue)
+int CAsset_ZoneType::GetValue(int ValueType, int PathInt, int DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -80,7 +80,7 @@ bool CAsset_ZoneType::SetValue(int ValueType, int PathInt, int Value)
 /* VALUE VEC4 *********************************************************/
 
 template<>
-vec4 CAsset_ZoneType::GetValue(int ValueType, int PathInt, vec4 DefaultValue)
+vec4 CAsset_ZoneType::GetValue(int ValueType, int PathInt, vec4 DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -106,15 +106,15 @@ bool CAsset_ZoneType::SetValue(int ValueType, int PathInt, vec4 Value)
 /* VALUE STRING *******************************************************/
 
 template<>
-char* CAsset_ZoneType::GetValue(int ValueType, int PathInt, char* DefaultValue)
+const char* CAsset_ZoneType::GetValue(int ValueType, int PathInt, const char* DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
 	{
-		TU_ASSET_GET_FUNC_IMPL_SUBFUNC(char*, INDEX_NAME, GetIndexName);
+		TU_ASSET_GET_FUNC_IMPL_SUBFUNC(const char*, INDEX_NAME, GetIndexName);
 	}
 	
-	TU_ASSET_GET_FUNC_IMPL_DEFAULT(char*)
+	TU_ASSET_GET_FUNC_IMPL_DEFAULT(const char*)
 }
 	
 template<>

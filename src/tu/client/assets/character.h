@@ -2,8 +2,7 @@
 #define TU_CLIENT_ASSETS_CHARACTER_H
 
 #include <tu/client/assets.h>
-
-class CDataFileWriter;
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -32,7 +31,7 @@ public:
 		int m_UncontrolledJumpPath;
 	};
 	
-	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* SUBITEMS ***********************************************************/

@@ -247,10 +247,10 @@ vec4 CAsset_Image::Sample(vec2 uv)
 
 /* IO *****************************************************************/
 
-void CAsset_Image::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Image::InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 				
 	// copy info
 	m_External = (pItem->m_External == 1);
@@ -258,17 +258,17 @@ void CAsset_Image::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStora
 	// copy image data
 	if(m_External)
 	{
-		char* pFilename = (char*) pAssetsFile->GetData(pItem->m_FilenameData);
+		char* pFilename = (char*) pFileReader->GetData(pItem->m_FilenameData);
 		mem_copy(m_aFilename, pFilename, sizeof(m_aFilename));
-		pAssetsFile->UnloadData(pItem->m_FilenameData);
+		pFileReader->UnloadData(pItem->m_FilenameData);
 		
 		LoadData(m_aFilename, m_GridWidth, m_GridHeight);
 	}
 	else
 	{
-		unsigned char* pData = (unsigned char*) pAssetsFile->GetData(pItem->m_ImageData);
+		unsigned char* pData = (unsigned char*) pFileReader->GetData(pItem->m_ImageData);
 		SetData(pItem->m_Width, pItem->m_Height, max(1, pItem->m_GridWidth), max(1, pItem->m_GridHeight), pItem->m_Format, pData);
-		pAssetsFile->UnloadData(pItem->m_ImageData);
+		pFileReader->UnloadData(pItem->m_ImageData);
 	}
 }
 
@@ -300,7 +300,7 @@ void CAsset_Image::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_Image::GetValue(int ValueType, int PathInt, int DefaultValue)
+int CAsset_Image::GetValue(int ValueType, int PathInt, int DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -314,7 +314,7 @@ int CAsset_Image::GetValue(int ValueType, int PathInt, int DefaultValue)
 }
 	
 template<>
-bool CAsset_Image::SetValue<int>(int ValueType, int PathInt, int Value)
+bool CAsset_Image::SetValue(int ValueType, int PathInt, int Value)
 {
 	switch(ValueType)
 	{

@@ -1,7 +1,7 @@
 #include "characterpart.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 #include <tu/client/assets/character.h>
 
 namespace tu
@@ -14,10 +14,10 @@ CAsset_CharacterPart::CAsset_CharacterPart()
 
 /* IO *****************************************************************/
 
-void CAsset_CharacterPart::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_CharacterPart::InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem)
 {
 	// load name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	m_CharacterPath = CAssetPath(pItem->m_CharacterPath);
 	m_CharacterPart = CAsset_Character::CSubPath(pItem->m_CharacterPart);
@@ -39,7 +39,7 @@ void CAsset_CharacterPart::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_CharacterPart::GetValue(int ValueType, int PathInt, int DefaultValue)
+int CAsset_CharacterPart::GetValue(int ValueType, int PathInt, int DefaultValue) const
 {	
 	switch(ValueType)
 	{
@@ -50,7 +50,7 @@ int CAsset_CharacterPart::GetValue(int ValueType, int PathInt, int DefaultValue)
 }
 	
 template<>
-bool CAsset_CharacterPart::SetValue<int>(int ValueType, int PathInt, int Value)
+bool CAsset_CharacterPart::SetValue(int ValueType, int PathInt, int Value)
 {
 	switch(ValueType)
 	{
@@ -63,7 +63,7 @@ bool CAsset_CharacterPart::SetValue<int>(int ValueType, int PathInt, int Value)
 /* VALUE ASSETPATH *******************************************************/
 
 template<>
-CAssetPath CAsset_CharacterPart::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue)
+CAssetPath CAsset_CharacterPart::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -75,7 +75,7 @@ CAssetPath CAsset_CharacterPart::GetValue(int ValueType, int PathInt, CAssetPath
 }
 	
 template<>
-bool CAsset_CharacterPart::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
+bool CAsset_CharacterPart::SetValue(int ValueType, int PathInt, CAssetPath Value)
 {
 	switch(ValueType)
 	{

@@ -3,8 +3,7 @@
 
 #include <tu/client/assets.h>
 #include <tu/client/assets/character.h>
-
-class CDataFileWriter;
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -23,7 +22,7 @@ public:
 		int m_SkeletonSkinPath;
 	};
 	
-	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* MEMBERS ************************************************************/

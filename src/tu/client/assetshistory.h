@@ -19,6 +19,10 @@
 #include <tu/client/assets/maplayerquads.h>
 #include <tu/client/assets/zonetype.h>
 #include <tu/client/assets/guirectstyle.h>
+#include <tu/client/assets/guilinestyle.h>
+#include <tu/client/assets/guiboxstyle.h>
+#include <tu/client/assets/guiscrollbarstyle.h>
+#include <tu/client/assets/guitabsstyle.h>
 
 namespace tu
 {

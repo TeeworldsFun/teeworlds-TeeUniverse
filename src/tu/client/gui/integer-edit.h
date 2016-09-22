@@ -1,7 +1,8 @@
 #ifndef TU_CLIENT_GUI_INTEGEREDIT_H
 #define TU_CLIENT_GUI_INTEGEREDIT_H
 
-#include "widget.h"
+#include "listlayout.h"
+#include "text-edit.h"
 #include "button.h"
 
 namespace tu
@@ -10,81 +11,74 @@ namespace tu
 namespace gui
 {
 
-class CAbstractIntegerEdit : public CWidget
+class CAbstractIntegerEdit : public CHListLayout
 {
-	class CIncreaseButton : public CIconButton
+	class CEntry : public CAbstractTextEdit
 	{
 	protected:
 		CAbstractIntegerEdit* m_pIntegerEdit;
-		
-		virtual void MouseClickAction();
+		virtual void SaveFromTextBuffer();
+		virtual void CopyToTextBuffer();
 		
 	public:
-		CIncreaseButton(CAbstractIntegerEdit *pIntegerEdit);
+		CEntry(CAbstractIntegerEdit *pIntegerEdit);
 	};
 	
-	class CDecreaseButton : public CIconButton
+	class CDecreaseButton : public CButton
 	{
 	protected:
 		CAbstractIntegerEdit* m_pIntegerEdit;
-		
 		virtual void MouseClickAction();
 		
 	public:
 		CDecreaseButton(CAbstractIntegerEdit *pIntegerEdit);
 	};
 	
-protected:	
-	CRect m_IntegerRect;
-	
-	int m_LastValue;
-	char m_aIntegerText[64];
-	int m_CursorCharPos;
-	bool m_UnderMouse;
-	bool m_Clicked;
-	
-	CIncreaseButton* m_pIncreaseButton;
-	CDecreaseButton* m_pDecreaseButton;
+	class CIncreaseButton : public CButton
+	{
+	protected:
+		CAbstractIntegerEdit* m_pIntegerEdit;
+		virtual void MouseClickAction();
+		
+	public:
+		CIncreaseButton(CAbstractIntegerEdit *pIntegerEdit);
+	};
 	
 protected:
-	void ApplyTextEntry();
-	
-	virtual void SetValue(int v) = 0;
-	virtual int GetValue() = 0;
+	CEntry* m_pEntry;
+
+protected:
+	virtual int GetValue() const = 0;
+	virtual void SetValue(int Value) = 0;
 	
 public:
-	CAbstractIntegerEdit(class CConfig *pConfig);
-	virtual ~CAbstractIntegerEdit();
-	virtual void Update();
-	virtual void Render();
-	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
-	virtual void OnButtonClick(int X, int Y, int Button, int Count);
-	virtual void OnButtonRelease(int Button);
-	virtual void OnInputEvent();
+	CAbstractIntegerEdit(class CContext *pConfig);
 };
 
 class CIntegerEdit : public CAbstractIntegerEdit
 {
 protected:
 	int m_Value;
-	
-	virtual void SetValue(int v);
-	virtual int GetValue();
+
+protected:
+	virtual int GetValue() const;
+	virtual void SetValue(int Value);
 	
 public:
-	CIntegerEdit(class CConfig *pConfig, int DefaultValue);
+	CIntegerEdit(class CContext *pConfig, int DefaultValue);
 };
 
 class CExternalIntegerEdit : public CAbstractIntegerEdit
 {
 protected:
 	int* m_Memory;
-	
-	virtual void SetValue(int v);
-	virtual int GetValue();
+
+protected:
+	virtual int GetValue() const;
+	virtual void SetValue(int Value);
 	
 public:
-	CExternalIntegerEdit(class CConfig *pConfig, int* m_Memory);
+	CExternalIntegerEdit(class CContext *pConfig, int* m_Memory);
 };
 
 }

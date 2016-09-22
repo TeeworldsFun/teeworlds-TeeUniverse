@@ -194,7 +194,7 @@ public:
 
 		list[index] = item;
 
-		return num_elements-1;
+		return index;
 	}
 
 	/*

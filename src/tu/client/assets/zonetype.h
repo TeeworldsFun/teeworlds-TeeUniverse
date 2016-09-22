@@ -2,8 +2,7 @@
 #define TU_CLIENT_ASSETS_ZONETYPE_H
 
 #include <tu/client/assets.h>
-
-class CDataFileWriter;
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -28,7 +27,7 @@ public:
 		int m_IndicesData;
 	};
 	
-	void InitFromAssetsFile(class IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 		
 /* SUBITEMS ***********************************************************/

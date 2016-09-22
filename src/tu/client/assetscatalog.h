@@ -2,6 +2,7 @@
 #define TU_CLIENT_ASSETSCATALOG_H
 
 #include <base/tl/array.h>
+#include <engine/shared/datafile.h>
 #include <tu/client/assets.h>
 
 namespace tu
@@ -32,6 +33,21 @@ public:
 		{
 			m_Assets[Source][i].m_State = State;
 		}
+	}
+	
+	const ASSET* GetAsset(const CAssetPath& path) const
+	{
+		if(path.GetType() != ASSET::TypeId)
+			return 0;
+		
+		int Id = path.GetId();
+		if(Id < 0)
+			return 0;
+			
+		if(Id < m_Assets[path.GetSource()].size())
+			return &m_Assets[path.GetSource()][Id].m_Asset;
+		else
+			return 0;
 	}
 	
 	ASSET* GetAsset(const CAssetPath& path)
@@ -93,7 +109,7 @@ public:
 		return &m_Assets[path.GetSource()][Id].m_Asset;
 	}
 	
-	void LoadFromAssetsFile(class CAssetsManager* pAssetsManager, tu::IAssetsFile* pAssetsFile, int Source)
+	void LoadFromAssetsFile(class CAssetsManager* pAssetsManager, CDataFileReader* pAssetsFile, int Source)
 	{
 		int Start, Num;
 		pAssetsFile->GetType(CAssetPath::TypeToStoredType(ASSET::TypeId), &Start, &Num);
@@ -110,7 +126,7 @@ public:
 		}
 	}
 	
-	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Source)
+	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Source)
 	{
 		for(int i=0; i<m_Assets[Source].size(); i++)
 		{

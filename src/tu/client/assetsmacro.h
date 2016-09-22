@@ -15,3 +15,7 @@ TU_MACRO_ASSETTYPE(tu::CAsset_MapLayerTiles, m_MapLayerTilesCatalog, "Tiled laye
 TU_MACRO_ASSETTYPE(tu::CAsset_MapLayerQuads, m_MapLayerQuadsCatalog, "Quads layer", "QuadsLayer")
 TU_MACRO_ASSETTYPE(tu::CAsset_ZoneType, m_ZoneTypesCatalog, "Zone type", "ZoneType")
 TU_MACRO_ASSETTYPE(tu::CAsset_GuiRectStyle, m_GuiRectStylesCatalog, "Rectangle style", "RectStyle")
+TU_MACRO_ASSETTYPE(tu::CAsset_GuiLineStyle, m_GuiLineStylesCatalog, "Line style", "LineStyle")
+TU_MACRO_ASSETTYPE(tu::CAsset_GuiBoxStyle, m_GuiBoxStylesCatalog, "Box style", "BoxStyle")
+TU_MACRO_ASSETTYPE(tu::CAsset_GuiScrollbarStyle, m_GuiScrollbarStylesCatalog, "Scrollbar style", "ScrollbarStyle")
+TU_MACRO_ASSETTYPE(tu::CAsset_GuiTabsStyle, m_GuiTabsStylesCatalog, "Tabs style", "TabsStyle")

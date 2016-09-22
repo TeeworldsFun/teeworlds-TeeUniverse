@@ -10,113 +10,146 @@ namespace tu
 namespace gui
 {
 
-CPopup::CPopup(CConfig *pConfig, const CRect& CreatorRect, int Width, int Height, int Alignment) :
+CPopup::CPopup(CContext *pConfig, const CRect& CreatorRect, int Width, int Height, int Alignment) :
 	CWidget(pConfig),
-	m_Child(0),
-	m_IsClosed(false)
+	m_pChild(0),
+	m_IsClosed(false),
+	m_Width(Width),
+	m_Height(Height),
+	m_Alignment(Alignment),
+	m_CreatorRect(CreatorRect),
+	m_BoxStylePath(Context()->GetPopupStyle())
 {
-	int ScreenWidth = Graphics()->ScreenWidth();
-	int ScreenHeight = Graphics()->ScreenHeight();
-	
-	switch(Alignment)
-	{
-		case ALIGNMENT_INNER:
-			SetRect(CRect(
-				CreatorRect.x + m_pConfig->m_LayoutSpacing,
-				CreatorRect.y + m_pConfig->m_LayoutSpacing,
-				CreatorRect.w - 2*m_pConfig->m_LayoutSpacing,
-				CreatorRect.h - 2*m_pConfig->m_LayoutSpacing
-			));
-			break;
-		case ALIGNMENT_LEFT:
-			SetRect(CRect(
-				CreatorRect.x - Width - m_pConfig->m_LayoutSpacing,
-				min(CreatorRect.y, ScreenHeight - Height - m_pConfig->m_LayoutSpacing),
-				Width,
-				Height
-			));
-			break;
-		case ALIGNMENT_RIGHT:
-		default:
-			SetRect(CRect(
-				CreatorRect.x + CreatorRect.w + m_pConfig->m_LayoutSpacing,
-				min(CreatorRect.y, ScreenHeight - Height - m_pConfig->m_LayoutSpacing),
-				Width,
-				Height
-			));
-	}
+
 }
 
 CPopup::~CPopup()
 {
-	if(m_Child)
-		delete m_Child;
+	if(m_pChild)
+		delete m_pChild;
 }
 
 void CPopup::Clear()
 {
-	if(m_Child)
+	if(m_pChild)
 	{
-		delete m_Child;
-		m_Child = 0;
+		delete m_pChild;
+		m_pChild = 0;
 		m_ChildWidth = 0;
 		m_ChildHeight = 0;
 	}
 }
 
+void CPopup::UpdateBoundingSize()
+{
+	if(m_pChild)
+		m_pChild->UpdateBoundingSize();
+	
+	m_BoundingSizeRect.BSFixed(m_Width, m_Height);
+}
+
+void CPopup::UpdatePosition(CRect BoundingRect)
+{
+	if(m_Alignment == ALIGNMENT_INNER)
+	{
+		m_DrawRect = m_CreatorRect;
+	}
+	else
+	{
+		int TryRight = m_CreatorRect.x;
+		int TryLeft = m_CreatorRect.x - m_Width;
+		int TryTop = m_CreatorRect.y + m_CreatorRect.h - m_Height;
+		int TryBottom = m_CreatorRect.y;
+		
+		if((m_CreatorRect.x + m_CreatorRect.w/2) > (BoundingRect.x + BoundingRect.w/2))
+		{
+			if(TryRight + m_Width < BoundingRect.x + BoundingRect.w)
+				m_DrawRect.x = TryRight;
+			else
+				m_DrawRect.x = TryLeft;
+		}
+		else
+		{
+			if(TryLeft >= BoundingRect.x)
+				m_DrawRect.x = TryLeft;
+			else
+				m_DrawRect.x = TryRight;
+		}
+			
+		if(TryBottom + m_Height < BoundingRect.y + BoundingRect.h)
+			m_DrawRect.y = TryBottom;
+		else
+			m_DrawRect.y = TryTop;
+	}
+	
+	m_DrawRect.w = m_Width;
+	m_DrawRect.h = m_Height;
+	
+	if(m_pChild)
+	{
+		CRect ContentRect = m_DrawRect;
+		const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
+		if(pBoxStyle)
+		{
+			ContentRect.RemoveMargin(pBoxStyle->GetMargin());
+			ContentRect.RemoveMargin(pBoxStyle->GetPadding());
+		}
+		m_pChild->UpdatePosition(ContentRect);
+	}
+}
+
 void CPopup::Update()
 {
-	if(m_Child)
+	if(m_pChild)
 	{
-		m_Child->SetRect(CRect(
-			m_Rect.x + m_pConfig->m_LayoutMargin,
-			m_Rect.y + m_pConfig->m_LayoutMargin,
-			m_Rect.w - m_pConfig->m_LayoutMargin*2,
-			m_Rect.h - m_pConfig->m_LayoutMargin*2)
-		);
-		m_Child->Update();
+		m_pChild->Update();
 	}
 }
 	
 void CPopup::Render()
 {
-	if(!m_Child)
-		return;
-		
-	//Background	
+	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
+	if(pBoxStyle)
 	{
-		CUIRect rect;
-		rect.x = m_Rect.x;
-		rect.y = m_Rect.y;
-		rect.w = m_Rect.w;
-		rect.h = m_Rect.h;
-		RenderTools()->DrawRoundRect(&rect, vec4(0.5f, 0.5f, 0.5f, 0.8f), s_LayoutCornerRadius);
+		CRect Rect = m_DrawRect;
+		Rect.RemoveMargin(pBoxStyle->GetMargin());
+	
+		ivec2 MousePos = Context()->GetMousePos();
+		if(Rect.IsInside(MousePos.x, MousePos.y))
+			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetMouseOverRectPath());
+		else
+			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetDefaultRectPath());
+			
+		Rect.RemoveMargin(pBoxStyle->GetPadding());
 	}
 	
-	m_Child->Render();
+	if(m_pChild)
+		m_pChild->Render();
 }
 
 void CPopup::Add(CWidget* pWidget)
 {
-	if(m_Child) delete m_Child;
-	m_Child = pWidget;
+	if(m_pChild)
+		delete m_pChild;
+	
+	m_pChild = pWidget;
 }
 
 void CPopup::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
-	if(m_Child)
+	if(m_pChild)
 	{
-		m_Child->OnMouseOver(X, Y, RelX, RelY, KeyState);
+		m_pChild->OnMouseOver(X, Y, RelX, RelY, KeyState);
 	}
 }
 
 void CPopup::OnButtonClick(int X, int Y, int Button, int Count)
 {
-	if(m_Rect.IsInside(X, Y))
+	if(m_DrawRect.IsInside(X, Y))
 	{
-		if(m_Child)
+		if(m_pChild)
 		{
-			m_Child->OnButtonClick(X, Y, Button, Count);
+			m_pChild->OnButtonClick(X, Y, Button, Count);
 		}
 	}
 	else if(Button == KEY_MOUSE_1)
@@ -127,17 +160,17 @@ void CPopup::OnButtonClick(int X, int Y, int Button, int Count)
 
 void CPopup::OnButtonRelease(int Button)
 {
-	if(m_Child)
+	if(m_pChild)
 	{
-		m_Child->OnButtonRelease(Button);
+		m_pChild->OnButtonRelease(Button);
 	}
 }
 
 void CPopup::OnInputEvent()
 {
-	if(m_Child)
+	if(m_pChild)
 	{
-		m_Child->OnInputEvent();
+		m_pChild->OnInputEvent();
 	}
 }
 

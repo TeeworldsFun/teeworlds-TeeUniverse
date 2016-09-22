@@ -88,7 +88,7 @@ void CAssetsHistory::AddOperation_EditAsset(CAssetPath AssetPath, int Token)
 		
 		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 		{\
-			ClassName* pAsset = AssetsManager()->GetAsset<ClassName>(AssetPath);\
+			const ClassName* pAsset = AssetsManager()->GetAsset<ClassName>(AssetPath);\
 			if(pAsset)\
 			{\
 				COperation Operation;\
@@ -140,7 +140,7 @@ void CAssetsHistory::AddOperation_AddAsset(CAssetPath AssetPath, int Token)
 		
 		#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 		{\
-			ClassName* pAsset = AssetsManager()->GetAsset<ClassName>(AssetPath);\
+			const ClassName* pAsset = AssetsManager()->GetAsset<ClassName>(AssetPath);\
 			if(pAsset)\
 			{\
 				COperation Operation;\
@@ -176,9 +176,7 @@ void CAssetsHistory::Undo()
 			{\
 				ClassName* pOldAsset = (ClassName*) m_Entries[m_LastEntry].m_Operations[i].m_pAsset;\
 				dbg_msg("TeeUniv", "History::Undo (EditOperation). HistorySize:%d, Pointer:%p", m_Size-1, pOldAsset);\
-				ClassName* pNewAsset = AssetsManager()->GetAsset<ClassName>(m_Entries[m_LastEntry].m_Operations[i].m_AssetPath);\
-				if(pNewAsset)\
-					*pNewAsset = *pOldAsset;\
+				AssetsManager()->SetAsset<ClassName>(m_Entries[m_LastEntry].m_Operations[i].m_AssetPath, pOldAsset);\
 			}\
 			else if(m_Entries[m_LastEntry].m_Operations[i].m_Operation == OPERATION_ADDASSET)\
 			{\

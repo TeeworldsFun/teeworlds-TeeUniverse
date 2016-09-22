@@ -1,6 +1,7 @@
 #include <engine/graphics.h>
 #include <engine/textrender.h>
 #include <game/client/render.h>
+#include <tu/client/assetsrenderer.h>
 
 #include "expand.h"
 
@@ -10,7 +11,7 @@ namespace tu
 namespace gui
 {
 
-CExpand::CExpand(CConfig *pConfig) :
+CExpand::CExpand(CContext *pConfig) :
 	CWidget(pConfig),
 	m_pTitle(0)
 {
@@ -35,48 +36,118 @@ void CExpand::Clear()
 		delete m_Childs[i];
 	}
 	m_Childs.clear();
+}
+
+void CExpand::UpdateBoundingSize()
+{	
+	m_BoundingSizeRect.BSNoConstraint();
 	
-	Update();
+	int Spacing = 0;
+	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
+	if(pBoxStyle)
+		Spacing = Context()->ApplyGuiScale(pBoxStyle->GetSpacing());
+	
+	if(m_pTitle)
+	{
+		m_pTitle->UpdateBoundingSize();
+		m_BoundingSizeRect.BSVerticalAdd(m_pTitle->GetBS());
+	}
+	
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		m_Childs[i]->UpdateBoundingSize();
+		
+		if(m_pTitle || i>0)
+			m_BoundingSizeRect.BSAddSpacing(0, Spacing);
+		
+		m_BoundingSizeRect.BSVerticalAdd(m_Childs[i]->GetBS());
+	}
+	
+	if(pBoxStyle)
+	{
+		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
+		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
+	}
+}
+
+void CExpand::UpdatePosition(CRect BoundingRect)
+{
+	m_DrawRect.DRUpdatePosition(BoundingRect, m_BoundingSizeRect);
+	
+	int Spacing = 0;
+	CRect ContentRect = m_DrawRect;
+	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
+	if(pBoxStyle)
+	{
+		Spacing = pBoxStyle->GetSpacing();
+		ContentRect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
+		ContentRect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
+	}
+	
+	int PosY = ContentRect.y;
+	if(m_pTitle)
+	{
+		CRect TitleRect(
+			ContentRect.x,
+			PosY,
+			ContentRect.w,
+			m_pTitle->GetBS().minh
+		);
+		m_pTitle->UpdatePosition(TitleRect);
+		PosY += TitleRect.h;
+	}
+	
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		if(m_pTitle || i>0)
+			PosY += Spacing;
+		
+		CRect ChildRect(
+			ContentRect.x,
+			PosY,
+			ContentRect.w - GetShift(),
+			m_Childs[i]->GetBS().minh
+		);
+		
+		if(Context()->GetGuiDirection() != CContext::DIRECTION_RTL)
+			ChildRect.x += GetShift();
+		
+		m_Childs[i]->UpdatePosition(ChildRect);
+		PosY += ChildRect.h;
+	}
 }
 
 void CExpand::Update()
 {
-	m_pTitle->m_Rect.x = m_Rect.x;
-	m_pTitle->m_Rect.y = m_Rect.y;
-	m_pTitle->m_Rect.w = m_Rect.w;
-	m_pTitle->Update();
+	if(m_pTitle)
+		m_pTitle->Update();
 	
 	for(int i=0; i<m_Childs.size(); i++)
 	{
 		m_Childs[i]->Update();
-	}
-	
-	int PosY = m_Rect.y + m_pTitle->m_Rect.h + m_pConfig->m_ExpandSpacing;
-	for(int i=0; i<m_Childs.size(); i++)
-	{
-		m_Childs[i]->SetRect(CRect(
-			m_Rect.x + m_pConfig->m_ExpandShift,
-			PosY,
-			m_Rect.w - m_pConfig->m_ExpandShift,
-			m_Childs[i]->m_Rect.h
-		));
-		
-		PosY += m_Childs[i]->m_Rect.h + m_pConfig->m_ExpandSpacing;
-	}
-	
-	m_Rect.h = m_pTitle->m_Rect.h + m_pConfig->m_ExpandSpacing*m_Childs.size();
-	
-	for(int i=0; i<m_Childs.size(); i++)
-	{
-		m_Childs[i]->Update();
-		
-		m_Rect.h += m_Childs[i]->m_Rect.h;
 	}
 }
 	
 void CExpand::Render()
 {
-	m_pTitle->Render();
+	//Background
+	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
+	if(pBoxStyle)
+	{
+		CRect Rect = m_DrawRect;
+		Rect.RemoveMargin(pBoxStyle->GetMargin());
+	
+		ivec2 MousePos = Context()->GetMousePos();
+		if(Rect.IsInside(MousePos.x, MousePos.y))
+			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetMouseOverRectPath());
+		else
+			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetDefaultRectPath());
+			
+		Rect.RemoveMargin(pBoxStyle->GetPadding());
+	}
+	
+	if(m_pTitle)
+		m_pTitle->Render();
 	
 	//Childs
 	for(int i=0; i<m_Childs.size(); i++)
@@ -87,6 +158,9 @@ void CExpand::Render()
 
 void CExpand::SetTitle(CWidget* pWidget)
 {
+	if(m_pTitle)
+		delete m_pTitle;
+	
 	m_pTitle = pWidget;
 }
 
@@ -97,7 +171,8 @@ void CExpand::Add(CWidget* pWidget)
 
 void CExpand::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
-	m_pTitle->OnMouseOver(X, Y, RelX, RelY, KeyState);
+	if(m_pTitle)
+		m_pTitle->OnMouseOver(X, Y, RelX, RelY, KeyState);
 	
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -107,7 +182,8 @@ void CExpand::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 
 void CExpand::OnButtonClick(int X, int Y, int Button, int Count)
 {
-	m_pTitle->OnButtonClick(X, Y, Button, Count);
+	if(m_pTitle)
+		m_pTitle->OnButtonClick(X, Y, Button, Count);
 	
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -117,7 +193,8 @@ void CExpand::OnButtonClick(int X, int Y, int Button, int Count)
 
 void CExpand::OnButtonRelease(int Button)
 {
-	m_pTitle->OnButtonRelease(Button);
+	if(m_pTitle)
+		m_pTitle->OnButtonRelease(Button);
 	
 	for(int i=0; i<m_Childs.size(); i++)
 	{
@@ -127,7 +204,8 @@ void CExpand::OnButtonRelease(int Button)
 
 void CExpand::OnInputEvent()
 {
-	m_pTitle->OnInputEvent();
+	if(m_pTitle)
+		m_pTitle->OnInputEvent();
 	
 	for(int i=0; i<m_Childs.size(); i++)
 	{

@@ -2,8 +2,7 @@
 #define TU_CLIENT_ASSETS_MAPZONETILES_H
 
 #include <tu/client/assets.h>
-
-class CDataFileWriter;
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -27,7 +26,7 @@ public:
 		int m_TilesData;
 	};
 	
-	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* SUBITEMS ***********************************************************/
@@ -95,6 +94,7 @@ public:
 	inline CAssetPath GetZoneTypePath() const { return m_ZoneTypePath; }
 	inline int GetWidth() const { return max(1, m_Width); }
 	inline int GetHeight() const { return max(1, m_Height); }
+	inline ivec2 GetSize() const { return ivec2(max(1, m_Width), max(1, m_Height)); }
 	inline int GetTileIndex(int x, int y) const
 	{
 		if(x >= 0 && x < m_Width && y >= 0 && y < m_Height)
@@ -102,7 +102,7 @@ public:
 		else
 			return 0;
 	}
-	inline int GetTileIndex(CSubPath SubPath) { return GetTileIndex(SubPath.GetX(), SubPath.GetY()); }
+	inline int GetTileIndex(CSubPath SubPath) const { return GetTileIndex(SubPath.GetX(), SubPath.GetY()); }
 	
 	inline void SetZoneTypePath(CAssetPath Value) { m_ZoneTypePath = Value; }
 	inline void SetTileIndex(int x, int y, int Index)
@@ -121,8 +121,13 @@ public:
 		if(m_Height != Height)
 			Resize(m_Width, Height);
 	}
+	inline void SetSize(ivec2 Size)
+	{
+		if(m_Width != Size.x || m_Height != Size.y)
+			Resize(Size.x, Size.y);
+	}
 	
-	inline int GetArea()
+	inline int GetArea() const
 	{
 		int Counter = 0;
 		for(int j=0; j<m_Height; j++)
@@ -143,6 +148,7 @@ public:
 		ZONETYPEPATH = CAsset::NUM_MEMBERS, //Path
 		WIDTH, //Int
 		HEIGHT, //Int
+		SIZE, //ivec2
 		TILE_INDEX, //Int
 	};
 	

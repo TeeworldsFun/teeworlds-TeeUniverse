@@ -7,7 +7,7 @@
 #include "message.h"
 #include "graphics.h"
 
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 #include <tu/client/assetsmanager.h>
 #include <tu/client/metanetclient.h>
 
@@ -164,8 +164,7 @@ public:
 
 	//TU
 public:
-	virtual tu::CGraphics *TUGraphics(int Type = tu::ASSETS_GAME) const = 0;
-	virtual tu::CAssetsManager *AssetsManager(int Type = tu::ASSETS_GAME) const = 0;
+	virtual tu::CKernel *TUKernel() const = 0;
 	virtual void LoadAssetsFile(const char* pFileName, int Source) = 0;
 };
 

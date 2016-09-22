@@ -5,13 +5,12 @@
 #include <engine/graphics.h>
 
 #include <tu/graphics.h>
-#include <tu/shared/assetsfile.h>
 #include <tu/client/assetpath.h>
 
 //GET/SET
 	//Header
 #define TU_ASSET_GETSET_FUNC() 	template<typename T>\
-	T GetValue(int ValueType, int Path, T DefaultValue)\
+	T GetValue(int ValueType, int Path, T DefaultValue) const\
 	{\
 		return CAsset::GetValue<T>(ValueType, Path, DefaultValue);\
 	}\
@@ -145,10 +144,10 @@
 		CSubPath operator==(const CIterator##SubTypeName& Iter2) { return Iter2.m_Part == m_Part; }\
 		CSubPath operator!=(const CIterator##SubTypeName& Iter2) { return Iter2.m_Part != m_Part; }\
 	};\
-	CIterator##SubTypeName Begin##SubTypeName() { return CIterator##SubTypeName(0, false); }\
-	CIterator##SubTypeName End##SubTypeName() { return CIterator##SubTypeName(ArrayName.size(), false); }\
-	CIterator##SubTypeName ReverseBegin##SubTypeName() { return CIterator##SubTypeName(ArrayName.size()-1, true); }\
-	CIterator##SubTypeName ReverseEnd##SubTypeName() { return CIterator##SubTypeName(-1, true); }
+	CIterator##SubTypeName Begin##SubTypeName() const { return CIterator##SubTypeName(0, false); }\
+	CIterator##SubTypeName End##SubTypeName() const { return CIterator##SubTypeName(ArrayName.size(), false); }\
+	CIterator##SubTypeName ReverseBegin##SubTypeName() const { return CIterator##SubTypeName(ArrayName.size()-1, true); }\
+	CIterator##SubTypeName ReverseEnd##SubTypeName() const { return CIterator##SubTypeName(-1, true); }
 
 namespace tu
 {
@@ -185,6 +184,7 @@ public:
 	}
 	
 	inline class CAssetsManager* AssetsManager() { return m_pAssetsManager; }
+	inline class CAssetsManager* AssetsManager() const { return m_pAssetsManager; }
 
 public:
 	enum
@@ -194,12 +194,12 @@ public:
 	};
 	
 	template<typename T>
-	T GetValue(int ValueType, int Path, T DefaultValue)
+	T GetValue(int ValueType, int Path, T DefaultValue) const
 	{
 		return DefaultValue;
 	}
 	
-	template<typename T>\
+	template<typename T>
 	bool SetValue(int ValueType, int Path, T Value)
 	{
 		return false;

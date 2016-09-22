@@ -3,6 +3,7 @@
 
 #include <tu/client/assets.h>
 #include <tu/client/assets/skeleton.h>
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -37,8 +38,8 @@ public:
 		int m_SpritesData;
 	};
 	
-	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
-	void SaveInAssetsFile(class CDataFileWriter* pFileWriter, int Position);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
+	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* SUBITEMS ***********************************************************/
 public:

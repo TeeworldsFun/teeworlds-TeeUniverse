@@ -735,7 +735,77 @@ public:
 		if(GotNewLine)
 			pCursor->m_Y = DrawY;
 	}
+	
+	virtual void Debug_DrawCaches()
+	{
+		int Scale = 2;
+		int PosX = 0;
+		int PosY = 0;
+		int MaxX = 0;
+		
+		for(unsigned i = 0; i < NUM_FONT_SIZES; i++)
+		{
+			CFontSizeData* pSizeData = &m_pDefaultFont->m_aSizes[i];
+			int Width = pSizeData->m_TextureWidth/Scale;
+			int Height = pSizeData->m_TextureHeight/Scale;
+			
+			if(PosY + Height > Graphics()->ScreenHeight())
+			{
+				PosY = 0;
+				PosX += MaxX;
+				MaxX = 0;
+			}
+			else if(MaxX < Width)
+			{
+				MaxX = Width;
+			}
+			
+			{
+				Graphics()->TextureClear();
+				Graphics()->QuadsBegin();
+				Graphics()->SetColor(0.0f, 0.0f, 0.0f, 1.0f);
+				
+				Graphics()->QuadsSetSubset(0.0f, 0.0f, 1.0f, 1.0f);
+				IGraphics::CQuadItem QuadItem(PosX, PosY, Width, Height);
+				Graphics()->QuadsDrawTL(&QuadItem, 1);
+				
+				Graphics()->QuadsEnd();
+			}
+			{
+				Graphics()->TextureSet(pSizeData->m_aTextures[0]);
+				Graphics()->QuadsBegin();
+				Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+				
+				Graphics()->QuadsSetSubset(0.0f, 0.0f, 1.0f, 1.0f);
+				IGraphics::CQuadItem QuadItem(PosX, PosY, Width, Height);
+				Graphics()->QuadsDrawTL(&QuadItem, 1);
+				
+				Graphics()->QuadsEnd();
+			}
+			{
+				Graphics()->TextureClear();
+				Graphics()->LinesBegin();
+				Graphics()->SetColor(1.0f, 1.0f, 0.0f, 1.0f);
+				
+				vec2 minCorner = vec2(PosX-0.5f, PosY-0.5f);
+				vec2 maxCorner = vec2(PosX+Width+0.5f, PosY+Height+0.5f);
 
+				{
+					IGraphics::CLineItem Lines[4];
+					Lines[0] = IGraphics::CLineItem(minCorner.x, minCorner.y, maxCorner.x, minCorner.y);
+					Lines[1] = IGraphics::CLineItem(maxCorner.x, minCorner.y, maxCorner.x, maxCorner.y);
+					Lines[2] = IGraphics::CLineItem(maxCorner.x, maxCorner.y, minCorner.x, maxCorner.y);
+					Lines[3] = IGraphics::CLineItem(minCorner.x, maxCorner.y, minCorner.x, minCorner.y);
+					
+					Graphics()->LinesDraw(Lines, 4);
+				}
+				
+				Graphics()->LinesEnd();
+			}
+			
+			PosY += Height;
+		}
+	}
 };
 
 IEngineTextRender *CreateEngineTextRender() { return new CTextRender; }

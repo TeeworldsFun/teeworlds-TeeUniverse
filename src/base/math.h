@@ -86,6 +86,18 @@ template <typename T> inline T min(T a, T b) { return a<b?a:b; }
 template <typename T> inline T max(T a, T b) { return a>b?a:b; }
 template <typename T> inline T absolute(T a) { return a<T(0)?-a:a; }
 
+inline int nearestPowerOfTwo(int n)
+{
+	n--;
+	n |= n >> 1;
+	n |= n >> 2;
+	n |= n >> 4;
+	n |= n >> 8;
+	n |= n >> 16;
+	n++; 
+	return n;	
+}
+
 //Compute the nearest power of two during the compilation
 //Use NearestPowerOfTwo<N>::result
 template<int N, int SHIFT>

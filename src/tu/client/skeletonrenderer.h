@@ -9,7 +9,7 @@ class IGraphics;
 namespace tu
 {
 
-class CSkeletonRenderer
+class CSkeletonRenderer : public CKernel::CGuest
 {
 public:
 	enum
@@ -59,11 +59,7 @@ protected:
 		vec4 m_Color;
 	};
 
-protected:
-	IGraphics* m_pGraphics;
-	CGraphics* m_pTUGraphics;
-	CAssetsManager* m_pAssetsManager;
-	
+protected:	
 	array<CSkeletonState> m_Skeletons;
 	array<CSkinState> m_Skins;
 	int m_NumLayers;
@@ -73,7 +69,7 @@ protected:
 	vec2 m_Hook;
 	
 public:
-	CSkeletonRenderer(CGraphics* pTUGraphics, CAssetsManager* pAssetsManager);
+	CSkeletonRenderer(CKernel* pKernel);
 	
 	void SetAim(vec2 Aim) { m_Aim = Aim; }
 	void SetMotion(vec2 Motion) { m_Motion = Motion; }
@@ -94,10 +90,6 @@ public:
 	bool BonePicking(vec2 Position, float Size, vec2 Point, CAssetPath& SkeletonPath, CAsset_Skeleton::CSubPath& BonePath);
 	bool GetLocalAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
 	bool GetParentAxis(vec2 Position, float Size, CAssetPath SkeletonPath, CAsset_Skeleton::CSubPath BonePath, vec2& Origin, vec2& AxisX, vec2& AxisY);
-	
-	CGraphics* TUGraphics() { return m_pTUGraphics; }
-	IGraphics* Graphics() { return m_pGraphics; }
-	CAssetsManager* AssetsManager() { return m_pAssetsManager; }
 };
 
 }

@@ -1311,7 +1311,7 @@ void CGameClient::CClientData::UpdateRenderInfo(CGameClient *pGameClient, bool U
 
 		for(int p = 0; p < NUM_SKINPARTS; p++)
 		{
-			tu::CAssetPath CharacterPartPath = pGameClient->AssetsManager()->FindSkinPart(
+			tu::CAssetPath CharacterPartPath = pGameClient->TUKernel()->AssetsManager()->FindSkinPart(
 				tu::CAssetPath::Universe(tu::CAssetPath::TYPE_CHARACTER, tu::CHARACTER_TEE),
 				tu::CAsset_Character::CSubPath::Part(p),
 				m_aaSkinPartNames[p]

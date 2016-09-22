@@ -1,7 +1,7 @@
 #ifndef TU_CLIENT_GUI_TEXTEDIT_H
 #define TU_CLIENT_GUI_TEXTEDIT_H
 
-#include "widget.h"
+#include "label.h"
 
 namespace tu
 {
@@ -9,40 +9,41 @@ namespace tu
 namespace gui
 {
 
-class CAbstractTextEdit : public CWidget
+class CAbstractTextEdit : public CAbstractLabel
 {
 protected:
-	int m_TextStyle;
-	int m_TextMaxSize;
-	
-	int m_CursorCharPos;
-	
-	bool m_UnderMouse;
-	bool m_Clicked;
+	bool m_Focus;
+	bool m_Changes;
+	CTextRenderer::CTextCursor m_TextCursor;
 
 protected:
-	virtual char* GetTextPtr() = 0;
+	virtual void SaveFromTextBuffer() = 0;
+	virtual void CopyToTextBuffer() = 0;
 
 public:
-	CAbstractTextEdit(class CConfig *pConfig, int TextMaxChar, int Style = TEXTSTYLE_NORMAL);
+	CAbstractTextEdit(class CContext *pConfig);
 	
+	virtual void Update();
 	virtual void Render();
 	
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
 	virtual void OnButtonClick(int X, int Y, int Button, int Count);
 	virtual void OnInputEvent();
+	
+	void RemoveChanges();
 };
 
 class CExternalTextEdit : public CAbstractTextEdit
 {
 protected:
 	char* m_pText;
+	int m_TextSize;
 	
-protected:
-	virtual char* GetTextPtr();
+	virtual void SaveFromTextBuffer();
+	virtual void CopyToTextBuffer();
 
 public:
-	CExternalTextEdit(class CConfig *pConfig, char* pText, int TextMaxChar, int Style = TEXTSTYLE_NORMAL);
+	CExternalTextEdit(class CContext *pConfig, char* pText, int TextSize);
 };
 
 }

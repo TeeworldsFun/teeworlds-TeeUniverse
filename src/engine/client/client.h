@@ -56,13 +56,12 @@ class CClient : public IClient, public CDemoPlayer::IListner
 {
 	// needed interfaces
 	IEngine *m_pEngine;
-	tu::assetseditor::IAssetsEditor *m_pAssetsEditor;
+	class tu::assetseditor::CAssetsEditor *m_pAssetsEditor;
 	IEngineInput *m_pInput;
 	IEngineGraphics *m_pGraphics;
 	IEngineSound *m_pSound;
 	IGameClient *m_pGameClient;
 	IEngineMap *m_pMap;
-	tu::IAssetsFileEngine *m_pAssetsFile;
 	IConsole *m_pConsole;
 	IStorage *m_pStorage;
 	IEngineMasterServer *m_pMasterServer;
@@ -332,10 +331,8 @@ public:
 	void ToggleWindowVSync();
 	
 	//TU
-	tu::CGraphics* m_apTUGraphics[tu::NUM_ASSETS];
-	tu::CAssetsManager* m_apAssetsManager[tu::NUM_ASSETS];
+	tu::CKernel* m_pKernel;
 	char m_aCurrentMod[256];
-	unsigned m_CurrentModCrc;
 
 	char m_aModdownloadFilename[256];
 	char m_aModdownloadName[256];
@@ -350,8 +347,7 @@ public:
 	const char *LoadWorld(const char *pName, const char *pFilename, unsigned WantedCrc);
 	const char *LoadWorldSearch(const char *pModName, int WantedCrc);
 	
-	virtual tu::CGraphics *TUGraphics(int Type = tu::ASSETS_GAME) const { return m_apTUGraphics[Type]; }
-	virtual tu::CAssetsManager *AssetsManager(int Type = tu::ASSETS_GAME) const { return m_apAssetsManager[Type]; }
+	virtual tu::CKernel *TUKernel() const { return m_pKernel; }
 
 	int m_ClientMode;
 	

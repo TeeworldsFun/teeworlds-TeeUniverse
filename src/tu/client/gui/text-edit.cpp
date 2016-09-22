@@ -12,60 +12,40 @@ namespace tu
 namespace gui
 {
 
-CAbstractTextEdit::CAbstractTextEdit(CConfig *pConfig, int TextMaxSize, int Style) :
-	CWidget(pConfig),
-	m_UnderMouse(false),
-	m_CursorCharPos(-1),
-	m_TextStyle(Style),
-	m_TextMaxSize(TextMaxSize)
-{	
-	m_Rect.w = m_pConfig->m_ButtonHeight;
-	m_Rect.h = m_pConfig->m_ButtonHeight;
+/* ABSTRACT TEXT EDIT *************************************************/
+
+CAbstractTextEdit::CAbstractTextEdit(CContext *pConfig) :
+	CAbstractLabel(pConfig),
+	m_Focus(false),
+	m_Changes(false)
+{
+	m_TextCursor.m_TextIter = -1;
+	SetBoxStyle(Context()->GetEntryStyle());
+}
+
+void CAbstractTextEdit::Update()
+{
+	if(!m_Changes)
+		CopyToTextBuffer();
 }
 	
 void CAbstractTextEdit::Render()
 {
-	if(m_UnderMouse)
-		TUGraphics()->DrawGuiRect(&m_Rect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT_MOUSEOVER));
-	else
-		TUGraphics()->DrawGuiRect(&m_Rect, CAssetPath::Universe(CAsset_GuiRectStyle::TypeId, GUIRECTSTYLE_ENTRY_DEFAULT));
-	
-	char* pText = GetTextPtr();
-	if(!pText)
-		return;
-		
-	int ContentX = m_Rect.x;
-	int ContentY = m_Rect.y + m_Rect.h/2;
-	
-	int TextWidth = 0;
-	float FontSize = m_pConfig->m_TextSize[m_TextStyle];
-	vec4 FontColor = m_pConfig->m_TextColor[m_TextStyle];
-	
-	TextWidth = TextRender()->TextWidth(0, FontSize, pText, -1);
-	int PosX = ContentX;
-	int PosY = ContentY - FontSize*0.7;
-	
-	CTextCursor Cursor;
-	TextRender()->SetCursor(&Cursor, PosX+m_pConfig->m_LabelMargin, PosY, FontSize, TEXTFLAG_RENDER);
-	TextRender()->TextColor(FontColor.x, FontColor.y, FontColor.z, FontColor.w);
-	TextRender()->TextEx(&Cursor, pText, -1);
+	CAbstractLabel::Render();
 	
 	// render the cursor
 			// cursor position
-	if(m_CursorCharPos >= 0)
+	if(m_TextCursor.m_TextIter >= 0)
 	{
-		float CursorPos = m_Rect.x+m_pConfig->m_LabelMargin;
-		CursorPos += TextRender()->TextWidth(0, FontSize, pText, m_CursorCharPos);
-		
 		if((2*time_get()/time_freq()) % 2)
 		{
 			Graphics()->TextureClear();
 			Graphics()->LinesBegin();
 			Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 			
-			float x = CursorPos;
-			float y0 = m_Rect.y + m_Rect.h/2 - FontSize*0.6;
-			float y1 = m_Rect.y + m_Rect.h/2 + FontSize*0.6;
+			float x = m_TextCursor.m_Position.x + 0.5f;
+			float y0 = GetTextRect().y;
+			float y1 = GetTextRect().y + GetTextRect().h;
 			IGraphics::CLineItem Line(x, y0, x, y1);
 			Graphics()->LinesDraw(&Line, 1);
 			
@@ -76,14 +56,8 @@ void CAbstractTextEdit::Render()
 
 void CAbstractTextEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
-	if(m_Rect.IsInside(X, Y))
-	{
-		m_UnderMouse = true;
-	}
-	else
-	{
-		m_UnderMouse = false;
-	}
+	if(GetTextRect().IsInside(X, Y))
+		Context()->SetCursorSprite(CAssetPath::SpriteSystem(SPRITE_CURSOR_TEXT));
 }
 
 void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
@@ -91,76 +65,76 @@ void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
 	if(Button != KEY_MOUSE_1)
 		return;
 	
-	char* pText = GetTextPtr();
-	
-	if(!pText)
-		return;
-	
-	if(m_Rect.IsInside(X, Y))
+	if(m_DrawRect.IsInside(X, Y))
 	{
-		m_Clicked = true;
+		m_Focus = true;
 		
-		float FontSize = m_pConfig->m_TextSize[m_TextStyle];
-
-		int TextLength = str_length(pText);
-		int CursorCharPos = 0;
-		float CursorPos = m_Rect.x+m_pConfig->m_LabelMargin;
-		float TextWidth = 0.0f;
-		for(CursorCharPos = 0; CursorCharPos <= TextLength; CursorCharPos++)
-		{
-			float NewTextWidth = TextRender()->TextWidth(0, FontSize, pText, CursorCharPos);
-			float CharWidth = NewTextWidth - TextWidth;
-			TextWidth = NewTextWidth;
-			
-			if(X < CursorPos + CharWidth)
-			{
-				if(X > CursorPos + CharWidth/2)
-				{
-					CursorCharPos++;
-					CursorPos += CharWidth;
-				}
-				break;
-			}
-			CursorPos += CharWidth;
-		}
-		
-		m_CursorCharPos = CursorCharPos;
+		m_TextCursor = TextRenderer()->GetTextCursorFromPosition(GetRendererText(), ivec2(X, Y), GetTextRect(), GetFontSize(), &m_TextCache);
 	}
-	else
+	else if(m_Focus)
 	{
-		m_Clicked = false;
-		m_CursorCharPos = -1;
+		SaveFromTextBuffer();
+		m_Changes = false;
+		
+		m_TextCursor.m_TextIter = -1;
+		m_Focus = false;
 	}
 }
 
 void CAbstractTextEdit::OnInputEvent()
 {
-	char* pText = GetTextPtr();
-	
-	if(!pText)
-		return;
-		
-	if(m_CursorCharPos >= 0)
+	if(Input()->KeyIsPressed(KEY_RETURN) || Input()->KeyIsPressed(KEY_KP_ENTER))
 	{
+		if(m_Changes)
+		{
+			SaveFromTextBuffer();
+			m_Changes = false;
+		}
+	}
+	else if(m_TextCursor.m_TextIter >= 0)
+	{
+		int TextIter = m_TextCursor.m_TextIter;
+		bool Changes = false;
 		for(int i = 0; i < Input()->NumEvents(); i++)
 		{
-			int Len = str_length(pText);
+			int Len = str_length(GetText());
 			int NumChars = Len;
-			int ReturnValue = CLineInput::Manipulate(Input()->GetEvent(i), pText, m_TextMaxSize, m_TextMaxSize, &Len, &m_CursorCharPos, &NumChars);
+			if(CLineInput::Manipulate(Input()->GetEvent(i), m_aText, sizeof(m_aText), sizeof(m_aText), &Len, &TextIter, &NumChars))
+				Changes = true;
+		}
+		
+		if(Changes)
+		{
+			OnTextUpdated();
+			m_TextCursor = TextRenderer()->GetTextCursorFromTextIter(GetRendererText(), TextIter, GetTextRect(), GetFontSize(), &m_TextCache);
+			m_Changes = true;
 		}
 	}
 }
 
-CExternalTextEdit::CExternalTextEdit(CConfig *pConfig, char* pText, int TextMaxChar, int Style) :
-	CAbstractTextEdit(pConfig, TextMaxChar, Style),
-	m_pText(pText)
+void CAbstractTextEdit::RemoveChanges()
+{
+	m_Changes = false;
+}
+
+/* EXTERNAL TEXT EDIT *************************************************/
+
+CExternalTextEdit::CExternalTextEdit(CContext *pConfig, char* pText, int TextSize) :
+	CAbstractTextEdit(pConfig),
+	m_pText(pText),
+	m_TextSize(TextSize)
 {
 	
 }
 
-char* CExternalTextEdit::GetTextPtr()
+void CExternalTextEdit::SaveFromTextBuffer()
 {
-	return m_pText;
+	str_copy(m_pText, GetText(), m_TextSize);
+}
+
+void CExternalTextEdit::CopyToTextBuffer()
+{
+	SetText(m_pText);
 }
 
 }

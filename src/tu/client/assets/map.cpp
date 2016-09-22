@@ -1,7 +1,7 @@
 #include "map.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -13,27 +13,27 @@ CAsset_Map::CAsset_Map()
 	
 /* IO *****************************************************************/
 
-void CAsset_Map::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_Map::CStorageType* pItem)
+void CAsset_Map::InitFromAssetsFile(CDataFileReader* pFileReader, const CAsset_Map::CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	// load bg groups
-	const int* pBgGroups = static_cast<int*>(pAssetsFile->GetData(pItem->m_BgGroupsData));
+	const int* pBgGroups = static_cast<int*>(pFileReader->GetData(pItem->m_BgGroupsData));
 	for(int i=0; i<pItem->m_NumBgGroups; i++)
 	{
 		m_BgGroups.add(pBgGroups[i]);
 	}
 	
 	// load fg groups
-	const int* pFgGroups = static_cast<int*>(pAssetsFile->GetData(pItem->m_FgGroupsData));
+	const int* pFgGroups = static_cast<int*>(pFileReader->GetData(pItem->m_FgGroupsData));
 	for(int i=0; i<pItem->m_NumFgGroups; i++)
 	{
 		m_FgGroups.add(pFgGroups[i]);
 	}
 	
 	// load zone layers
-	const int* pZoneLayers = static_cast<int*>(pAssetsFile->GetData(pItem->m_ZoneLayersData));
+	const int* pZoneLayers = static_cast<int*>(pFileReader->GetData(pItem->m_ZoneLayersData));
 	for(int i=0; i<pItem->m_NumZoneLayers; i++)
 	{
 		m_ZoneLayers.add(pZoneLayers[i]);
@@ -82,7 +82,7 @@ void CAsset_Map::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 /* VALUE ASSETPATH ****************************************************/
 	
 template<>
-CAssetPath CAsset_Map::GetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath DefaultValue)
+CAssetPath CAsset_Map::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -96,7 +96,7 @@ CAssetPath CAsset_Map::GetValue<CAssetPath>(int ValueType, int PathInt, CAssetPa
 }
 	
 template<>
-bool CAsset_Map::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
+bool CAsset_Map::SetValue(int ValueType, int PathInt, CAssetPath Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)

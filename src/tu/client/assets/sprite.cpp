@@ -1,7 +1,8 @@
 #include "sprite.h"
+#include "image.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -15,12 +16,30 @@ CAsset_Sprite::CAsset_Sprite() :
 	
 }
 
+int CAsset_Sprite::GetPixelWidth() const
+{
+	const CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(m_ImagePath);
+	if(pImage)
+		return (pImage->GetWidth() * m_Width)/pImage->GetGridWidth();
+	else
+		return m_Width;
+}
+
+int CAsset_Sprite::GetPixelHeight() const
+{
+	const CAsset_Image* pImage = AssetsManager()->GetAsset<CAsset_Image>(m_ImagePath);
+	if(pImage)
+		return (pImage->GetHeight() * m_Height)/pImage->GetGridHeight();
+	else
+		return m_Height;
+}
+
 /* IO *****************************************************************/
 
-void CAsset_Sprite::InitFromAssetsFile(IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Sprite::InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 				
 	// copy info
 	m_ImagePath = CAssetPath(pItem->m_ImagePath);
@@ -46,7 +65,7 @@ void CAsset_Sprite::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_Sprite::GetValue(int ValueType, int PathInt, int DefaultValue)
+int CAsset_Sprite::GetValue(int ValueType, int PathInt, int DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -60,7 +79,7 @@ int CAsset_Sprite::GetValue(int ValueType, int PathInt, int DefaultValue)
 }
 	
 template<>
-bool CAsset_Sprite::SetValue<int>(int ValueType, int PathInt, int Value)
+bool CAsset_Sprite::SetValue(int ValueType, int PathInt, int Value)
 {
 	switch(ValueType)
 	{
@@ -76,7 +95,7 @@ bool CAsset_Sprite::SetValue<int>(int ValueType, int PathInt, int Value)
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CAssetPath CAsset_Sprite::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue)
+CAssetPath CAsset_Sprite::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -87,7 +106,7 @@ CAssetPath CAsset_Sprite::GetValue(int ValueType, int PathInt, CAssetPath Defaul
 }
 	
 template<>
-bool CAsset_Sprite::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
+bool CAsset_Sprite::SetValue(int ValueType, int PathInt, CAssetPath Value)
 {
 	switch(ValueType)
 	{

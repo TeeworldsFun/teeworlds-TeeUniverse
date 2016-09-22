@@ -3,7 +3,7 @@
 #include "skeletonanimation.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -17,7 +17,7 @@ void CAsset_MapLayerQuads::CQuad::GetTransform(CAssetsManager* pAssetsManager, f
 	
 	if(!m_AnimationPath.IsNull())
 	{
-		CAsset_SkeletonAnimation* pAnimation = pAssetsManager->GetAsset<CAsset_SkeletonAnimation>(m_AnimationPath);
+		const CAsset_SkeletonAnimation* pAnimation = pAssetsManager->GetAsset<CAsset_SkeletonAnimation>(m_AnimationPath);
 		if(pAnimation)
 		{
 			for(int a=0; a<pAnimation->m_BoneAnimations.size(); a++)
@@ -48,7 +48,7 @@ void CAsset_MapLayerQuads::CQuad::GetDrawState(CAssetsManager* pAssetsManager, f
 	
 	if(!m_AnimationPath.IsNull())
 	{
-		CAsset_SkeletonAnimation* pAnimation = pAssetsManager->GetAsset<CAsset_SkeletonAnimation>(m_AnimationPath);
+		const CAsset_SkeletonAnimation* pAnimation = pAssetsManager->GetAsset<CAsset_SkeletonAnimation>(m_AnimationPath);
 		if(pAnimation)
 		{
 			for(int a=0; a<pAnimation->m_LayerAnimations.size(); a++)
@@ -92,15 +92,15 @@ void CAsset_MapLayerQuads::GetQuadDrawState(CSubPath SubPath, float Time, vec4* 
 
 /* IO *****************************************************************/
 
-void CAsset_MapLayerQuads::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_MapLayerQuads::CStorageType* pItem)
+void CAsset_MapLayerQuads::InitFromAssetsFile(CDataFileReader* pFileReader, const CAsset_MapLayerQuads::CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	m_ImagePath = pItem->m_ImagePath;
 	
 	// load quads
-	const CStorageType::CQuad* pQuads = static_cast<CStorageType::CQuad*>(pAssetsFile->GetData(pItem->m_QuadsData));
+	const CStorageType::CQuad* pQuads = static_cast<CStorageType::CQuad*>(pFileReader->GetData(pItem->m_QuadsData));
 	for(int i=0; i<pItem->m_NumQuads; i++)
 	{
 		m_Quads.add(CQuad());
@@ -163,7 +163,7 @@ void CAsset_MapLayerQuads::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Po
 /* VALUE ASSETPATH ****************************************************/
 	
 template<>
-CAssetPath CAsset_MapLayerQuads::GetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath DefaultValue)
+CAssetPath CAsset_MapLayerQuads::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -176,7 +176,7 @@ CAssetPath CAsset_MapLayerQuads::GetValue<CAssetPath>(int ValueType, int PathInt
 }
 	
 template<>
-bool CAsset_MapLayerQuads::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
+bool CAsset_MapLayerQuads::SetValue(int ValueType, int PathInt, CAssetPath Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -191,7 +191,7 @@ bool CAsset_MapLayerQuads::SetValue<CAssetPath>(int ValueType, int PathInt, CAss
 /* VALUE FLOAT ********************************************************/
 
 template<>
-float CAsset_MapLayerQuads::GetValue<float>(int ValueType, int PathInt, float DefaultValue)
+float CAsset_MapLayerQuads::GetValue(int ValueType, int PathInt, float DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -211,7 +211,7 @@ float CAsset_MapLayerQuads::GetValue<float>(int ValueType, int PathInt, float De
 }
 	
 template<>
-bool CAsset_MapLayerQuads::SetValue<float>(int ValueType, int PathInt, float Value)
+bool CAsset_MapLayerQuads::SetValue(int ValueType, int PathInt, float Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -233,7 +233,7 @@ bool CAsset_MapLayerQuads::SetValue<float>(int ValueType, int PathInt, float Val
 /* VALUE VEC4 *********************************************************/
 	
 template<>
-vec4 CAsset_MapLayerQuads::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue)
+vec4 CAsset_MapLayerQuads::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)

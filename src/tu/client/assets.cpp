@@ -4,7 +4,19 @@ namespace tu
 {
 
 template<>
-bool CAsset::SetValue<const char*>(int ValueType, int Path, const char* pText)
+const char* CAsset::GetValue(int ValueType, int Path, const char* DefaultValue) const
+{
+	switch(ValueType)
+	{
+		case NAME:
+			return m_aName;
+	}
+	
+	return DefaultValue;
+}
+
+template<>
+bool CAsset::SetValue(int ValueType, int Path, const char* pText)
 {
 	switch(ValueType)
 	{
@@ -14,18 +26,6 @@ bool CAsset::SetValue<const char*>(int ValueType, int Path, const char* pText)
 	}
 	
 	return false;
-}
-
-template<>
-char* CAsset::GetValue(int ValueType, int Path, char* DefaultValue)
-{
-	switch(ValueType)
-	{
-		case NAME:
-			return m_aName;
-	}
-	
-	return DefaultValue;
 }
 
 }

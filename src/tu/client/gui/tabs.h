@@ -3,7 +3,8 @@
 
 #include <base/tl/array.h>
 
-#include "widget.h"
+#include "listlayout.h"
+#include "button.h"
 
 namespace tu
 {
@@ -13,24 +14,43 @@ namespace gui
 
 class CTabs : public CWidget
 {
-public:
+private:
+	class CTabButton : public CButton
+	{
+	protected:
+		CTabs* m_pTabs;
+		int m_Id;
+		virtual void MouseClickAction();
+		
+	public:
+		CTabButton(CContext *pContext, CTabs *m_pTabs, int Id, const char* pName, CAssetPath IconPath);
+	};
+	
 	struct CTab
 	{
 		CAssetPath m_IconPath;
-		char m_aHint[128];
 		CWidget* m_pWidget;
-		CRect m_Rect;
+		CTabButton* m_pTabButton;
+		char m_aName[128];
+		bool m_Disabled;
 	};
 	
 protected:
-	CRect m_ContentRect;
+	CAssetPath m_TabsStylePath;
+	CRect m_ClipRect;
 	array<CTab> m_Tabs;
 	int m_SelectedTab;
+	CHListLayout* m_pButtonList;
+	
+protected:
+	void RegenerateButtons();
 	
 public:
-	CTabs(class CConfig *pConfig);
+	CTabs(class CContext *pConfig);
 	virtual ~CTabs();
 	
+	virtual void UpdateBoundingSize();
+	virtual void UpdatePosition(CRect BoundingRect);
 	virtual void Update();
 	virtual void Render();
 	
@@ -39,8 +59,12 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnInputEvent();
 	
-	void AddTab(CWidget* pWidget, CAssetPath IconPath, const char* pHint);
+	void AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath);
 	void Clear();
+	void OpenTab(int Id);
+	
+	void SetTabsStyle(CAssetPath TabsStylePath) { m_TabsStylePath = TabsStylePath; }
+	CAssetPath GetTabsStyle() const { return m_TabsStylePath; }
 };
 
 }

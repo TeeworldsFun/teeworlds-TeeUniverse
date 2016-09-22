@@ -98,6 +98,9 @@ public:
 
 	virtual void Clear(float r, float g, float b) = 0;
 
+	virtual void ClipPush(int x, int y, int w, int h) = 0;
+	virtual void ClipPop() = 0;
+	
 	virtual void ClipEnable(int x, int y, int w, int h) = 0;
 	virtual void ClipDisable() = 0;
 

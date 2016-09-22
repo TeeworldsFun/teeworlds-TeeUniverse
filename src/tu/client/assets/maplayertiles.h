@@ -2,8 +2,7 @@
 #define TU_CLIENT_ASSETS_MAPLAYERTILES_H
 
 #include <tu/client/assets.h>
-
-class CDataFileWriter;
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -30,7 +29,7 @@ public:
 		int m_Color;
 	};
 	
-	void InitFromAssetsFile(class tu::IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 
 /* SUBITEMS ***********************************************************/
@@ -112,7 +111,7 @@ public:
 		else
 			return 0;
 	}
-	inline int GetTileIndex(CSubPath SubPath) { return GetTileIndex(SubPath.GetX(), SubPath.GetY()); }
+	inline int GetTileIndex(CSubPath SubPath) const { return GetTileIndex(SubPath.GetX(), SubPath.GetY()); }
 	inline int GetTileFlags(int x, int y) const
 	{
 		if(x >= 0 && x < m_Width && y >= 0 && y < m_Height)
@@ -120,7 +119,7 @@ public:
 		else
 			return 0;
 	}
-	inline int GetTileFlags(CSubPath SubPath) { return GetTileFlags(SubPath.GetX(), SubPath.GetY()); }
+	inline int GetTileFlags(CSubPath SubPath) const { return GetTileFlags(SubPath.GetX(), SubPath.GetY()); }
 	
 	inline void SetColor(vec4 Value) { m_Color = Value; }
 	inline void SetImagePath(CAssetPath Value) { m_ImagePath = Value; }

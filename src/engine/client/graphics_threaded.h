@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/graphics.h>
+#include <base/tl/array.h>
 
 class CCommandBuffer
 {
@@ -134,6 +135,14 @@ public:
 		SCommand(unsigned Cmd) : m_Cmd(Cmd), m_Size(0) {}
 		unsigned m_Cmd;
 		unsigned m_Size;
+	};
+	
+	struct SClip
+	{
+		int x;
+		int y;
+		int w;
+		int h;
 	};
 
 	struct SState
@@ -370,6 +379,8 @@ class CGraphics_Threaded : public IEngineGraphics
 	int m_Drawing;
 	bool m_DoScreenshot;
 	char m_aScreenshotName[128];
+	
+	array<CCommandBuffer::SClip> m_ClipStack;
 
 	CTextureHandle m_InvalidTexture;
 
@@ -390,6 +401,9 @@ public:
 
 	virtual void ClipEnable(int x, int y, int w, int h);
 	virtual void ClipDisable();
+
+	virtual void ClipPush(int x, int y, int w, int h);
+	virtual void ClipPop();
 
 	virtual void BlendNone();
 	virtual void BlendNormal();

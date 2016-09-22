@@ -2,8 +2,7 @@
 #define TU_CLIENT_ASSETS_SPRITE_H
 
 #include <tu/client/assets.h>
-
-class CDataFileWriter;
+#include <engine/shared/datafile.h>
 
 namespace tu
 {
@@ -24,7 +23,7 @@ public:
 		int m_Height;
 	};
 	
-	void InitFromAssetsFile(class IAssetsFile* pAssetsFile, const CStorageType* pItem);
+	void InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem);
 	void SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position);
 	
 /* MEMBERS ************************************************************/
@@ -63,6 +62,8 @@ public:
 	inline int GetY() const { return m_Y; }
 	inline int GetWidth() const { return m_Width; }
 	inline int GetHeight() const { return m_Height; }
+	int GetPixelWidth() const;
+	int GetPixelHeight() const;
 	
 /* GET/SET ************************************************************/
 public:

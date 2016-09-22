@@ -10,87 +10,72 @@ namespace tu
 namespace gui
 {
 
-CTabs::CTabs(CConfig *pConfig) :
-	CWidget(pConfig),
-	m_SelectedTab(-1)
-{	
+/* TABS ***************************************************************/
 
+	//Button
+CTabs::CTabButton::CTabButton(CContext *pContext, CTabs *pTabs, int Id, const char* pName, CAssetPath IconPath) :
+	CButton(pContext, pName, IconPath),
+	m_pTabs(pTabs),
+	m_Id(Id)
+{
+	
+}
+
+void CTabs::CTabButton::MouseClickAction()
+{
+	m_pTabs->OpenTab(m_Id);
+}
+
+	//Tabs
+CTabs::CTabs(CContext *pContext) :
+	CWidget(pContext),
+	m_SelectedTab(-1),
+	m_pButtonList(0),
+	m_TabsStylePath(Context()->GetTabsStyle())
+{
+	m_pButtonList = new CHListLayout(pContext);
 }
 
 CTabs::~CTabs()
 {
+	if(m_pButtonList)
+		delete m_pButtonList;
+	
 	for(int i=0; i<m_Tabs.size(); i++)
-	{
 		delete m_Tabs[i].m_pWidget;
-	}
 }
 
-void CTabs::Update()
+void CTabs::OpenTab(int TabId)
 {
-	m_ContentRect = CRect(
-			m_Rect.x + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding,
-			m_Rect.y + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding + m_pConfig->m_IconSize + 2*m_pConfig->m_LabelMargin,
-			m_Rect.w - 2*m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding,
-			m_Rect.h - m_pConfig->m_IconSize - 2*m_pConfig->m_LabelMargin - 2*m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding
-		);
-	
-	for(int i=0; i<m_Tabs.size(); i++)
-	{
-		m_Tabs[i].m_pWidget->SetRect(m_ContentRect);
-		m_Tabs[i].m_pWidget->Update();
-	}
-}
-	
-void CTabs::Render()
-{
-	TUGraphics()->DrawGuiRect(&m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Layout);
-	
-	for(int i=0; i<m_Tabs.size(); i++)
-	{
-		if(m_SelectedTab == i)
-			TUGraphics()->DrawGuiRect(&m_Tabs[i].m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_ButtonHighlight);
-		else
-			TUGraphics()->DrawGuiRect(&m_Tabs[i].m_Rect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Button);
-		
-		TUGraphics()->DrawSprite(
-			m_Tabs[i].m_IconPath,
-			vec2(m_Tabs[i].m_Rect.x+m_Tabs[i].m_Rect.w/2, m_Tabs[i].m_Rect.y+m_Tabs[i].m_Rect.h/2),
-			1.0f, 0.0f, 0x0, 1.0f
-		);
-	}
-	
-	TUGraphics()->DrawGuiRect(&m_ContentRect, m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_StylePath_Content);
-	
-	if(m_SelectedTab >= 0)
-	{
-		m_Tabs[m_SelectedTab].m_pWidget->Render();
-	}
+	if(TabId >= 0 && TabId < m_Tabs.size())
+		m_SelectedTab = TabId;
+	else
+		m_SelectedTab = -1;
 }
 
-void CTabs::AddTab(CWidget* pWidget, CAssetPath IconPath, const char* pHint)
+void CTabs::AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath)
 {
-	float TabButtonSize = m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f;
-	
-	int TabId = m_Tabs.size();
-	m_Tabs.add(CTab());
-	CTab& Tab = m_Tabs[TabId];
-	
-	Tab.m_pWidget = pWidget;
-	Tab.m_IconPath = IconPath;
-	str_copy(Tab.m_aHint, pHint, sizeof(Tab.m_aHint));
-	Tab.m_Rect.x = m_Rect.x + TabButtonSize*TabId + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding;
-	Tab.m_Rect.y = m_Rect.y + m_pConfig->m_TabStyles[CConfig::TABSTYLE_DEFAULT].m_LayoutPadding;
-	Tab.m_Rect.w = TabButtonSize;
-	Tab.m_Rect.h = TabButtonSize;
-	
-	for(int i=0; i<m_Tabs.size(); i++)
+	bool Fill = true;
+	bool ButtonListText = true;
+	const CAsset_GuiTabsStyle* pTabsStyle = AssetsManager()->GetAsset<CAsset_GuiTabsStyle>(m_TabsStylePath);
+	if(pTabsStyle)
 	{
-		pWidget->SetRect(CRect(
-			m_Rect.x,
-			m_Rect.y + m_pConfig->m_IconSize + m_pConfig->m_LabelMargin*2.0f,
-			m_Rect.w,
-			m_Rect.h - m_pConfig->m_IconSize - m_pConfig->m_LabelMargin*2.0f
-		));
+		Fill = pTabsStyle->m_ButtonListFill;
+		ButtonListText = pTabsStyle->m_ButtonListText;
+	}
+	int TabId = m_Tabs.add(CTab());
+	CTab* pTab = &m_Tabs[TabId];
+	
+	pTab->m_IconPath = IconPath;
+	pTab->m_Disabled = pWidget->IsDisabled();
+	pTab->m_pWidget = pWidget;
+	pTab->m_pTabButton = 0;
+	str_copy(pTab->m_aName, pName, sizeof(pTab->m_aName));
+	
+	if(!pTab->m_Disabled)
+	{
+		pTab->m_pTabButton = new CTabButton(Context(), this, TabId, (ButtonListText ? pTab->m_aName : ""), IconPath);
+		m_pButtonList->Add(pTab->m_pTabButton, Fill);
 	}
 	
 	if(m_SelectedTab < 0)
@@ -105,18 +90,213 @@ void CTabs::Clear()
 		delete m_Tabs[i].m_pWidget;
 	}
 	m_Tabs.clear();
+	m_pButtonList->Clear();
+}
+
+void CTabs::UpdateBoundingSize()
+{	
+	m_BoundingSizeRect.BSNoConstraint();
+	
+	const CAsset_GuiTabsStyle* pTabsStyle = AssetsManager()->GetAsset<CAsset_GuiTabsStyle>(m_TabsStylePath);
+	const CAsset_GuiBoxStyle* pLayoutStyle = 0;
+	const CAsset_GuiBoxStyle* pContentStyle = 0;
+	if(pTabsStyle)
+	{
+		pLayoutStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(pTabsStyle->m_LayoutPath);
+		pContentStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(pTabsStyle->m_ContentPath);
+	}
+	
+	m_pButtonList->UpdateBoundingSize();
+	m_BoundingSizeRect.BSVerticalAdd(m_pButtonList->GetBS());
+	
+	if(pTabsStyle)
+		m_BoundingSizeRect.BSAddSpacing(0, Context()->ApplyGuiScale(pLayoutStyle->GetSpacing()));
+	
+	if(m_SelectedTab >= 0)
+	{
+		m_Tabs[m_SelectedTab].m_pWidget->UpdateBoundingSize();
+		
+		CRect BSSelectedTab = m_Tabs[m_SelectedTab].m_pWidget->GetBS();
+		
+		if(pLayoutStyle)
+		{
+			BSSelectedTab.BSAddMargin(Context()->ApplyGuiScale(pContentStyle->GetPadding()));
+			BSSelectedTab.BSAddMargin(Context()->ApplyGuiScale(pContentStyle->GetMargin()));
+		}
+		
+		m_BoundingSizeRect.BSVerticalAdd(BSSelectedTab);
+	}
+	
+	if(pTabsStyle)
+	{
+		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pLayoutStyle->GetPadding()));
+		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pLayoutStyle->GetMargin()));
+	}
+}
+
+void CTabs::UpdatePosition(CRect BoundingRect)
+{
+	m_DrawRect.DRUpdatePosition(BoundingRect, m_BoundingSizeRect);
+	
+	const CAsset_GuiTabsStyle* pTabsStyle = AssetsManager()->GetAsset<CAsset_GuiTabsStyle>(m_TabsStylePath);
+	const CAsset_GuiBoxStyle* pLayoutStyle = 0;
+	const CAsset_GuiBoxStyle* pContentStyle = 0;
+	if(pTabsStyle)
+	{
+		pLayoutStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(pTabsStyle->m_LayoutPath);
+		pContentStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(pTabsStyle->m_ContentPath);
+	}
+	
+	int Spacing;
+	CRect TabsRect = m_DrawRect;
+	if(pLayoutStyle)
+	{
+		Spacing = Context()->ApplyGuiScale(pLayoutStyle->GetSpacing());
+		TabsRect.RemoveMargin(Context()->ApplyGuiScale(pLayoutStyle->GetPadding()));
+		TabsRect.RemoveMargin(Context()->ApplyGuiScale(pLayoutStyle->GetMargin()));
+	}
+	
+	CRect ButtonListRect(
+		TabsRect.x,
+		TabsRect.y,
+		TabsRect.w,
+		m_pButtonList->GetBS().minh
+	);
+	m_pButtonList->UpdatePosition(ButtonListRect);
+	
+	m_ClipRect = CRect(
+		TabsRect.x,
+		ButtonListRect.y + ButtonListRect.h + Spacing,
+		TabsRect.w,
+		TabsRect.h - ButtonListRect.h - Spacing
+	);
+	
+	if(m_SelectedTab >= 0)
+	{
+		m_Tabs[m_SelectedTab].m_pWidget->UpdatePosition(m_ClipRect);
+	}
+}
+
+void CTabs::Update()
+{
+	const CAsset_GuiTabsStyle* pTabsStyle = AssetsManager()->GetAsset<CAsset_GuiTabsStyle>(m_TabsStylePath);
+	if(pTabsStyle)
+		m_pButtonList->SetBoxStyle(pTabsStyle->m_ButtonListPath);
+	
+	bool NeedUpdate = false;
+	
+	for(int i=0; i<m_Tabs.size(); i++)
+		m_Tabs[i].m_pWidget->Update();
+	
+	for(int i=0; i<m_Tabs.size(); i++)
+	{
+		if(m_Tabs[i].m_pWidget->IsDisabled() != m_Tabs[i].m_Disabled)
+		{
+			m_Tabs[i].m_Disabled = m_Tabs[i].m_pWidget->IsDisabled();
+			NeedUpdate = true;
+		}
+	}
+	
+	if(NeedUpdate)
+		RegenerateButtons();
+	
+	if(pTabsStyle)
+	{
+		for(int i=0; i<m_Tabs.size(); i++)
+		{
+			if(m_Tabs[i].m_pTabButton)
+			{
+				if(i == m_SelectedTab)
+					m_Tabs[i].m_pTabButton->SetBoxStyle(pTabsStyle->m_ActiveButtonPath);
+				else
+					m_Tabs[i].m_pTabButton->SetBoxStyle(pTabsStyle->m_InactiveButtonPath);
+			}	
+		}
+	}
+	
+	m_pButtonList->Update();
+}
+
+void CTabs::RegenerateButtons()
+{
+	bool Fill = true;
+	bool ButtonListText = true;
+	const CAsset_GuiTabsStyle* pTabsStyle = AssetsManager()->GetAsset<CAsset_GuiTabsStyle>(m_TabsStylePath);
+	if(pTabsStyle)
+	{
+		Fill = pTabsStyle->m_ButtonListFill;
+		ButtonListText = pTabsStyle->m_ButtonListText;
+	}
+	
+	m_pButtonList->Clear();
+	int FirstEnabledChild = -1;
+	for(int i=0; i<m_Tabs.size(); i++)
+	{
+		m_Tabs[i].m_pTabButton = 0;
+		
+		if(!m_Tabs[i].m_pWidget->IsDisabled())
+		{
+			m_Tabs[i].m_pTabButton = new CTabButton(Context(), this, i, (ButtonListText ? m_Tabs[i].m_aName : ""), m_Tabs[i].m_IconPath);
+			m_pButtonList->Add(m_Tabs[i].m_pTabButton, Fill);
+			if(FirstEnabledChild < 0)
+				FirstEnabledChild = i;
+		}
+	}
+	
+	if(m_Tabs[m_SelectedTab].m_pWidget->IsDisabled())
+		m_SelectedTab = max(FirstEnabledChild, 0);
+}
+
+void CTabs::Render()
+{
+	const CAsset_GuiTabsStyle* pTabsStyle = AssetsManager()->GetAsset<CAsset_GuiTabsStyle>(m_TabsStylePath);
+	const CAsset_GuiBoxStyle* pLayoutStyle = 0;
+	const CAsset_GuiBoxStyle* pContentStyle = 0;
+	if(pTabsStyle)
+	{
+		pLayoutStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(pTabsStyle->m_LayoutPath);
+		pContentStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(pTabsStyle->m_ContentPath);
+	}
+	
+	ivec2 MousePos = Context()->GetMousePos();
+	
+	if(pLayoutStyle)
+	{
+		CRect Rect = m_DrawRect;
+		Rect.RemoveMargin(Context()->ApplyGuiScale(pLayoutStyle->GetMargin()));
+	
+		if(Rect.IsInside(MousePos.x, MousePos.y))
+			AssetsRenderer()->DrawGuiRect(&Rect, pLayoutStyle->GetMouseOverRectPath());
+		else
+			AssetsRenderer()->DrawGuiRect(&Rect, pLayoutStyle->GetDefaultRectPath());
+			
+		Rect.RemoveMargin(Context()->ApplyGuiScale(pLayoutStyle->GetPadding()));
+	}
+	
+	if(pContentStyle)
+	{
+		CRect Rect = m_ClipRect;
+		Rect.RemoveMargin(Context()->ApplyGuiScale(pContentStyle->GetMargin()));
+	
+		if(Rect.IsInside(MousePos.x, MousePos.y))
+			AssetsRenderer()->DrawGuiRect(&Rect, pContentStyle->GetMouseOverRectPath());
+		else
+			AssetsRenderer()->DrawGuiRect(&Rect, pContentStyle->GetDefaultRectPath());
+			
+		Rect.RemoveMargin(Context()->ApplyGuiScale(pContentStyle->GetPadding()));
+	}
+		
+	m_pButtonList->Render();
+	
+	if(m_SelectedTab >= 0)
+	{
+		m_Tabs[m_SelectedTab].m_pWidget->Render();
+	}
 }
 
 void CTabs::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
-	for(int i=0; i<m_Tabs.size(); i++)
-	{
-		if(m_Tabs[i].m_Rect.IsInside(X, Y))
-		{
-			ShowHint(m_Tabs[i].m_aHint);
-			break;
-		}
-	}
+	m_pButtonList->OnMouseOver(X, Y, RelX, RelY, KeyState);
 		
 	if(m_SelectedTab >= 0)
 	{
@@ -126,18 +306,8 @@ void CTabs::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 
 void CTabs::OnButtonClick(int X, int Y, int Button, int Count)
 {
-	if(Button == KEY_MOUSE_1)
-	{
-		for(int i=0; i<m_Tabs.size(); i++)
-		{
-			if(m_Tabs[i].m_Rect.IsInside(X, Y))
-			{
-				m_SelectedTab = i;
-				return;
-			}
-		}
-	}
-	
+	m_pButtonList->OnButtonClick(X, Y, Button, Count);
+		
 	if(m_SelectedTab >= 0)
 	{
 		m_Tabs[m_SelectedTab].m_pWidget->OnButtonClick(X, Y, Button, Count);
@@ -146,6 +316,8 @@ void CTabs::OnButtonClick(int X, int Y, int Button, int Count)
 
 void CTabs::OnButtonRelease(int Button)
 {
+	m_pButtonList->OnButtonRelease(Button);
+		
 	if(m_SelectedTab >= 0)
 	{
 		m_Tabs[m_SelectedTab].m_pWidget->OnButtonRelease(Button);
@@ -154,6 +326,8 @@ void CTabs::OnButtonRelease(int Button)
 
 void CTabs::OnInputEvent()
 {
+	m_pButtonList->OnInputEvent();
+		
 	if(m_SelectedTab >= 0)
 	{
 		m_Tabs[m_SelectedTab].m_pWidget->OnInputEvent();

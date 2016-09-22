@@ -8,7 +8,7 @@
 #include <game/mapitems.h>
 #include "ui.h"
 
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 // sprite renderings
 enum

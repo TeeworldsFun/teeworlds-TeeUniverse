@@ -5,7 +5,6 @@
 #include <game/mapitems.h>
 #include <game/gamecore.h>
 #include <game/client/render.h>
-#include <tu/shared/assetsfile.h>
 
 #include <engine/external/pnglite/pnglite.h>
 
@@ -14,11 +13,11 @@
 namespace tu
 {
 
-CAssetsManager::CAssetsManager(IGraphics* pGraphics, IStorage* pStorage)
+CAssetsManager::CAssetsManager(CKernel* pKernel) :
+	CKernel::CComponent(pKernel),
+	m_pHistory(0)
 {
-	m_pGraphics = pGraphics;
-	m_pStorage = pStorage;
-	m_pHistory = 0;
+	
 }
 
 CAssetsManager::~CAssetsManager()
@@ -27,14 +26,42 @@ CAssetsManager::~CAssetsManager()
 		delete m_pHistory;
 }
 
+void CAssetsManager::Init()
+{
+	m_AssetsListModified = false;
+	CAssetsManager::InitAssetsManager_System(this);
+	CAssetsManager::InitAssetsManager_Universe_TeeWorlds(this);
+}
+	
+void CAssetsManager::AddListener(IListener* pListener)
+{
+	pListener->AssetManager_SetToken(rand());
+	m_pListeners.add(pListener);
+}
+
+void CAssetsManager::RemoveListener(int Token)
+{
+	for(int i=0; i<m_pListeners.size(); i++)
+	{
+		if(m_pListeners[i]->AssetManager_GetToken() == Token)
+			m_pListeners.remove_index(i);
+	}
+}
+
 #define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) template<>\
 CAssetCatalog<ClassName>* CAssetsManager::GetAssetCatalog<ClassName>()\
 {\
 	return &CatalogName;\
 }
-
 #include <tu/client/assetsmacro.h>
+#undef TU_MACRO_ASSETTYPE
 
+#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) template<>\
+const CAssetCatalog<ClassName>* CAssetsManager::GetAssetCatalog<ClassName>() const \
+{\
+	return &CatalogName;\
+}
+#include <tu/client/assetsmacro.h>
 #undef TU_MACRO_ASSETTYPE
 
 CAssetPath CAssetsManager::FindSkinPart(CAssetPath CharacterPath, CAsset_Character::CSubPath CharacterPart, const char* pName)
@@ -115,9 +142,15 @@ CAsset_Image* CAssetsManager::NewImage(CAssetPath* pAssetPath, int Source, int S
 	return pImage;
 }
 
-void CAssetsManager::UpdateAssets()
+void CAssetsManager::Update()
 {
-	//TODO: Do it only for images
+	if(m_AssetsListModified)
+	{
+		for(int i=0; i<m_pListeners.size(); i++)
+			m_pListeners[i]->OnAssetsListModified();
+		m_AssetsListModified = false;
+	}
+	
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Update();
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
@@ -149,27 +182,27 @@ int CAssetsManager::SaveInAssetsFile(const char *pFileName, int Source)
 	return 1;
 }
 
-int CAssetsManager::OnAssetsFileLoaded_Asset(tu::IAssetsFile* pAssetsFile, int Source)
+int CAssetsManager::LoadAssetsFile_Asset(CDataFileReader* pDataFile, int Source)
 {
 	int Start, Num;
-	pAssetsFile->GetType(0, &Start, &Num);
+	pDataFile->GetType(0, &Start, &Num);
 	
 	if(Num > 0)
 	{
-		CStorageType* pItem = (CStorageType*) pAssetsFile->GetItem(Start, 0, 0);
+		CStorageType* pItem = (CStorageType*) pDataFile->GetItem(Start, 0, 0);
 		Source = pItem->m_Source % CAssetPath::NUM_SOURCES;
 	}
 	
-	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.LoadFromAssetsFile(this, pAssetsFile, Source);
+	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.LoadFromAssetsFile(this, pDataFile, Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 	
 	return 1;
 }
 
-int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Source)
+int CAssetsManager::LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source)
 {
-	CMapItemVersion *pItem = (CMapItemVersion *)pAssetsFile->FindItem(MAPITEMTYPE_VERSION, 0);
+	CMapItemVersion *pItem = (CMapItemVersion *)pDataFile->FindItem(MAPITEMTYPE_VERSION, 0);
 	if(!pItem)
 		return 0;
 		
@@ -187,38 +220,38 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 	//Load images
 	{
 		int Start, Num;
-		pAssetsFile->GetType(MAPITEMTYPE_IMAGE, &Start, &Num);
+		pDataFile->GetType(MAPITEMTYPE_IMAGE, &Start, &Num);
 		
 		pImagePath = new CAssetPath[Num];
 		
 		for(int i = 0; i < Num; i++)
 		{
-			CMapItemImage *pItem = (CMapItemImage *)pAssetsFile->GetItem(Start+i, 0, 0);
+			CMapItemImage *pItem = (CMapItemImage *)pDataFile->GetItem(Start+i, 0, 0);
 
 			CAsset_Image* pImage = NewAsset<CAsset_Image>(pImagePath+i, Source, CAssetsHistory::NO_TOKEN);
 			pImage->SetAssetsManager(this);
 			
 			//Image name
 			{
-				char *pName = (char *)pAssetsFile->GetData(pItem->m_ImageName);
+				char *pName = (char *)pDataFile->GetData(pItem->m_ImageName);
 				pImage->SetName(pName);
-				pAssetsFile->UnloadData(pItem->m_ImageName);
+				pDataFile->UnloadData(pItem->m_ImageName);
 			}
 			
 			//Image data
 			if(pItem->m_External)
 			{
-				char* pFilename = (char*) pAssetsFile->GetData(pItem->m_ImageName);
+				char* pFilename = (char*) pDataFile->GetData(pItem->m_ImageName);
 					
 				char aBuf[256];
 				str_format(aBuf, sizeof(aBuf), "mapres/%s.png", pFilename);
 				
 				pImage->LoadData(aBuf, -1, -1);
-				pAssetsFile->UnloadData(pItem->m_ImageName);	
+				pDataFile->UnloadData(pItem->m_ImageName);	
 			}
 			else
 			{
-				unsigned char* pData = (unsigned char*) pAssetsFile->GetData(pItem->m_ImageData);
+				unsigned char* pData = (unsigned char*) pDataFile->GetData(pItem->m_ImageData);
 				int Format = CAsset_Image::FORMAT_RGBA;
 				if(pItem->m_Version > 1)
 				{
@@ -238,7 +271,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 				}
 				
 				pImage->SetData(pItem->m_Width, pItem->m_Height, pItem->m_Width/64, pItem->m_Height/64, Format, pData);
-				pAssetsFile->UnloadData(pItem->m_ImageData);	
+				pDataFile->UnloadData(pItem->m_ImageData);	
 			}
 		}
 	}
@@ -248,13 +281,13 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 	//Load groups
 	{
 		int LayersStart, LayersNum;
-		pAssetsFile->GetType(MAPITEMTYPE_LAYER, &LayersStart, &LayersNum);
+		pDataFile->GetType(MAPITEMTYPE_LAYER, &LayersStart, &LayersNum);
 
 		int Start, Num;
-		pAssetsFile->GetType(MAPITEMTYPE_GROUP, &Start, &Num);
+		pDataFile->GetType(MAPITEMTYPE_GROUP, &Start, &Num);
 		for(int g = 0; g < Num; g++)
 		{
-			CMapItemGroup *pGItem = (CMapItemGroup *)pAssetsFile->GetItem(Start+g, 0, 0);
+			CMapItemGroup *pGItem = (CMapItemGroup *)pDataFile->GetItem(Start+g, 0, 0);
 
 			if(pGItem->m_Version < 1 || pGItem->m_Version > CMapItemGroup::CURRENT_VERSION)
 				continue;
@@ -293,7 +326,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 			
 			for(int l = 0; l < pGItem->m_NumLayers; l++)
 			{
-				CMapItemLayer *pLayerItem = (CMapItemLayer *)pAssetsFile->GetItem(LayersStart+pGItem->m_StartLayer+l, 0, 0);
+				CMapItemLayer *pLayerItem = (CMapItemLayer *)pDataFile->GetItem(LayersStart+pGItem->m_StartLayer+l, 0, 0);
 				if(!pLayerItem)
 					continue;
 				
@@ -306,18 +339,15 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 						Background = false;
 							
 						//Tiles
-						CTile* pTiles = (CTile*) pAssetsFile->GetData(pTilemapItem->m_Data);
+						CTile* pTiles = (CTile*) pDataFile->GetData(pTilemapItem->m_Data);
 						int Width = pTilemapItem->m_Width;
 						int Height = pTilemapItem->m_Height;
 						
 						CAssetPath PhysicsZonePath;
-						NewAsset<CAsset_MapZoneTiles>(&PhysicsZonePath, Source, CAssetsHistory::NO_TOKEN);
+						CAsset_MapZoneTiles* pPhysicsZone = NewAsset<CAsset_MapZoneTiles>(&PhysicsZonePath, Source, CAssetsHistory::NO_TOKEN);
 						
 						CAssetPath DeathZonePath;
-						NewAsset<CAsset_MapZoneTiles>(&DeathZonePath, Source, CAssetsHistory::NO_TOKEN);
-						
-						CAsset_MapZoneTiles* pPhysicsZone = GetAsset<CAsset_MapZoneTiles>(PhysicsZonePath);
-						CAsset_MapZoneTiles* pDeathZone = GetAsset<CAsset_MapZoneTiles>(DeathZonePath);
+						CAsset_MapZoneTiles* pDeathZone = NewAsset<CAsset_MapZoneTiles>(&DeathZonePath, Source, CAssetsHistory::NO_TOKEN);
 						
 						pPhysicsZone->SetName("PhysicsZone");
 						pPhysicsZone->SetZoneTypePath(CAssetPath::Universe(CAssetPath::TYPE_ZONETYPE, ZONETYPE_PHYSICS));
@@ -396,7 +426,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 						//Tiles
 						int Width = pTilemapItem->m_Width;
 						pMapLayer->SetSize(Width, pTilemapItem->m_Height);
-						CTile* pTiles = (CTile*) pAssetsFile->GetData(pTilemapItem->m_Data);
+						CTile* pTiles = (CTile*) pDataFile->GetData(pTilemapItem->m_Data);
 						
 						for(int j=0; j<pMapLayer->GetHeight(); j++)
 						{
@@ -448,7 +478,7 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 					pMapLayer->SetName(aBuf);
 					
 					//Quads
-					CQuad *pQuads = (CQuad *)pAssetsFile->GetDataSwapped(pQuadsItem->m_Data);
+					CQuad *pQuads = (CQuad *)pDataFile->GetDataSwapped(pQuadsItem->m_Data);
 					for(int i=0; i<pQuadsItem->m_NumQuads; i++)
 					{
 						CAsset_MapLayerQuads::CSubPath QuadPath = pMapLayer->NewQuad();
@@ -493,18 +523,37 @@ int CAssetsManager::OnAssetsFileLoaded_Map(tu::IAssetsFile* pAssetsFile, int Sou
 	return 1;
 }
 
-int CAssetsManager::OnAssetsFileLoaded(tu::IAssetsFile* pAssetsFile, int Source)
+int CAssetsManager::LoadAssetsFile(const char* pFilename, int Source, unsigned Crc)
 {
+	CDataFileReader df;
+	
+	if(!df.Open(Storage(), pFilename, IStorage::TYPE_ALL))
+	{
+		dbg_msg("AssetsManager", "can't open the file %s", pFilename);
+		return 0;
+	}
+	
+	if(Crc != 0 && df.Crc() != Crc)
+	{
+		dbg_msg("AssetsManager", "wrong crc for the file %s (%d != %d)", pFilename, Crc, df.Crc());
+		return 0;
+	}
+	
 	//Remove previous assets
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Unload(Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
 	
 	//Load
-	if(pAssetsFile->GetDataFileType() == DATAFILE_TYPE_ASSET)
-		return OnAssetsFileLoaded_Asset(pAssetsFile, Source);
+	int Res;
+	if(df.GetDataFileType() == DATAFILE_TYPE_ASSET)
+		Res = LoadAssetsFile_Asset(&df, Source);
 	else
-		return OnAssetsFileLoaded_Map(pAssetsFile, Source);
+		Res = LoadAssetsFile_Map(&df, Source);
+
+	m_AssetsListModified = true;
+	
+	return Res;
 }
 
 int CAssetsManager::OnAssetsFileUnloaded(int Source)
@@ -512,6 +561,8 @@ int CAssetsManager::OnAssetsFileUnloaded(int Source)
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.Unload(Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
+
+	m_AssetsListModified = true;
 }
 	
 CAssetPath CAssetsManager::DuplicateAsset(const CAssetPath& Path, int Source)
@@ -526,7 +577,7 @@ CAssetPath CAssetsManager::DuplicateAsset(const CAssetPath& Path, int Source)
 		ClassName* pNewAsset = NewAsset<ClassName>(&NewAssetPath, Source, -1);\
 		if(!pNewAsset)\
 			return CAssetPath::Null();\
-		ClassName* pOldAsset = GetAsset<ClassName>(Path);\
+		const ClassName* pOldAsset = GetAsset<ClassName>(Path);\
 		*pNewAsset = *pOldAsset;\
 		\
 		int DuplicateNum = ((Source == Path.GetSource()) ? 1 : 0);\
@@ -582,7 +633,7 @@ int CAssetsManager::AddSubItem(CAssetPath AssetPath, int SubItemType, int Token)
 	
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 	{\
-		ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
+		ClassName* pAsset = GetEditableAsset<ClassName>(AssetPath);\
 		if(pAsset)\
 			return pAsset->AddSubItem(SubItemType);\
 		else\
@@ -603,7 +654,7 @@ void CAssetsManager::DeleteSubItem(CAssetPath AssetPath, int SubPath)
 {
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 	{\
-		ClassName* pAsset = GetAsset<ClassName>(AssetPath);\
+		ClassName* pAsset = GetEditableAsset<ClassName>(AssetPath);\
 		if(pAsset)\
 			pAsset->DeleteSubItem(SubPath);\
 		break;\

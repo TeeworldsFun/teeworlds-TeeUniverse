@@ -1,7 +1,7 @@
 #include "character.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -21,13 +21,13 @@ CAsset_Character::CPart& CAsset_Character::AddPart()
 
 /* IO *****************************************************************/
 
-void CAsset_Character::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_Character::InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem)
 {
 	// load name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	// load parts
-	const CStorageType::CPart* pParts = static_cast<CStorageType::CPart*>(pAssetsFile->GetData(pItem->m_PartsData));
+	const CStorageType::CPart* pParts = static_cast<CStorageType::CPart*>(pFileReader->GetData(pItem->m_PartsData));
 	for(int i=0; i<pItem->m_NumParts; i++)
 	{
 		m_Parts.add(CPart());
@@ -68,7 +68,7 @@ void CAsset_Character::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Positi
 /* VALUE STRING *******************************************************/
 
 template<>
-char* CAsset_Character::GetValue(int ValueType, int PathInt, char* DefaultValue)
+const char* CAsset_Character::GetValue(int ValueType, int PathInt, const char* DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -79,12 +79,12 @@ char* CAsset_Character::GetValue(int ValueType, int PathInt, char* DefaultValue)
 			else
 				return DefaultValue;
 		default:
-			return CAsset::GetValue<char*>(ValueType, PathInt, DefaultValue);
+			return CAsset::GetValue(ValueType, PathInt, DefaultValue);
 	}
 }
 	
 template<>
-bool CAsset_Character::SetValue<const char*>(int ValueType, int PathInt, const char* pText)
+bool CAsset_Character::SetValue(int ValueType, int PathInt, const char* pText)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -98,13 +98,13 @@ bool CAsset_Character::SetValue<const char*>(int ValueType, int PathInt, const c
 			else return false;
 	}
 	
-	return CAsset::SetValue<const char*>(ValueType, PathInt, pText);
+	return CAsset::SetValue(ValueType, PathInt, pText);
 }
 
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CAssetPath CAsset_Character::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue)
+CAssetPath CAsset_Character::GetValue(int ValueType, int PathInt, CAssetPath DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -120,7 +120,7 @@ CAssetPath CAsset_Character::GetValue(int ValueType, int PathInt, CAssetPath Def
 }
 	
 template<>
-bool CAsset_Character::SetValue<CAssetPath>(int ValueType, int PathInt, CAssetPath Value)
+bool CAsset_Character::SetValue(int ValueType, int PathInt, CAssetPath Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)

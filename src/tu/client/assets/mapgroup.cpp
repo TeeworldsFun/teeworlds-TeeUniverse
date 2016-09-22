@@ -1,7 +1,7 @@
 #include "mapgroup.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -15,10 +15,10 @@ CAsset_MapGroup::CAsset_MapGroup() :
 	
 /* IO *****************************************************************/
 
-void CAsset_MapGroup::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_MapGroup::CStorageType* pItem)
+void CAsset_MapGroup::InitFromAssetsFile(CDataFileReader* pFileReader, const CAsset_MapGroup::CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 	
 	m_Position.x = pItem->m_PositionX;
 	m_Position.y = pItem->m_PositionY;
@@ -26,7 +26,7 @@ void CAsset_MapGroup::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAs
 	m_HardParallax.y = pItem->m_HardParallaxY;
 
 	// load layers
-	const int* pLayers = static_cast<int*>(pAssetsFile->GetData(pItem->m_LayersData));
+	const int* pLayers = static_cast<int*>(pFileReader->GetData(pItem->m_LayersData));
 	for(int i=0; i<pItem->m_NumLayers; i++)
 	{
 		m_Layers.add(pLayers[i]);
@@ -60,7 +60,7 @@ void CAsset_MapGroup::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Positio
 /* VALUE FLOAT ********************************************************/
 
 template<>
-float CAsset_MapGroup::GetValue<float>(int ValueType, int PathInt, float DefaultValue)
+float CAsset_MapGroup::GetValue(int ValueType, int PathInt, float DefaultValue) const
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)
@@ -75,7 +75,7 @@ float CAsset_MapGroup::GetValue<float>(int ValueType, int PathInt, float Default
 }
 	
 template<>
-bool CAsset_MapGroup::SetValue<float>(int ValueType, int PathInt, float Value)
+bool CAsset_MapGroup::SetValue(int ValueType, int PathInt, float Value)
 {
 	CSubPath Path(PathInt);
 	switch(ValueType)

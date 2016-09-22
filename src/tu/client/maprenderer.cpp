@@ -1,17 +1,13 @@
 #include <engine/graphics.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 #include "maprenderer.h"
 
 namespace tu
 {
 
-CMapRenderer::CMapRenderer(CGraphics* pTUGraphics, CAssetsManager* pAssetsManager) :
-	m_pTUGraphics(pTUGraphics),
-	m_pGraphics(pTUGraphics->Graphics()),
-	m_pAssetsManager(pAssetsManager),
-	m_GroupPos(0.0f, 0.0f),
-	m_GroupHardParallax(1.0f, 1.0f)
+CMapRenderer::CMapRenderer(CKernel* pKernel) :
+	CKernel::CGuest(pKernel)
 {
 	
 }
@@ -41,7 +37,7 @@ void CMapRenderer::SetCamera(vec2 CameraPos, float CameraZoom)
 
 void CMapRenderer::SetGroup(CAssetPath GroupPath)
 {
-	CAsset_MapGroup* pGroup = AssetsManager()->GetAsset<CAsset_MapGroup>(GroupPath);
+	const CAsset_MapGroup* pGroup = AssetsManager()->GetAsset<CAsset_MapGroup>(GroupPath);
 	if(pGroup)
 	{
 		m_GroupPos = pGroup->GetPosition();
@@ -132,7 +128,7 @@ void CMapRenderer::RenderGrid_LayerTiles(CAssetPath LayerPath)
 {
 	if(LayerPath.GetType() == CAsset_MapLayerTiles::TypeId)
 	{
-		CAsset_MapLayerTiles* pLayer = AssetsManager()->GetAsset<CAsset_MapLayerTiles>(LayerPath);
+		const CAsset_MapLayerTiles* pLayer = AssetsManager()->GetAsset<CAsset_MapLayerTiles>(LayerPath);
 		if(!pLayer)
 			return;
 		
@@ -140,7 +136,7 @@ void CMapRenderer::RenderGrid_LayerTiles(CAssetPath LayerPath)
 	}
 	else if(LayerPath.GetType() == CAsset_MapZoneTiles::TypeId)
 	{
-		CAsset_MapZoneTiles* pLayer = AssetsManager()->GetAsset<CAsset_MapZoneTiles>(LayerPath);
+		const CAsset_MapZoneTiles* pLayer = AssetsManager()->GetAsset<CAsset_MapZoneTiles>(LayerPath);
 		if(!pLayer)
 			return;
 		
@@ -151,7 +147,7 @@ void CMapRenderer::RenderGrid_LayerTiles(CAssetPath LayerPath)
 template<class TILE>
 void RenderTiles_Zone_Impl(CMapRenderer* pMapRenderer, CAssetPath ZoneTypePath, TILE* pTiles, int Width, int Height, vec2 Pos, IGraphics::CTextureHandle& TextureId)
 {
-	CAsset_ZoneType* pZoneType = pMapRenderer->AssetsManager()->GetAsset<CAsset_ZoneType>(ZoneTypePath);
+	const CAsset_ZoneType* pZoneType = pMapRenderer->AssetsManager()->GetAsset<CAsset_ZoneType>(ZoneTypePath);
 	
 	pMapRenderer->Graphics()->TextureSet(TextureId);
 	pMapRenderer->Graphics()->QuadsBegin();
@@ -357,7 +353,7 @@ void CMapRenderer::RenderTiles_Zone(CAssetPath ZoneTypePath, const CAsset_MapLay
 
 void CMapRenderer::RenderTiles_Image(const CAsset_MapLayerTiles::CTile* pTiles, int Width, int Height, vec2 Pos, CAssetPath ImagePath, vec4 Color)
 {
-	TUGraphics()->TextureSet(ImagePath);
+	AssetsRenderer()->TextureSet(ImagePath);
 	
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(Color, true);
@@ -425,7 +421,7 @@ void CMapRenderer::RenderTiles_Image(const CAsset_MapLayerTiles::CTile* pTiles, 
 
 void CMapRenderer::RenderQuads(const CAsset_MapLayerQuads::CQuad* pQuads, int NbQuads, vec2 LayerPos, CAssetPath ImagePath, vec4 LayerColor)
 {
-	TUGraphics()->TextureSet(ImagePath);
+	AssetsRenderer()->TextureSet(ImagePath);
 	
 	Graphics()->QuadsBegin();
 	
@@ -554,7 +550,7 @@ void CMapRenderer::RenderQuads_Mesh(const CAsset_MapLayerQuads::CQuad* pQuads, i
 
 void CMapRenderer::RenderGroup(CAssetPath GroupPath)
 {
-	CAsset_MapGroup* pGroup = AssetsManager()->GetAsset<CAsset_MapGroup>(GroupPath);
+	const CAsset_MapGroup* pGroup = AssetsManager()->GetAsset<CAsset_MapGroup>(GroupPath);
 	if(!pGroup)
 		return;
 	
@@ -566,7 +562,7 @@ void CMapRenderer::RenderGroup(CAssetPath GroupPath)
 		CAssetPath LayerPath = pGroup->GetLayer(*IterLayer);
 		if(LayerPath.GetType() == CAsset_MapLayerTiles::TypeId)
 		{
-			CAsset_MapLayerTiles* pLayer = AssetsManager()->GetAsset<CAsset_MapLayerTiles>(LayerPath);
+			const CAsset_MapLayerTiles* pLayer = AssetsManager()->GetAsset<CAsset_MapLayerTiles>(LayerPath);
 			if(!pLayer)
 				continue;
 			
@@ -574,7 +570,7 @@ void CMapRenderer::RenderGroup(CAssetPath GroupPath)
 		}
 		else if(LayerPath.GetType() == CAsset_MapLayerQuads::TypeId)
 		{
-			CAsset_MapLayerQuads* pLayer = AssetsManager()->GetAsset<CAsset_MapLayerQuads>(LayerPath);
+			const CAsset_MapLayerQuads* pLayer = AssetsManager()->GetAsset<CAsset_MapLayerQuads>(LayerPath);
 			if(!pLayer)
 				continue;
 			
@@ -585,7 +581,7 @@ void CMapRenderer::RenderGroup(CAssetPath GroupPath)
 
 void CMapRenderer::RenderMap(CAssetPath MapPath)
 {
-	CAsset_Map* pMap = AssetsManager()->GetAsset<CAsset_Map>(MapPath);
+	const CAsset_Map* pMap = AssetsManager()->GetAsset<CAsset_Map>(MapPath);
 	if(!pMap)
 		return;
 	
@@ -619,7 +615,7 @@ void CMapRenderer::RenderSource(int Source)
 
 void CMapRenderer::RenderMap_Zones(CAssetPath MapPath, IGraphics::CTextureHandle& TextureId)
 {
-	CAsset_Map* pMap = AssetsManager()->GetAsset<CAsset_Map>(MapPath);
+	const CAsset_Map* pMap = AssetsManager()->GetAsset<CAsset_Map>(MapPath);
 	if(!pMap)
 		return;
 	
@@ -627,7 +623,7 @@ void CMapRenderer::RenderMap_Zones(CAssetPath MapPath, IGraphics::CTextureHandle
 	for(Iter = pMap->BeginZoneLayer(); Iter != pMap->EndZoneLayer(); ++Iter)
 	{
 		CAssetPath ZonePath = pMap->GetZoneLayer(*Iter);
-		CAsset_MapZoneTiles* pZone = AssetsManager()->GetAsset<CAsset_MapZoneTiles>(ZonePath);
+		const CAsset_MapZoneTiles* pZone = AssetsManager()->GetAsset<CAsset_MapZoneTiles>(ZonePath);
 		if(!pZone)
 			continue;
 		

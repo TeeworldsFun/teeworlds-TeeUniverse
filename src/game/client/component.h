@@ -31,8 +31,7 @@ protected:
 	class CCollision *Collision() const { return m_pClient->Collision(); }
 	
 	//TU
-	class tu::CGraphics *TUGraphics() const { return m_pClient->TUGraphics(); }
-	class tu::CAssetsManager *AssetsManager() const { return m_pClient->AssetsManager(); }
+	class tu::CKernel* TUKernel() const { return m_pClient->TUKernel(); }
 	
 public:
 	virtual ~CComponent() {}

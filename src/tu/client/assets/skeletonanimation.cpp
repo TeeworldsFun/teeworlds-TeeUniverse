@@ -1,7 +1,7 @@
 #include "skeleton.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -175,17 +175,17 @@ CAsset_SkeletonAnimation::CSubPath CAsset_SkeletonAnimation::GetLayerKeyFramePat
 
 /* IO *****************************************************************/
 
-void CAsset_SkeletonAnimation::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CStorageType* pItem)
+void CAsset_SkeletonAnimation::InitFromAssetsFile(CDataFileReader* pFileReader, const CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 				
 	// copy info
 	m_SkeletonPath = pItem->m_SkeletonPath;
 	
 	// load bone animations
-	const CStorageType::CBoneKeyFrame* pBoneKeyFrames = static_cast<CStorageType::CBoneKeyFrame*>(pAssetsFile->GetData(pItem->m_BoneKeyFramesData));
-	const CStorageType::CBoneAnimation* pBoneAnimations = static_cast<CStorageType::CBoneAnimation*>(pAssetsFile->GetData(pItem->m_BoneAnimationsData));
+	const CStorageType::CBoneKeyFrame* pBoneKeyFrames = static_cast<CStorageType::CBoneKeyFrame*>(pFileReader->GetData(pItem->m_BoneKeyFramesData));
+	const CStorageType::CBoneAnimation* pBoneAnimations = static_cast<CStorageType::CBoneAnimation*>(pFileReader->GetData(pItem->m_BoneAnimationsData));
 	
 	for(int i=0; i<pItem->m_NumBoneAnimations; i++)
 	{
@@ -213,8 +213,8 @@ void CAsset_SkeletonAnimation::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, 
 	}
 	
 	// load layer animations
-	const CStorageType::CLayerKeyFrame* pLayerKeyFrames = static_cast<CStorageType::CLayerKeyFrame*>(pAssetsFile->GetData(pItem->m_LayerKeyFramesData));
-	const CStorageType::CLayerAnimation* pLayerAnimations = static_cast<CStorageType::CLayerAnimation*>(pAssetsFile->GetData(pItem->m_LayerAnimationsData));
+	const CStorageType::CLayerKeyFrame* pLayerKeyFrames = static_cast<CStorageType::CLayerKeyFrame*>(pFileReader->GetData(pItem->m_LayerKeyFramesData));
+	const CStorageType::CLayerAnimation* pLayerAnimations = static_cast<CStorageType::CLayerAnimation*>(pFileReader->GetData(pItem->m_LayerAnimationsData));
 	for(int i=0; i<pItem->m_NumLayerAnimations; i++)
 	{
 		m_LayerAnimations.add(CLayerAnimation());
@@ -335,7 +335,7 @@ void CAsset_SkeletonAnimation::SaveInAssetsFile(CDataFileWriter* pFileWriter, in
 /* VALUE INT **********************************************************/
 
 template<>
-int CAsset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int DefaultValue)
+int CAsset_SkeletonAnimation::GetValue(int ValueType, int Path, int DefaultValue) const
 {
 	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
@@ -408,14 +408,14 @@ int CAsset_SkeletonAnimation::GetValue<int>(int ValueType, int Path, int Default
 			}
 			break;
 		default:
-			return CAsset::GetValue<int>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue(ValueType, Path, DefaultValue);
 	}
 	
 	return DefaultValue;
 }
 
 template<>
-bool CAsset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int Value)
+bool CAsset_SkeletonAnimation::SetValue(int ValueType, int Path, int Value)
 {
 	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
@@ -559,13 +559,13 @@ bool CAsset_SkeletonAnimation::SetValue<int>(int ValueType, int Path, int Value)
 			else return false;
 	}
 	
-	return CAsset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue(ValueType, Path, Value);
 }
 
 /* VALUE FLOAT ********************************************************/
 
 template<>
-float CAsset_SkeletonAnimation::GetValue<float>(int ValueType, int Path, float DefaultValue)
+float CAsset_SkeletonAnimation::GetValue(int ValueType, int Path, float DefaultValue) const
 {
 	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
@@ -602,14 +602,14 @@ float CAsset_SkeletonAnimation::GetValue<float>(int ValueType, int Path, float D
 			}
 			break;
 		default:
-			return CAsset::GetValue<float>(ValueType, Path, DefaultValue);
+			return CAsset::GetValue(ValueType, Path, DefaultValue);
 	}
 	
 	return DefaultValue;
 }
 
 template<>
-bool CAsset_SkeletonAnimation::SetValue<float>(int ValueType, int Path, float Value)
+bool CAsset_SkeletonAnimation::SetValue(int ValueType, int Path, float Value)
 {
 	CAsset_SkeletonAnimation::CSubPath SubPath(Path);
 	
@@ -654,13 +654,13 @@ bool CAsset_SkeletonAnimation::SetValue<float>(int ValueType, int Path, float Va
 			break;
 	}
 	
-	return CAsset::SetValue<int>(ValueType, Path, Value);
+	return CAsset::SetValue(ValueType, Path, Value);
 }
 
 /* VALUE VEC4 *********************************************************/
 	
 template<>
-vec4 CAsset_SkeletonAnimation::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue)
+vec4 CAsset_SkeletonAnimation::GetValue<vec4>(int ValueType, int PathInt, vec4 DefaultValue) const
 {
 	CAsset_SkeletonAnimation::CSubPath SubPath(PathInt);
 	switch(ValueType)
@@ -715,7 +715,7 @@ bool CAsset_SkeletonAnimation::SetValue<vec4>(int ValueType, int PathInt, vec4 V
 /* VALUE ASSETPATH ****************************************************/
 
 template<>
-CAssetPath CAsset_SkeletonAnimation::GetValue<CAssetPath>(int ValueType, int Path, CAssetPath DefaultValue)
+CAssetPath CAsset_SkeletonAnimation::GetValue(int ValueType, int Path, CAssetPath DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -723,11 +723,11 @@ CAssetPath CAsset_SkeletonAnimation::GetValue<CAssetPath>(int ValueType, int Pat
 			return m_SkeletonPath;
 	}
 	
-	return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
+	return CAsset::GetValue(ValueType, Path, DefaultValue);
 }
 
 template<>
-bool CAsset_SkeletonAnimation::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
+bool CAsset_SkeletonAnimation::SetValue(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -736,7 +736,7 @@ bool CAsset_SkeletonAnimation::SetValue<CAssetPath>(int ValueType, int Path, CAs
 			return true;
 	}
 	
-	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue(ValueType, Path, Value);
 }
 
 }

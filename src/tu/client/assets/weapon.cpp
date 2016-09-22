@@ -1,7 +1,7 @@
 #include "weapon.h"
 
 #include <engine/shared/datafile.h>
-#include <tu/client/graphics.h>
+#include <tu/client/assetsrenderer.h>
 
 namespace tu
 {
@@ -13,10 +13,10 @@ CAsset_Weapon::CAsset_Weapon()
 
 /* IO *****************************************************************/
 
-void CAsset_Weapon::InitFromAssetsFile(tu::IAssetsFile* pAssetsFile, const CAsset_Weapon::CStorageType* pItem)
+void CAsset_Weapon::InitFromAssetsFile(CDataFileReader* pFileReader, const CAsset_Weapon::CStorageType* pItem)
 {
 	// copy name
-	SetName((char *)pAssetsFile->GetData(pItem->m_Name));
+	SetName((char *)pFileReader->GetData(pItem->m_Name));
 				
 	// copy info
 	m_CharacterPath = CAssetPath(pItem->m_CharacterPath);
@@ -41,7 +41,7 @@ void CAsset_Weapon::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Position)
 /* VALUE ASSETPATH *******************************************************/
 
 template<>
-CAssetPath CAsset_Weapon::GetValue(int ValueType, int Path, CAssetPath DefaultValue)
+CAssetPath CAsset_Weapon::GetValue(int ValueType, int Path, CAssetPath DefaultValue) const
 {
 	switch(ValueType)
 	{
@@ -55,11 +55,11 @@ CAssetPath CAsset_Weapon::GetValue(int ValueType, int Path, CAssetPath DefaultVa
 			return m_AttackAnimationPath;
 	}
 
-	return CAsset::GetValue<CAssetPath>(ValueType, Path, DefaultValue);
+	return CAsset::GetValue(ValueType, Path, DefaultValue);
 }
 	
 template<>
-bool CAsset_Weapon::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Value)
+bool CAsset_Weapon::SetValue(int ValueType, int Path, CAssetPath Value)
 {
 	switch(ValueType)
 	{
@@ -77,7 +77,7 @@ bool CAsset_Weapon::SetValue<CAssetPath>(int ValueType, int Path, CAssetPath Val
 			return true;
 	}
 	
-	return CAsset::SetValue<CAssetPath>(ValueType, Path, Value);
+	return CAsset::SetValue(ValueType, Path, Value);
 }
 
 }
