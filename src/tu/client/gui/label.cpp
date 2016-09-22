@@ -19,17 +19,11 @@ CAbstractLabel::CAbstractLabel(CContext *pContext) :
 {
 	SetBoxStyle(Context()->GetLabelStyle());
 	m_aText[0] = 0;
-	m_aRendererText[0] = 0;
-	m_TextCache.Reset();
 }
 
 void CAbstractLabel::OnTextUpdated()
 {
-	if(str_comp(m_aRendererText, m_aText) != 0)
-	{
-		str_copy(m_aRendererText, m_aText, sizeof(m_aRendererText));
-		m_TextCache.Reset();
-	}
+	m_TextCache.SetText(m_aText);
 }
 
 void CAbstractLabel::UpdateBoundingSize()
@@ -56,7 +50,7 @@ void CAbstractLabel::UpdateBoundingSize()
 		m_BoundingSizeRect.BSHorizontalAdd(IconRect);
 	}
 	
-	if(GetRendererText()[0])
+	if(GetText()[0])
 	{
 		if(pSprite)
 			m_BoundingSizeRect.BSAddSpacing(Spacing, 0);
@@ -71,6 +65,8 @@ void CAbstractLabel::UpdateBoundingSize()
 		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
 		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
 	}
+	
+	m_TextCache.SetFontSize(m_FontSize);
 }
 
 void CAbstractLabel::Render()
@@ -79,13 +75,11 @@ void CAbstractLabel::Render()
 	CRect ClipRect = m_DrawRect;
 	vec4 FontColor = 1.0f;
 	int Alignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_LEFT;
-	m_FontSize = Context()->ApplyGuiScale(11);
 	int Spacing = 0;
 	
 	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
 	if(pBoxStyle)
 	{
-		m_FontSize = Context()->ApplyGuiScale(pBoxStyle->GetFontSize());
 		FontColor = pBoxStyle->m_TextColor;
 		Alignment = pBoxStyle->m_TextAlignment;
 		
@@ -111,12 +105,14 @@ void CAbstractLabel::Render()
 		IconWidth = Context()->ApplyGuiScale(pSprite->GetPixelWidth());
 	}
 	
-	if(GetRendererText()[0])
+	m_TextCache.SetBoxSize(ivec2(-1, Rect.h));
+	
+	if(GetText()[0])
 	{
 		if(pSprite && pBoxStyle)
 			Spacing = Context()->ApplyGuiScale(pBoxStyle->GetSpacing());
 		
-		TextWidth = TextRenderer()->GetTextWidth(GetRendererText(), CRect(0, 0, TextWidth, Rect.h), m_FontSize, &m_TextCache);
+		TextWidth = TextRenderer()->GetTextWidth(&m_TextCache);
 	}
 	
 	int TotalWidth = IconWidth + Spacing + TextWidth;
@@ -140,10 +136,10 @@ void CAbstractLabel::Render()
 	Graphics()->ClipPush(ClipRect.x, ClipRect.y, ClipRect.w, ClipRect.h);
 	if(Context()->GetGuiDirection() == CContext::DIRECTION_RTL)
 	{
-		if(GetRendererText()[0])
+		if(GetText()[0])
 		{
-			m_TextRect = CRect(PosX, Rect.y, TextWidth, Rect.h);
-			TextRenderer()->DrawText(GetRendererText(), m_TextRect, m_FontSize, FontColor, &m_TextCache);
+			m_RendererTextPosition = ivec2(PosX, Rect.y);
+			TextRenderer()->DrawText(&m_TextCache, m_RendererTextPosition, FontColor);
 			PosX += TextWidth;
 		}
 		
@@ -173,10 +169,11 @@ void CAbstractLabel::Render()
 		
 		PosX += Spacing;
 		
-		if(GetRendererText()[0])
+		if(GetText()[0])
 		{
-			m_TextRect = CRect(PosX, Rect.y, TextWidth, Rect.h);
-			TextRenderer()->DrawText(GetRendererText(), m_TextRect, m_FontSize, FontColor, &m_TextCache);
+			m_RendererTextPosition = ivec2(PosX, Rect.y);
+			m_TextCache.SetBoxSize(ivec2(-1, Rect.h));
+			TextRenderer()->DrawText(&m_TextCache, m_RendererTextPosition, FontColor);
 		}
 	}
 	Graphics()->ClipPop();

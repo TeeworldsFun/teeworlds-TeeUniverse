@@ -1,6 +1,10 @@
 #include <tu/client/textrenderer.h>
 #include <engine/storage.h>
 
+#include <unicode/ubidi.h> //To apply BiDi algorithm
+#include <harfbuzz/hb-icu.h> //To tell HarfBuuf to use ICU
+#include <harfbuzz/hb-ft.h> //To apply text shaping
+
 namespace tu
 {
 
@@ -68,78 +72,86 @@ void CTextRenderer::CGlyphCache::Init(int FontSize)
 	m_Blocks.clear();
 	m_Glyphs.clear();
 	
-	//Init
-	m_Width = m_PPB;
-	m_Height = m_PPB;
-	m_pData = new char[m_Width*m_Height];
+	m_Width = 0;
+	m_Height = 0;
 	
-	mem_zero(m_pData, m_Width*m_Height);
-	m_Texture = Graphics()->LoadTextureRaw(m_Width, m_Height, 1, 1, CImageInfo::FORMAT_ALPHA, m_pData, CImageInfo::FORMAT_ALPHA, IGraphics::TEXLOAD_NOMIPMAPS);
-	
-	m_MemoryUsage = m_Width*m_Height;
-	
+	//Init	
 	UpdateVersion();
 }
 
 void CTextRenderer::CGlyphCache::IncreaseCache()
 {
-	//Compute new sizes
-	int NewWidth = m_Width;
-	int NewHeight = m_Height;
-	
-	if(NewWidth > NewHeight)
-		NewHeight <<= 1;
-	else
-		NewWidth <<= 1;
-	
-	//Allocate a new buffer and copy the old inside
-	char* pNewData = new char[NewWidth*NewHeight];
-	mem_zero(pNewData, NewWidth*NewHeight);
-		
-		//Block are arranged differently to be still accessible iterativly
-	if(m_pData)
+	if(m_Width == 0 || m_Height == 0)
 	{
-		int OldNumBlockX = m_Width/m_PPB;
-		int NewNumBlockX = NewWidth/m_PPB;
+		m_Width = m_PPB;
+		m_Height = m_PPB;
+		m_pData = new char[m_Width*m_Height];
 		
-		for(int b=0; b<m_Blocks.size(); b++)
+		mem_zero(m_pData, m_Width*m_Height);
+		m_Texture = Graphics()->LoadTextureRaw(m_Width, m_Height, 1, 1, CImageInfo::FORMAT_ALPHA, m_pData, CImageInfo::FORMAT_ALPHA, IGraphics::TEXLOAD_NOMIPMAPS);
+		
+		m_MemoryUsage = m_Width*m_Height;
+	}
+	else
+	{
+		//Compute new sizes
+		int NewWidth = m_Width;
+		int NewHeight = m_Height;
+		
+		if(NewWidth > NewHeight)
+			NewHeight <<= 1;
+		else
+			NewWidth <<= 1;
+		
+		//Allocate a new buffer and copy the old inside
+		char* pNewData = new char[NewWidth*NewHeight];
+		mem_zero(pNewData, NewWidth*NewHeight);
+			
+			//Block are arranged differently to be still accessible iterativly
+		if(m_pData)
 		{
-			for(int j=0; j<m_PPB; j++)
+			int OldNumBlockX = m_Width/m_PPB;
+			int NewNumBlockX = NewWidth/m_PPB;
+			
+			for(int b=0; b<m_Blocks.size(); b++)
 			{
-				int OldY = (b / OldNumBlockX)*m_PPB + j;
-				int NewY = (b / NewNumBlockX)*m_PPB + j;
-				
-				for(int i=0; i<m_PPB; i++)
+				for(int j=0; j<m_PPB; j++)
 				{
-					int OldX = (b % OldNumBlockX)*m_PPB + i;
-					int NewX = (b % NewNumBlockX)*m_PPB + i;
+					int OldY = (b / OldNumBlockX)*m_PPB + j;
+					int NewY = (b / NewNumBlockX)*m_PPB + j;
 					
-					pNewData[NewY*NewWidth+NewX] = m_pData[OldY*m_Width+OldX];
+					for(int i=0; i<m_PPB; i++)
+					{
+						int OldX = (b % OldNumBlockX)*m_PPB + i;
+						int NewX = (b % NewNumBlockX)*m_PPB + i;
+						
+						pNewData[NewY*NewWidth+NewX] = m_pData[OldY*m_Width+OldX];
+					}
 				}
 			}
+			
+			delete[] m_pData;
+			
+			m_MemoryUsage -= m_Width*m_Height;
+			
+			if(m_Texture.IsValid())
+				Graphics()->UnloadTexture(&m_Texture);
+		}
+		m_pData = pNewData;
+		m_Width = NewWidth;
+		m_Height = NewHeight;
+		
+		//Update Glyphs
+		for(int i=0; i<m_Glyphs.size(); i++)
+		{
+			UpdateGlyph(&m_Glyphs[i]);
 		}
 		
-		delete[] m_pData;
+		//Update texture
 		
-		m_MemoryUsage -= m_Width*m_Height;
-		
-		if(m_Texture.IsValid())
-			Graphics()->UnloadTexture(&m_Texture);
+		m_Texture = Graphics()->LoadTextureRaw(m_Width, m_Height, 1, 1, CImageInfo::FORMAT_ALPHA, m_pData, CImageInfo::FORMAT_ALPHA, IGraphics::TEXLOAD_NOMIPMAPS);
+		m_MemoryUsage += m_Width*m_Height;
 	}
-	m_pData = pNewData;
-	m_Width = NewWidth;
-	m_Height = NewHeight;
-	
-	//Update Glyphs
-	for(int i=0; i<m_Glyphs.size(); i++)
-	{
-		UpdateGlyph(&m_Glyphs[i]);
-	}
-	
-	//Update texture
-	
-	m_Texture = Graphics()->LoadTextureRaw(m_Width, m_Height, 1, 1, CImageInfo::FORMAT_ALPHA, m_pData, CImageInfo::FORMAT_ALPHA, IGraphics::TEXLOAD_NOMIPMAPS);
-	m_MemoryUsage += m_Width*m_Height;
 	
 	UpdateVersion();
 }
@@ -165,7 +177,7 @@ int CTextRenderer::CGlyphCache::NewBlock(ivec2 Granularity)
 	return BlockId;
 }
 
-CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::NewGlyph(int CharCode, int Width, int Height)
+CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::NewGlyph(int FontId, int GlyphCode, int Width, int Height)
 {	
 	ivec2 Granularity;
 	Granularity.x = (Width%m_PPG == 0 ? (Width / m_PPG) : (Width / m_PPG) + 1);
@@ -183,7 +195,7 @@ CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::NewGlyph(int CharCode, int Wi
 		{
 			if(!m_Blocks[i].IsFull())
 			{
-				CGlyph* pGlyph = &m_Glyphs[m_Glyphs.add(CGlyph(CharCode))];
+				CGlyph* pGlyph = &m_Glyphs[m_Glyphs.add(CGlyph(FontId, GlyphCode))];
 				
 				pGlyph->m_Width = Width;
 				pGlyph->m_Height = Height;
@@ -215,7 +227,7 @@ CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::NewGlyph(int CharCode, int Wi
 	
 	if(OldestGlyph >= 0) //Replace the glyph
 	{
-		CGlyph Glyph = CGlyph(CharCode);
+		CGlyph Glyph = CGlyph(FontId, GlyphCode);
 		Glyph.m_Block = m_Glyphs[OldestGlyph].m_Block;
 		Glyph.m_BlockPos = m_Glyphs[OldestGlyph].m_BlockPos;
 		
@@ -236,7 +248,7 @@ CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::NewGlyph(int CharCode, int Wi
 	{
 		int BlockId = NewBlock(Granularity);
 
-		CGlyph* pGlyph = &m_Glyphs[m_Glyphs.add(CGlyph(CharCode))];
+		CGlyph* pGlyph = &m_Glyphs[m_Glyphs.add(CGlyph(FontId, GlyphCode))];
 		
 		pGlyph->m_Width = Width;
 		pGlyph->m_Height = Height;
@@ -252,7 +264,7 @@ CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::NewGlyph(int CharCode, int Wi
 	}
 }
 
-CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::FindGlyph(int CharCode)
+CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::FindGlyph(int FontId, int GlyphCode)
 {
 	if(m_Glyphs.size() == 0)
 		return 0;
@@ -260,19 +272,19 @@ CTextRenderer::CGlyph* CTextRenderer::CGlyphCache::FindGlyph(int CharCode)
 	int iMin = 0;
 	int iMax = m_Glyphs.size()-1;
 	
-	if(m_Glyphs[iMax].m_CharCode < CharCode)
+	if(m_Glyphs[iMax].Comp(FontId, GlyphCode) < 0)
 		return 0;
 
 	while((iMax-iMin) > 1)
 	{
 		int Pivot = iMin + (iMax-iMin-1)/2;
-		if(m_Glyphs[Pivot].m_CharCode < CharCode)
+		if(m_Glyphs[Pivot].Comp(FontId, GlyphCode) < 0)
 			iMin = Pivot+1;
 		else
 			iMax = Pivot+1;
 	}
 	
-	if(m_Glyphs[iMin].m_CharCode == CharCode)
+	if(m_Glyphs[iMin].Comp(FontId, GlyphCode) == 0)
 		return &m_Glyphs[iMin];
 	else
 		return 0;
@@ -295,28 +307,67 @@ void CTextRenderer::CGlyphCache::UpdateTexture(CTextRenderer::CGlyph* pGlyph, co
 
 /* TEXT CACHE *********************************************************/
 
-CTextRenderer::CTextCache::CTextCache()
+CTextRenderer::CTextCache::CTextCache() :
+	m_GlyphCacheId(-1),
+	m_Rendered(false)
 {
-	m_GlyphCacheId = -1;
+	
 }
 
-void CTextRenderer::CTextCache::Reset()
+void CTextRenderer::CTextCache::SetText(const char* pText)
+{
+	if(pText == 0)
+	{
+		m_Rendered = false;
+		m_Text = "";
+	}
+	else if(m_Text.c_str() == 0 || str_comp(m_Text.c_str(), pText) != 0)
+	{
+		m_Text = pText;
+		m_Rendered = false;
+	}
+}
+
+void CTextRenderer::CTextCache::SetBoxSize(ivec2 BoxSize)
+{
+	if(m_BoxSize != BoxSize)
+	{
+		m_BoxSize = BoxSize;
+		m_Rendered = false;
+	}
+}
+
+void CTextRenderer::CTextCache::SetFontSize(float FontSize)
+{
+	if(m_FontSize != FontSize)
+	{
+		m_FontSize = FontSize;
+		m_Rendered = false;
+	}
+}
+
+
+void CTextRenderer::CTextCache::ResetRendering()
 {
 	m_GlyphCacheId = -1;
+	m_GlyphCacheVersion = -1;
 	m_Quads.clear();
-	m_TextWidth = 0.0f;
 }
 
 /* TEXT RENDERER ******************************************************/
 
 CTextRenderer::CTextRenderer(CKernel* pKernel) :
-	CKernel::CComponent(pKernel)
+	CKernel::CComponent(pKernel),
+	m_pHBFont(0)
 {
 	
 }
 
 CTextRenderer::~CTextRenderer()
 {
+	if(m_pHBFont);
+		hb_font_destroy(m_pHBFont);
+	
 	for(int i=0; i<m_Fonts.size(); i++)
 		delete m_Fonts[i];
 	
@@ -360,6 +411,8 @@ bool CTextRenderer::Init()
 		return false;
 	LoadFont("fonts/NotoSansCJKjp-Medium.ttf");
 	
+	m_pHBFont = hb_ft_font_create(m_Fonts[0]->m_FtFace, 0);
+	
 	return true;
 }
 
@@ -392,7 +445,7 @@ bool CTextRenderer::LoadFont(const char* pFilename)
 
 char s_aGlyphBuffer[128*128];
 
-CTextRenderer::CGlyph* CTextRenderer::LoadGlyph(CGlyphCache* pCache, int CharCode)
+CTextRenderer::CGlyph* CTextRenderer::LoadGlyph(CGlyphCache* pCache, int FontId, int GlyphCode)
 {
 	if(m_Fonts.size() == 0)
 	{
@@ -400,43 +453,30 @@ CTextRenderer::CGlyph* CTextRenderer::LoadGlyph(CGlyphCache* pCache, int CharCod
 		return 0;
 	}
 	
-	int GlyphIndex = 0;
-	int FontIndex = 0;
-	while(FontIndex < m_Fonts.size())
-	{
-		GlyphIndex = FT_Get_Char_Index(m_Fonts[FontIndex]->m_FtFace, CharCode);
-		if(GlyphIndex != 0)
-			break;
-		FontIndex++;
-	}
-	
-	//No glyph found. Print the ".nodef" glyph of the first font instead
-	if(GlyphIndex == 0)
-		FontIndex = 0;
-	
-	if(FT_Set_Pixel_Sizes(m_Fonts[FontIndex]->m_FtFace, 0, pCache->m_FontSize) != FT_Err_Ok)
+	if(FT_Set_Pixel_Sizes(m_Fonts[FontId]->m_FtFace, 0, pCache->m_FontSize) != FT_Err_Ok)
 	{
 		dbg_msg("TextRenderer", "Can't set pixel size %d", pCache->m_FontSize);
 		return 0;
 	}
-	if(FT_Load_Glyph(m_Fonts[FontIndex]->m_FtFace, GlyphIndex, FT_LOAD_RENDER|FT_LOAD_NO_BITMAP) != FT_Err_Ok)
+	if(FT_Load_Glyph(m_Fonts[FontId]->m_FtFace, GlyphCode, FT_LOAD_RENDER|FT_LOAD_NO_BITMAP) != FT_Err_Ok)
 	{
-		dbg_msg("TextRenderer", "Can't load glyph %d", GlyphIndex);
+		dbg_msg("TextRenderer", "Can't load glyph %d", GlyphCode);
 		return 0;
 	}
 	
-	FT_Bitmap* pBitmap = &m_Fonts[FontIndex]->m_FtFace->glyph->bitmap;
+	FT_Bitmap* pBitmap = &m_Fonts[FontId]->m_FtFace->glyph->bitmap;
 	int BitmapWidth = pBitmap->width;
 	int BitmapHeight = pBitmap->rows;
 	int BBWidth = BitmapWidth+2*s_Margin;
 	int BBHeight = BitmapHeight+2*s_Margin;
 	
-	CTextRenderer::CGlyph* pGlyph = pCache->NewGlyph(CharCode, BBWidth, BBHeight);
+	CTextRenderer::CGlyph* pGlyph = pCache->NewGlyph(FontId, GlyphCode, BBWidth, BBHeight);
 	
-	pGlyph->m_CharCode = CharCode;
-	pGlyph->m_AdvanceX = (m_Fonts[FontIndex]->m_FtFace->glyph->advance.x >> 6);
-	pGlyph->m_OffsetX = m_Fonts[FontIndex]->m_FtFace->glyph->bitmap_left - s_Margin;
-	pGlyph->m_OffsetY = m_Fonts[FontIndex]->m_FtFace->glyph->bitmap_top + s_Margin;
+	pGlyph->m_FontId = FontId;
+	pGlyph->m_GlyphCode = GlyphCode;
+	pGlyph->m_AdvanceX = (m_Fonts[FontId]->m_FtFace->glyph->advance.x >> 6);
+	pGlyph->m_OffsetX = m_Fonts[FontId]->m_FtFace->glyph->bitmap_left - s_Margin;
+	pGlyph->m_OffsetY = m_Fonts[FontId]->m_FtFace->glyph->bitmap_top + s_Margin;
 	
 	if(pBitmap->pixel_mode == FT_PIXEL_MODE_GRAY)
 	{
@@ -479,19 +519,19 @@ CTextRenderer::CGlyph* CTextRenderer::LoadGlyph(CGlyphCache* pCache, int CharCod
 	return pGlyph;
 }
 
-CTextRenderer::CGlyph* CTextRenderer::FindGlyph(CGlyphCache* pCache, int CharCode)
+CTextRenderer::CGlyph* CTextRenderer::FindGlyph(CGlyphCache* pCache, int FontId, int GlyphCode)
 {
-	return pCache->FindGlyph(CharCode);
+	return pCache->FindGlyph(FontId, GlyphCode);
 }
 
 
-CTextRenderer::CGlyph* CTextRenderer::GetGlyph(CGlyphCache* pCache, int CharCode)
+CTextRenderer::CGlyph* CTextRenderer::GetGlyph(CGlyphCache* pCache, int FontId, int GlyphCode)
 {
-	CTextRenderer::CGlyph* pGlyph = FindGlyph(pCache, CharCode);
+	CTextRenderer::CGlyph* pGlyph = FindGlyph(pCache, FontId, GlyphCode);
 	
 	//Load Glyph
 	if(!pGlyph)
-		pGlyph = LoadGlyph(pCache, CharCode);
+		pGlyph = LoadGlyph(pCache, FontId, GlyphCode);
 	
 	//Update timer
 	if(pGlyph)
@@ -500,15 +540,35 @@ CTextRenderer::CGlyph* CTextRenderer::GetGlyph(CGlyphCache* pCache, int CharCode
 	return pGlyph;
 }
 
-void CTextRenderer::UpdateTextCache(const char* pText, ivec2 BoxSize, float FontSize, CTextCache* pTextCache)
+void CTextRenderer::UpdateTextCache_GenerateGlyphChain(array<int>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL)
+{
+	//Use harfbuzz to shape the text (arabic, tamil, ...)
+	hb_buffer_t* m_pHBBuffer = hb_buffer_create();
+	hb_buffer_set_unicode_funcs(m_pHBBuffer, hb_icu_get_unicode_funcs());
+	hb_buffer_set_direction(m_pHBBuffer, (IsRTL ? HB_DIRECTION_RTL : HB_DIRECTION_LTR));
+	hb_buffer_set_script(m_pHBBuffer, HB_SCRIPT_ARABIC);
+	hb_buffer_set_language(m_pHBBuffer, hb_language_from_string("ar", 2));
+	
+	hb_buffer_add_utf16(m_pHBBuffer, pTextUTF16, Length, Start, Length);
+	hb_shape(m_pHBFont, m_pHBBuffer, 0, 0);
+	
+	unsigned int GlyphCount;
+	hb_glyph_info_t* GlyphInfo = hb_buffer_get_glyph_infos(m_pHBBuffer, &GlyphCount);
+	hb_glyph_position_t* GlyphPos = hb_buffer_get_glyph_positions(m_pHBBuffer, &GlyphCount);
+
+	for(int i=0; i<GlyphCount; i++)
+		pGlyphChain->add(GlyphInfo[i].codepoint);
+		
+	hb_buffer_destroy(m_pHBBuffer);
+}
+
+void CTextRenderer::UpdateTextCache(CTextCache* pTextCache)
 {
 	bool NeedUpdate = false;
 	
+	if(!pTextCache->m_Rendered)
+		NeedUpdate = true;
 	if(pTextCache->m_GlyphCacheId < 0 || pTextCache->m_GlyphCacheId >= m_GlyphCaches.size())
-		NeedUpdate = true;
-	else if(pTextCache->m_BoxSize != BoxSize)
-		NeedUpdate = true;
-	else if(pTextCache->m_FontSize != FontSize)
 		NeedUpdate = true;
 	else if(pTextCache->m_GlyphCacheVersion != m_GlyphCaches[pTextCache->m_GlyphCacheId]->m_Version)
 		NeedUpdate = true;
@@ -516,10 +576,7 @@ void CTextRenderer::UpdateTextCache(const char* pText, ivec2 BoxSize, float Font
 	if(!NeedUpdate)
 		return;
 	
-	pTextCache->Reset();
-	
-	pTextCache->m_BoxSize = BoxSize;
-	pTextCache->m_FontSize = FontSize;
+	pTextCache->ResetRendering();
 	
 	//Search the appropriate cached font size to render the text
 	CGlyphCache* pGlyphCache = 0;
@@ -528,38 +585,74 @@ void CTextRenderer::UpdateTextCache(const char* pText, ivec2 BoxSize, float Font
 		pGlyphCache = m_GlyphCaches[i];
 		pTextCache->m_GlyphCacheId = i;
 		
-		if(m_GlyphCaches[i]->m_FontSize >= FontSize)
+		if(m_GlyphCaches[i]->m_FontSize >= pTextCache->m_FontSize)
 			break;
 	}
 	if(!pGlyphCache)
 		return;
 	
-	float RelativeSize = FontSize / pGlyphCache->m_FontSize;
+	float RelativeSize = pTextCache->m_FontSize / pGlyphCache->m_FontSize;
+	array<int> GlyphChain;
 	
-	int Length = str_length(pText);	
+	//Use ICU for bidirectional text
+	//note: bidirectional texts appear for example when a latin username is displayed in a arabic text
+	UErrorCode ICUError = U_ZERO_ERROR;
+	UnicodeString UTF16Text = icu::UnicodeString::fromUTF8(pTextCache->m_Text.c_str());
+	UBiDi* pICUBiDi = ubidi_openSized(UTF16Text.length(), 0, &ICUError);
 	
-	//TODO: add text shaping and text layout here
+	//Perform the BiDi algorithm
+	//TODO: change UBIDI_DEFAULT_LTR by some variable dependend of the user config
+	ubidi_setPara(pICUBiDi, UTF16Text.getBuffer(), UTF16Text.length(), UBIDI_DEFAULT_LTR, 0, &ICUError);
+	
+	if(U_SUCCESS(ICUError))
+	{
+		UBiDiLevel ICULevel = 1&ubidi_getParaLevel(pICUBiDi);
+		UBiDiDirection Direction = ubidi_getDirection(pICUBiDi);
+
+		if(Direction != UBIDI_MIXED)
+		{
+			UpdateTextCache_GenerateGlyphChain(&GlyphChain, UTF16Text.getBuffer(), 0, UTF16Text.length(), (Direction == UBIDI_RTL));
+		}
+		else
+		{
+			UBiDiLevel level;
+			int NumberOfParts = ubidi_countRuns(pICUBiDi, &ICUError);
+			if(U_SUCCESS(ICUError))
+			{
+				for(int i=0; i<NumberOfParts; i++)
+				{
+					int Start;
+					int SubLength;
+					Direction = ubidi_getVisualRun(pICUBiDi, i, &Start, &SubLength);
+
+					UpdateTextCache_GenerateGlyphChain(&GlyphChain, UTF16Text.getBuffer(), Start, SubLength, (Direction == UBIDI_RTL));
+				}
+			}
+			else
+			{
+				dbg_msg("TextRenderer", "BiDi algorithm failed (ubidi_countRuns): %s", u_errorName(ICUError));
+				return;
+			}
+		}
+    }
+    else
+    {
+		dbg_msg("TextRenderer", "BiDi algorithm failed: %s", u_errorName(ICUError));
+		return;
+	}
 	
 	//Here, we use two passes in order to make sure that the glyph cache is in the same state for all letters
 		//First pass: Update the glyph cache
-	const char* pEnd = pText + Length;
-	const char* pIter = pText;
-	while(pIter < pEnd)
-	{
-		int CharCode = str_utf8_decode(&pIter);
-		GetGlyph(pGlyphCache, CharCode);
-	}
+	for(int i=0; i<GlyphChain.size(); i++)
+		GetGlyph(pGlyphCache, 0, GlyphChain[i]);
 	
 		//Second pass: Generate the list of quads
-	pIter = pText;
-	float PosY = BoxSize.y/2 + static_cast<int>(FontSize*0.4f); //TODO: find a way to not hard code the generic glyph height.
+	float PosY = pTextCache->m_BoxSize.y/2 + static_cast<int>(pTextCache->m_FontSize*0.4f); //TODO: find a way to not hard code the generic glyph height.
 	float PosX = 0.0f;
 	int TextIter = 0;
-	while(pIter < pEnd)
+	for(int i=0; i<GlyphChain.size(); i++)
 	{
-		int CharCode = str_utf8_decode(&pIter);
-		
-		CGlyph* pGlyph = GetGlyph(pGlyphCache, CharCode);
+		CGlyph* pGlyph = GetGlyph(pGlyphCache, 0, GlyphChain[i]);
 		if(pGlyph)
 		{
 			CTextCache::CQuad* pQuad = &pTextCache->m_Quads[pTextCache->m_Quads.add(CTextCache::CQuad())];
@@ -580,21 +673,21 @@ void CTextRenderer::UpdateTextCache(const char* pText, ivec2 BoxSize, float Font
 	pTextCache->m_GlyphCacheVersion = pGlyphCache->m_Version;
 }
 
-CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromPosition(const char* pText, ivec2 MousePosition, gui::CRect Rect, float FontSize, CTextCache* pTextCache)
+CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromPosition(CTextCache* pTextCache, ivec2 TextPosition, ivec2 MousePosition)
 {
-	UpdateTextCache(pText, ivec2(Rect.w, Rect.h), FontSize, pTextCache);
+	UpdateTextCache(pTextCache);
 	
 	CTextCursor Cursor;
 	Cursor.m_TextIter = 0;
-	Cursor.m_Position.x = Rect.x;
-	Cursor.m_Position.y = Rect.y;
+	Cursor.m_Position.x = TextPosition.x;
+	Cursor.m_Position.y = TextPosition.y;
 	
 	if(pTextCache->m_Quads.size() <= 0)
 		return Cursor;
 	
 	int NearestQuad = 0;
 	float CharDistance = 999999.0f;
-	vec2 TestPos = vec2(MousePosition.x - Rect.x, MousePosition.y - Rect.y);
+	vec2 TestPos = vec2(MousePosition.x - TextPosition.x, MousePosition.y - TextPosition.y);
 	for(int i=0; i<pTextCache->m_Quads.size(); i++)
 	{
 		float Dist = fabs(pTextCache->m_Quads[i].m_QuadPos.x + pTextCache->m_Quads[i].m_Size.x/2.0f - TestPos.x);
@@ -606,31 +699,31 @@ CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromPosition(const char* 
 	}
 	
 	Cursor.m_TextIter = pTextCache->m_Quads[NearestQuad].m_TextIter;
-	Cursor.m_Position.x = Rect.x + pTextCache->m_Quads[NearestQuad].m_AdvancePos.x;
+	Cursor.m_Position.x = TextPosition.x + pTextCache->m_Quads[NearestQuad].m_AdvancePos.x;
 	if(TestPos.x > pTextCache->m_Quads[NearestQuad].m_QuadPos.x + pTextCache->m_Quads[NearestQuad].m_Size.x/2.0f)
 	{
 		Cursor.m_TextIter++;
 		if(NearestQuad == pTextCache->m_Quads.size()-1)
-			Cursor.m_Position.x = Rect.x + pTextCache->m_TextWidth;
+			Cursor.m_Position.x = TextPosition.x + pTextCache->m_TextWidth;
 	}
 	
 	return Cursor;
 }
 
-CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromTextIter(const char* pText, int TextIter, gui::CRect Rect, float FontSize, CTextCache* pTextCache)
+CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromTextIter(CTextCache* pTextCache, ivec2 TextPosition, int TextIter)
 {
-	UpdateTextCache(pText, ivec2(Rect.w, Rect.h), FontSize, pTextCache);
+	UpdateTextCache(pTextCache);
 	
 	CTextCursor Cursor;
 	Cursor.m_TextIter = TextIter;
-	Cursor.m_Position.x = Rect.x + pTextCache->m_TextWidth;
-	Cursor.m_Position.y = Rect.y;
+	Cursor.m_Position.x = TextPosition.x + pTextCache->m_TextWidth;
+	Cursor.m_Position.y = TextPosition.y;
 	
 	for(int i=0; i<pTextCache->m_Quads.size(); i++)
 	{
 		if(pTextCache->m_Quads[i].m_TextIter == TextIter)
 		{
-			Cursor.m_Position.x = Rect.x + pTextCache->m_Quads[i].m_AdvancePos.x;
+			Cursor.m_Position.x = TextPosition.x + pTextCache->m_Quads[i].m_AdvancePos.x;
 			break;
 		}
 	}
@@ -638,16 +731,16 @@ CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromTextIter(const char* 
 	return Cursor;
 }
 
-float CTextRenderer::GetTextWidth(const char* pText, gui::CRect Rect, float FontSize, CTextCache* pTextCache)
+float CTextRenderer::GetTextWidth(CTextCache* pTextCache)
 {
-	UpdateTextCache(pText, ivec2(Rect.w, Rect.h), FontSize, pTextCache);
+	UpdateTextCache(pTextCache);
 	
 	return pTextCache->m_TextWidth;
 }
 
-void CTextRenderer::DrawText(const char* pText, gui::CRect Rect, float FontSize, vec4 Color, CTextCache* pTextCache)
+void CTextRenderer::DrawText(CTextCache* pTextCache, ivec2 Position, vec4 Color)
 {
-	UpdateTextCache(pText, ivec2(Rect.w, Rect.h), FontSize, pTextCache);
+	UpdateTextCache(pTextCache);
 	
 	Graphics()->TextureSet(m_GlyphCaches[pTextCache->m_GlyphCacheId]->m_Texture);
 	Graphics()->QuadsBegin();
@@ -671,8 +764,8 @@ void CTextRenderer::DrawText(const char* pText, gui::CRect Rect, float FontSize,
 				pTextCache->m_Quads[i].m_UVMax.y
 			);
 			IGraphics::CQuadItem QuadItem(
-				Rect.x + pTextCache->m_Quads[i].m_QuadPos.x + Offset.x,
-				Rect.y + pTextCache->m_Quads[i].m_QuadPos.y + Offset.y,
+				Position.x + pTextCache->m_Quads[i].m_QuadPos.x + Offset.x,
+				Position.y + pTextCache->m_Quads[i].m_QuadPos.y + Offset.y,
 				pTextCache->m_Quads[i].m_Size.x,
 				pTextCache->m_Quads[i].m_Size.y
 			);
@@ -692,13 +785,15 @@ void CTextRenderer::Update()
 
 void CTextRenderer::Debug_DrawCaches()
 {
-	int Scale = 2;
+	int Scale = 1;
 	int PosX = 0;
 	int PosY = 0;
 	int MaxX = 0;
 	
 	for(int i=0; i<m_GlyphCaches.size(); i++)
 	{
+		if(!m_GlyphCaches[i]->m_Texture.IsValid())
+		
 		if(PosY + m_GlyphCaches[i]->m_Height/Scale > Graphics()->ScreenHeight())
 		{
 			PosY = 0;

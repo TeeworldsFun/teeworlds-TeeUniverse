@@ -306,7 +306,7 @@ int CAsset_Image::GetValue(int ValueType, int PathInt, int DefaultValue) const
 	{
 		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, WIDTH, GetWidth())
 		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, HEIGHT, GetHeight())
-		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, GRIDWIDTH, GetWidth())
+		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, GRIDWIDTH, GetGridWidth())
 		TU_ASSET_GET_FUNC_IMPL_VARIABLE(int, GRIDHEIGHT, GetGridHeight())
 	}
 	

@@ -98,6 +98,17 @@ inline int nearestPowerOfTwo(int n)
 	return n;	
 }
 
+template<typename T>
+inline int comp(T a, T b)
+{
+	if(a == b)
+		return 0;
+	else if(a < b)
+		return -1;
+	else
+		return 1;
+}
+
 //Compute the nearest power of two during the compilation
 //Use NearestPowerOfTwo<N>::result
 template<int N, int SHIFT>

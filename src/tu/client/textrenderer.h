@@ -7,9 +7,17 @@
 #include <base/vmath.h>
 #include <base/tl/array.h>
 #include <base/tl/sorted_array.h>
+#include <string>
 
+//FreeType to load font and rasterization
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+//ICU to apply BiDi algorithm
+#include <unicode/unistr.h> //To convert utf8 to utf16
+
+//HarfBuff to shape the text (arabic, ...)
+#include <harfbuzz/hb.h>
 
 namespace tu
 {
@@ -35,7 +43,8 @@ protected:
 	
 	struct CGlyph
 	{
-		int m_CharCode;
+		int m_FontId;
+		int m_GlyphCode;
 		int m_RenderTick;
 		int m_Width;
 		int m_Height;
@@ -52,8 +61,9 @@ protected:
 		
 		//For sorting: this speed up *a lot* the time needed to search a glyph
 		CGlyph() {}
-		CGlyph(int CharCode) : m_CharCode(CharCode) {}
-		inline bool operator<(const CGlyph& Glyph) const { return (m_CharCode < Glyph.m_CharCode); }
+		CGlyph(int FontId, int GlyphCode) : m_FontId(FontId), m_GlyphCode(GlyphCode) {}
+		inline int Comp(int FontId, int GlyphCode) const { return ((m_FontId == FontId) ? comp(m_GlyphCode, GlyphCode) : comp(m_FontId, FontId)); }
+		inline bool operator<(const CGlyph& Glyph) const { return (Comp(Glyph.m_FontId, Glyph.m_GlyphCode) < 0); }
 	};
 	
 	class CGlyphCache : public CKernel::CGuest
@@ -84,8 +94,8 @@ protected:
 		CGlyphCache(CKernel* pKernel);
 		~CGlyphCache();
 		void Init(int FontSize);
-		CGlyph* NewGlyph(int CharCode, int Width, int Height);
-		CGlyph* FindGlyph(int CharCode);
+		CGlyph* NewGlyph(int FontId, int GlyphCode, int Width, int Height);
+		CGlyph* FindGlyph(int FontId, int GlyphCode);
 		void UpdateTexture(CTextRenderer::CGlyph* pGlyph, const char* pData);
 		void UpdateVersion();
 	};
@@ -106,16 +116,24 @@ public:
 		};
 		
 	public:
+		bool m_Rendered;
+		
+		std::string m_Text;				//Store the text to detect if the cache must be updated
 		ivec2 m_BoxSize;			//To check if the context is different
 		float m_FontSize;
+		
 		int m_GlyphCacheId;			//Any modification in the GlyphCache can make obsolete the TextCache
-		int m_GlyphCacheVersion;				
-		array<CQuad> m_Quads;		//Keep quads to redraw without seaching and shape again
+		int m_GlyphCacheVersion;
+					
+		array<CQuad> m_Quads;		//Keep quads to redraw quickly
 		float m_TextWidth;
 		
 	public:
 		CTextCache();
-		void Reset();
+		void ResetRendering();
+		void SetText(const char* pText);
+		void SetBoxSize(ivec2 BoxSize);
+		void SetFontSize(float FontSize);
 	};
 	
 	struct CTextCursor
@@ -126,14 +144,17 @@ public:
 	
 private:
 	FT_Library m_FTLibrary;
+	hb_font_t* m_pHBFont;
 	array<CFont*> m_Fonts;
 	array<CGlyphCache*> m_GlyphCaches;
 	int m_RenderTick;
 
 private:
-	CGlyph* LoadGlyph(CGlyphCache* pCache, int Character);
-	CGlyph* FindGlyph(CGlyphCache* pCache, int Character);
-	CGlyph* GetGlyph(CGlyphCache* pCache, int Character);
+	CGlyph* LoadGlyph(CGlyphCache* pCache, int FontId, int GlyphCode);
+	CGlyph* FindGlyph(CGlyphCache* pCache, int FontId, int GlyphCode);
+	CGlyph* GetGlyph(CGlyphCache* pCache, int FontId, int GlyphCode);
+	
+	void UpdateTextCache_GenerateGlyphChain(array<int>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL);
 
 public:
 	CTextRenderer(CKernel* pKernel);
@@ -143,11 +164,11 @@ public:
 	void Update();
 	bool LoadFont(const char* pFilename);
 	
-	void UpdateTextCache(const char* pText, ivec2 BoxSize, float FontSize, CTextCache* pTextCache);
-	float GetTextWidth(const char* pText, gui::CRect Rect, float FontSize, CTextCache* pTextCache);
-	CTextCursor GetTextCursorFromPosition(const char* pText, ivec2 MousePosition, gui::CRect Rect, float FontSize, CTextCache* pTextCache);
-	CTextCursor GetTextCursorFromTextIter(const char* pText, int TextIter, gui::CRect Rect, float FontSize, CTextCache* pTextCache);
-	void DrawText(const char* pText, gui::CRect Rect, float FontSize, vec4 Color, CTextCache* pTextCache);
+	void UpdateTextCache(CTextCache* pTextCache);
+	float GetTextWidth(CTextCache* pTextCache);
+	CTextCursor GetTextCursorFromPosition(CTextCache* pTextCache, ivec2 TextPosition, ivec2 MousePosition);
+	CTextCursor GetTextCursorFromTextIter(CTextCache* pTextCache, ivec2 TextPosition, int TextIter);
+	void DrawText(CTextCache* pTextCache, ivec2 Position, vec4 Color);
 	void Debug_DrawCaches();
 };
 

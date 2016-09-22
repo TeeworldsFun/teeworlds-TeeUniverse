@@ -3,6 +3,8 @@ CheckVersion("0.5")
 Import("configure.lua")
 Import("other/sdl/sdl.lua")
 Import("other/freetype/freetype.lua")
+Import("other/icu/icu.lua")
+Import("other/harfbuzz/harfbuzz.lua")
 
 --- Setup Config -------
 config = NewConfig()
@@ -12,6 +14,8 @@ config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-ve
 config:Add(OptLibrary("zlib", "zlib.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
+config:Add(ICU.OptFind("icu", true))
+config:Add(HarfBuzz.OptFind("harfbuzz", true))
 config:Finalize("config.lua")
 
 generated_src_dir = "build/src"
@@ -331,6 +335,8 @@ end
 function BuildClient(settings, family, platform)
 	config.sdl:Apply(settings)
 	config.freetype:Apply(settings)
+	config.icu:Apply(settings)
+	config.harfbuzz:Apply(settings)
 	
 	local client = Compile(settings, Collect("src/engine/client/*.cpp"))
 	

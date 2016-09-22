@@ -69,7 +69,7 @@ void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
 	{
 		m_Focus = true;
 		
-		m_TextCursor = TextRenderer()->GetTextCursorFromPosition(GetRendererText(), ivec2(X, Y), GetTextRect(), GetFontSize(), &m_TextCache);
+		m_TextCursor = TextRenderer()->GetTextCursorFromPosition(&m_TextCache, GetTextPosition(), ivec2(X, Y));
 	}
 	else if(m_Focus)
 	{
@@ -106,7 +106,7 @@ void CAbstractTextEdit::OnInputEvent()
 		if(Changes)
 		{
 			OnTextUpdated();
-			m_TextCursor = TextRenderer()->GetTextCursorFromTextIter(GetRendererText(), TextIter, GetTextRect(), GetFontSize(), &m_TextCache);
+			m_TextCursor = TextRenderer()->GetTextCursorFromTextIter(&m_TextCache, GetTextPosition(), TextIter);
 			m_Changes = true;
 		}
 	}

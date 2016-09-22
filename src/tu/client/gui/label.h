@@ -21,7 +21,6 @@ private:
 
 protected:
 	char m_aText[128];
-	char m_aRendererText[128];
 	CTextRenderer::CTextCache m_TextCache;
 	
 public:
@@ -41,7 +40,6 @@ public:
 	
 	void SetText(const char* pText);
 	inline const char* GetText() const { return m_aText; }
-	inline const char* GetRendererText() const { return m_aRendererText; }
 	
 	inline const CRect& GetTextRect() const { return m_TextRect; }
 	

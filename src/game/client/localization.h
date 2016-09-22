@@ -2,8 +2,8 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_LOCALIZATION_H
 #define GAME_LOCALIZATION_H
-#include <base/tl/string.h>
 #include <base/tl/sorted_array.h>
+#include <string>
 
 class CLocalizationDatabase
 {
@@ -14,7 +14,7 @@ class CLocalizationDatabase
 		unsigned m_ContextHash;
 
 		// TODO: do this as an const char * and put everything on a incremental heap
-		string m_Replacement;
+		std::string m_Replacement;
 
 		bool operator <(const CString &Other) const { return m_Hash < Other.m_Hash; }
 		bool operator <=(const CString &Other) const { return m_Hash <= Other.m_Hash; }

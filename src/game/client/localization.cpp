@@ -113,12 +113,12 @@ const char *CLocalizationDatabase::FindString(unsigned Hash, unsigned ContextHas
 	{
 		const CString &rStr = r.index(i);
 		if(rStr.m_ContextHash == ContextHash)
-			return rStr.m_Replacement;
+			return rStr.m_Replacement.c_str();
 		else if(rStr.m_ContextHash == DefaultHash)
 			DefaultIndex = i;
 	}
 	
-    return r.index(DefaultIndex).m_Replacement;
+    return r.index(DefaultIndex).m_Replacement.c_str();
 }
 
 CLocalizationDatabase g_Localization;
