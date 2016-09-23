@@ -14,6 +14,8 @@ class CAbstractTextEdit : public CAbstractLabel
 protected:
 	bool m_Focus;
 	bool m_Changes;
+	CTextRenderer::CTextCache m_ComposingTextCache;
+	bool m_Composing;
 	CTextRenderer::CTextCursor m_TextCursor;
 
 protected:
@@ -31,6 +33,9 @@ public:
 	virtual void OnInputEvent();
 	
 	void RemoveChanges();
+	
+	void OnFocusIn();
+	void OnFocusOut();
 };
 
 class CExternalTextEdit : public CAbstractTextEdit

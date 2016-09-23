@@ -25,7 +25,8 @@ CAssetsEditor::CAssetsEditor(CKernel* pKernel) :
 	m_LabelStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_LABEL);
 	m_LabelHeaderStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_LABELHEADER);
 	m_ButtonStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_BUTTON);
-	m_EntryStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_ENTRY);
+	m_TextEntryStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_TEXTENTRY);
+	m_NumericEntryStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_NUMERICENTRY);
 	m_ScrollbarStyle = CAssetPath::GuiScrollbarStyleSystem(GUISCROLLBARSTYLE_EDITOR);
 	m_TabsStyle = CAssetPath::GuiTabsStyleSystem(GUITABSSTYLE_EDITOR);
 	m_PopupStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_POPUP);

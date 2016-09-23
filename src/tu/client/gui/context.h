@@ -63,7 +63,8 @@ protected:
 	CAssetPath m_LabelStyle;
 	CAssetPath m_LabelHeaderStyle;
 	CAssetPath m_ButtonStyle;
-	CAssetPath m_EntryStyle;
+	CAssetPath m_TextEntryStyle;
+	CAssetPath m_NumericEntryStyle;
 	CAssetPath m_ScrollbarStyle;
 	CAssetPath m_TabsStyle;
 	CAssetPath m_PopupStyle;
@@ -89,7 +90,8 @@ public:
 	inline CAssetPath GetLabelStyle() const { return m_LabelStyle; }
 	inline CAssetPath GetLabelHeaderStyle() const { return m_LabelHeaderStyle; }
 	inline CAssetPath GetButtonStyle() const { return m_ButtonStyle; }
-	inline CAssetPath GetEntryStyle() const { return m_EntryStyle; }
+	inline CAssetPath GetTextEntryStyle() const { return m_TextEntryStyle; }
+	inline CAssetPath GetNumericEntryStyle() const { return m_NumericEntryStyle; }
 	inline CAssetPath GetScrollbarStyle() const { return m_ScrollbarStyle; }
 	inline CAssetPath GetTabsStyle() const { return m_TabsStyle; }
 	inline CAssetPath GetPopupStyle() const { return m_PopupStyle; }

@@ -18,6 +18,8 @@ public:
 	{
 		int m_DefaultRectPath;
 		int m_MouseOverRectPath;
+		int m_MinWidth;
+		int m_MinHeight;
 		int m_Margin;
 		int m_Padding;
 		int m_Spacing;
@@ -39,6 +41,8 @@ public:
 	};
 
 private:
+	int m_MinWidth;
+	int m_MinHeight;
 	int m_Margin;
 	int m_Padding;
 	int m_Spacing;
@@ -54,6 +58,8 @@ public:
 public:
 	CAsset_GuiBoxStyle();
 	
+	inline int GetMinWidth() const { return max(m_MinWidth, -1); }
+	inline int GetMinHeight() const { return max(m_MinHeight, -1); }
 	inline int GetMargin() const { return m_Margin; }
 	inline int GetPadding() const { return m_Padding; }
 	inline int GetSpacing() const { return m_Spacing; }
@@ -61,6 +67,8 @@ public:
 	inline CAssetPath GetDefaultRectPath() const { return m_DefaultRectPath; }
 	inline CAssetPath GetMouseOverRectPath() const { return m_MouseOverRectPath; }
 	
+	inline void SetMinWidth(int Value) { m_MinWidth = max(Value, -1); }
+	inline void SetMinHeight(int Value) { m_MinHeight = max(Value, -1); }
 	inline void SetMargin(int Value) { m_Margin = Value; }
 	inline void SetPadding(int Value) { m_Padding = Value; }
 	inline void SetSpacing(int Value) { m_Spacing = Value; }
@@ -72,7 +80,9 @@ public:
 public:
 	enum
 	{
-		MARGIN = CAsset::NUM_MEMBERS, //Int
+		MINWIDTH = CAsset::NUM_MEMBERS, //Int
+		MINHEIGHT, //Int
+		MARGIN, //Int
 		PADDING, //Int
 		SPACING, //Int
 		FONTSIZE, //Int

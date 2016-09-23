@@ -153,6 +153,8 @@ gui::CVListLayout* CAssetsInspector::CreateTab_GuiBoxStyle_Asset()
 	
 	AddField_Asset(pTab, CAsset_GuiBoxStyle::DEFAULTRECTPATH, CAssetPath::TYPE_GUIRECTSTYLE, Context()->Localize("Default Rectangle"));
 	AddField_Asset(pTab, CAsset_GuiBoxStyle::MOUSEOVERRECTPATH, CAssetPath::TYPE_GUIRECTSTYLE, Context()->Localize("MouseOver Rectangle"));
+	AddField_Integer(pTab, CAsset_GuiBoxStyle::MINWIDTH, Context()->Localize("Width"));
+	AddField_Integer(pTab, CAsset_GuiBoxStyle::MINHEIGHT, Context()->Localize("Height"));
 	AddField_Integer(pTab, CAsset_GuiBoxStyle::MARGIN, Context()->Localize("Margin"));
 	AddField_Integer(pTab, CAsset_GuiBoxStyle::PADDING, Context()->Localize("Padding"));
 	AddField_Integer(pTab, CAsset_GuiBoxStyle::SPACING, Context()->Localize("Spacing"));

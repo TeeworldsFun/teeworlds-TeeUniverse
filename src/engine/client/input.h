@@ -8,6 +8,8 @@ class CInput : public IEngineInput
 	IEngineGraphics *m_pGraphics;
 
 	int m_InputGrabbed;
+	bool m_Composing;
+	char m_aEditedText[128];
 
 	int64 m_LastRelease;
 	int64 m_ReleaseDelta;
@@ -39,6 +41,10 @@ public:
 	virtual void MouseModeRelative();
 	virtual int MouseDoubleClick();
 
+	virtual const char* GetEditedText() const;
+	virtual void StartTextEditing(int x, int y, int w, int h);
+	virtual void StopTextEditing();
+	
 	virtual int Update();
 };
 

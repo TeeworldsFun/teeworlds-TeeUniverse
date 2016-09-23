@@ -20,7 +20,7 @@ CAbstractIntegerEdit::CEntry::CEntry(CAbstractIntegerEdit *pIntegerEdit) :
 	CAbstractTextEdit(pIntegerEdit->Context()),
 	m_pIntegerEdit(pIntegerEdit)
 {
-	
+	SetBoxStyle(Context()->GetNumericEntryStyle());
 }
 
 void CAbstractIntegerEdit::CEntry::SaveFromTextBuffer()

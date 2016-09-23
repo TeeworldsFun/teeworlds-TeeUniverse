@@ -51,6 +51,8 @@ void CInput::Init()
 	// FIXME: unicode handling: use SDL_StartTextInput/SDL_StopTextInput on inputs
 
 	MouseModeRelative();
+	
+	m_Composing = false;
 }
 
 void CInput::MouseRelative(float *x, float *y)
@@ -146,11 +148,18 @@ int CInput::Update()
 			int Action = IInput::FLAG_PRESS;
 			switch (Event.type)
 			{
+				case SDL_TEXTEDITING:
+					if(strlen(Event.edit.text))
+					{
+						m_Composing = true;
+						str_copy(m_aEditedText, Event.edit.text, sizeof(m_aEditedText));
+					}
+					else
+						m_Composing = false;
+					break;
 				case SDL_TEXTINPUT:
 					AddEvent(Event.text.text, 0, IInput::FLAG_TEXT);
 					break;
-
-				// handle keys
 				case SDL_KEYDOWN:
 					Key = KeycodeToKey(Event.key.keysym.sym);
 					Scancode = Event.key.keysym.scancode;
@@ -223,5 +232,30 @@ int CInput::Update()
 	return 0;
 }
 
+const char* CInput::GetEditedText() const
+{
+	if(m_Composing)
+		return m_aEditedText;
+	else
+		return 0;
+}
+
+void CInput::StartTextEditing(int x, int y, int w, int h)
+{
+	SDL_StartTextInput();
+	
+	SDL_Rect InputRect;
+	InputRect.x = x;
+	InputRect.y = y;
+	InputRect.w = w;
+	InputRect.h = h;
+	SDL_SetTextInputRect(&InputRect);
+}
+
+void CInput::StopTextEditing()
+{
+	SDL_StopTextInput();
+	m_Composing = false;
+}
 
 IEngineInput *CreateEngineInput() { return new CInput; }

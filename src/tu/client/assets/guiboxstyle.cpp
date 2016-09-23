@@ -11,7 +11,9 @@ CAsset_GuiBoxStyle::CAsset_GuiBoxStyle() :
 	m_Margin(0),
 	m_Padding(0),
 	m_Spacing(0),
-	m_FontSize(12)
+	m_FontSize(12),
+	m_MinWidth(-1),
+	m_MinHeight(-1)
 {
 	
 }
@@ -25,6 +27,8 @@ void CAsset_GuiBoxStyle::InitFromAssetsFile(CDataFileReader* pFileReader, const 
 		
 	m_DefaultRectPath = pItem->m_DefaultRectPath;
 	m_MouseOverRectPath = pItem->m_MouseOverRectPath;
+	m_MinWidth = pItem->m_MinWidth;
+	m_MinHeight = pItem->m_MinHeight;
 	m_Margin = pItem->m_Margin;
 	m_Padding = pItem->m_Padding;
 	m_Spacing = pItem->m_Spacing;
@@ -40,6 +44,8 @@ void CAsset_GuiBoxStyle::SaveInAssetsFile(CDataFileWriter* pFileWriter, int Posi
 	
 	Item.m_DefaultRectPath = m_DefaultRectPath;
 	Item.m_MouseOverRectPath = m_MouseOverRectPath;
+	Item.m_MinWidth = m_MinWidth;
+	Item.m_MinHeight = m_MinHeight;
 	Item.m_Margin = m_Margin;
 	Item.m_Padding = m_Padding;
 	Item.m_Spacing = m_Spacing;
@@ -57,6 +63,8 @@ int CAsset_GuiBoxStyle::GetValue(int ValueType, int PathInt, int DefaultValue) c
 {
 	switch(ValueType)
 	{
+		TU_ASSET_GET_FUNC_IMPL_FUNC(int, MINWIDTH, GetMinWidth)
+		TU_ASSET_GET_FUNC_IMPL_FUNC(int, MINHEIGHT, GetMinHeight)
 		TU_ASSET_GET_FUNC_IMPL_FUNC(int, MARGIN, GetMargin)
 		TU_ASSET_GET_FUNC_IMPL_FUNC(int, PADDING, GetPadding)
 		TU_ASSET_GET_FUNC_IMPL_FUNC(int, SPACING, GetSpacing)
@@ -71,6 +79,8 @@ bool CAsset_GuiBoxStyle::SetValue(int ValueType, int PathInt, int Value)
 {
 	switch(ValueType)
 	{
+		TU_ASSET_SET_FUNC_IMPL_FUNC(int, MINWIDTH, SetMinWidth)
+		TU_ASSET_SET_FUNC_IMPL_FUNC(int, MINHEIGHT, SetMinHeight)
 		TU_ASSET_SET_FUNC_IMPL_FUNC(int, MARGIN, SetMargin)
 		TU_ASSET_SET_FUNC_IMPL_FUNC(int, PADDING, SetPadding)
 		TU_ASSET_SET_FUNC_IMPL_FUNC(int, SPACING, SetSpacing)

@@ -25,6 +25,7 @@ public:
 	bool IsInside(int X, int Y) const;
 	
 	void RemoveMargin(int Padding);
+	void AddMargin(int Padding);
 	
 	void BSNoConstraint();
 	void BSMinimum(int W, int H);
@@ -35,6 +36,7 @@ public:
 	void BSAddMargin(int M);
 	void BSHorizontalAdd(const CRect& Rect);
 	void BSVerticalAdd(const CRect& Rect);
+	void BSInnerAdd(const CRect& Rect);
 	
 	void DRUpdatePosition(const CRect& BoundingRect, const CRect BoundingSize);
 };

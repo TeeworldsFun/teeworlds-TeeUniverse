@@ -31,14 +31,23 @@ void CAbstractLabel::UpdateBoundingSize()
 	m_FontSize = Context()->ApplyGuiScale(11);
 	int Spacing = 0;
 	
+	m_BoundingSizeRect.BSNoConstraint();
+	
 	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
 	if(pBoxStyle)
 	{
+		m_BoundingSizeRect.BSAddSpacing(
+			Context()->ApplyGuiScale(pBoxStyle->GetMinWidth()),
+			Context()->ApplyGuiScale(pBoxStyle->GetMinHeight())
+		);
+		
 		m_FontSize = Context()->ApplyGuiScale(pBoxStyle->GetFontSize());
 		Spacing = Context()->ApplyGuiScale(pBoxStyle->GetSpacing());
 	}
 	
-	m_BoundingSizeRect.BSNoConstraint();
+	CRect ContentRect;
+	ContentRect.BSNoConstraint();
+	
 	const CAsset_Sprite* pSprite = AssetsManager()->GetAsset<CAsset_Sprite>(m_IconPath);
 	if(pSprite)
 	{
@@ -47,18 +56,20 @@ void CAbstractLabel::UpdateBoundingSize()
 			Context()->ApplyGuiScale(pSprite->GetPixelWidth()),
 			Context()->ApplyGuiScale(pSprite->GetPixelHeight())
 		);
-		m_BoundingSizeRect.BSHorizontalAdd(IconRect);
+		ContentRect.BSHorizontalAdd(IconRect);
 	}
 	
 	if(GetText()[0])
 	{
 		if(pSprite)
-			m_BoundingSizeRect.BSAddSpacing(Spacing, 0);
+			ContentRect.BSAddSpacing(Spacing, 0);
 		
 		CRect TextRect;
 		TextRect.BSMinimum(m_FontSize, m_FontSize);
-		m_BoundingSizeRect.BSHorizontalAdd(TextRect);
+		ContentRect.BSHorizontalAdd(TextRect);
 	}
+	
+	m_BoundingSizeRect.BSInnerAdd(ContentRect);
 	
 	if(pBoxStyle)
 	{
@@ -138,8 +149,15 @@ void CAbstractLabel::Render()
 	{
 		if(GetText()[0])
 		{
-			m_RendererTextPosition = ivec2(PosX, Rect.y);
-			TextRenderer()->DrawText(&m_TextCache, m_RendererTextPosition, FontColor);
+			m_TextRect.x = PosX;
+			m_TextRect.y = Rect.y;
+			m_TextRect.w = TextRenderer()->GetTextWidth(&m_TextCache);
+			m_TextRect.h = Rect.h;
+			
+			m_TextCache.SetBoxSize(ivec2(-1, m_TextRect.h));
+			
+			TextRenderer()->DrawText(&m_TextCache, ivec2(m_TextRect.x, m_TextRect.y), FontColor);
+			
 			PosX += TextWidth;
 		}
 		
@@ -171,9 +189,14 @@ void CAbstractLabel::Render()
 		
 		if(GetText()[0])
 		{
-			m_RendererTextPosition = ivec2(PosX, Rect.y);
-			m_TextCache.SetBoxSize(ivec2(-1, Rect.h));
-			TextRenderer()->DrawText(&m_TextCache, m_RendererTextPosition, FontColor);
+			m_TextRect.x = PosX;
+			m_TextRect.y = Rect.y;
+			m_TextRect.w = TextRenderer()->GetTextWidth(&m_TextCache);
+			m_TextRect.h = Rect.h;
+			
+			m_TextCache.SetBoxSize(ivec2(-1, m_TextRect.h));
+			
+			TextRenderer()->DrawText(&m_TextCache, ivec2(m_TextRect.x, m_TextRect.y), FontColor);
 		}
 	}
 	Graphics()->ClipPop();

@@ -15,7 +15,6 @@ class CAbstractLabel : public CWidget
 private:
 	CAssetPath m_BoxStylePath;
 	CAssetPath m_IconPath;
-	ivec2 m_RendererTextPosition;
 	int m_FontSize;
 	CRect m_TextRect;
 
@@ -35,7 +34,7 @@ public:
 	inline void SetBoxStyle(CAssetPath BoxStylePath) { m_BoxStylePath = BoxStylePath; }
 	inline CAssetPath GetBoxStyle() const { return m_BoxStylePath; }
 	
-	inline ivec2 GetTextPosition() const { return m_RendererTextPosition; }
+	inline ivec2 GetTextPosition() const { return ivec2(m_TextRect.x, m_TextRect.y); }
 	inline float GetFontSize() const { return m_FontSize; }
 	
 	void SetText(const char* pText);

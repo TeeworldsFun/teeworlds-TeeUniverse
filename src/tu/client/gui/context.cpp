@@ -171,9 +171,6 @@ void CContext::Render()
 	for(int i=0; i<m_pPopups.size(); i++)
 		m_pPopups[i]->Render();
 	
-	//TAG_DEBUG	
-	TextRenderer()->Debug_DrawCaches();
-	
 	//Cursor
 	if(m_ShowCursor)
 	{	

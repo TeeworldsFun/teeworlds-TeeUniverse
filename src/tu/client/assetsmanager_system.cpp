@@ -154,6 +154,14 @@ void CAssetsManager::InitAssetsManager_System(CAssetsManager* pAssetsManager)
 		pGuiRectStyle->m_BorderFlags = CAsset_GuiRectStyle::BORDERFLAG_ALL;
 	}
 	{
+		CAsset_GuiRectStyle* pGuiRectStyle = pAssetsManager->NewAsset<CAsset_GuiRectStyle>(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_COMPOSING));
+		pGuiRectStyle->SetName("composing");
+		pGuiRectStyle->m_Flags = CAsset_GuiRectStyle::FLAG_BACKGROUND | CAsset_GuiRectStyle::FLAG_ROUNDCORNER;
+		pGuiRectStyle->m_BackgroundColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		pGuiRectStyle->m_CornerRadius = 3.0f;
+		pGuiRectStyle->m_CornerFlags = CAsset_GuiRectStyle::CORNERFLAG_ALL;
+	}
+	{
 		CAsset_GuiRectStyle* pGuiRectStyle = pAssetsManager->NewAsset<CAsset_GuiRectStyle>(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_SELECTION));
 		pGuiRectStyle->SetName("selection");
 		pGuiRectStyle->m_Flags = CAsset_GuiRectStyle::FLAG_IMAGE;
@@ -355,6 +363,15 @@ void CAssetsManager::InitAssetsManager_System(CAssetsManager* pAssetsManager)
 		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_LEFT;
 	}
 	{
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_COMPOSING));
+		pGuiBoxStyle->SetName("composing");
+		pGuiBoxStyle->SetDefaultRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_COMPOSING));
+		pGuiBoxStyle->SetMouseOverRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_COMPOSING));
+		pGuiBoxStyle->SetPadding(4);
+		pGuiBoxStyle->m_TextColor = vec4(15.0f/255.0f, 103.0f/255.0f, 146.0f/255.0f, 1.0f);
+		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_LEFT;
+	}
+	{
 		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_EDITOR_LABEL));
 		pGuiBoxStyle->SetName("editorLabelDefault");
 		pGuiBoxStyle->SetPadding(2);
@@ -383,7 +400,7 @@ void CAssetsManager::InitAssetsManager_System(CAssetsManager* pAssetsManager)
 		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_CENTER;
 	}
 	{
-		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_EDITOR_BUTTON));
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_EDITOR_BUTTON_HL));
 		pGuiBoxStyle->SetName("editorButtonHL");
 		pGuiBoxStyle->SetDefaultRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_EDITOR_BUTTON_HL));
 		pGuiBoxStyle->SetMouseOverRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_EDITOR_BUTTON_MO));
@@ -394,13 +411,25 @@ void CAssetsManager::InitAssetsManager_System(CAssetsManager* pAssetsManager)
 		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_CENTER;
 	}
 	{
-		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_EDITOR_ENTRY));
-		pGuiBoxStyle->SetName("editorEntry");
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_EDITOR_TEXTENTRY));
+		pGuiBoxStyle->SetName("editorTextEntry");
 		pGuiBoxStyle->SetDefaultRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_EDITOR_ENTRY));
 		pGuiBoxStyle->SetMouseOverRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_EDITOR_ENTRY_MO));
 		pGuiBoxStyle->SetMargin(2);
-		pGuiBoxStyle->SetPadding(2);
+		pGuiBoxStyle->SetPadding(4);
 		pGuiBoxStyle->SetSpacing(4);
+		pGuiBoxStyle->SetMinHeight(14);
+		pGuiBoxStyle->m_TextColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	{
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_EDITOR_NUMERICENTRY));
+		pGuiBoxStyle->SetName("editorNumericEntry");
+		pGuiBoxStyle->SetDefaultRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_EDITOR_ENTRY));
+		pGuiBoxStyle->SetMouseOverRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_EDITOR_ENTRY_MO));
+		pGuiBoxStyle->SetMargin(2);
+		pGuiBoxStyle->SetPadding(4);
+		pGuiBoxStyle->SetSpacing(4);
+		pGuiBoxStyle->SetMinHeight(14);
 		pGuiBoxStyle->m_TextColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_CENTER;
 	}

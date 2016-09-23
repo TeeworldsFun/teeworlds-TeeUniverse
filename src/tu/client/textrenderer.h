@@ -25,10 +25,14 @@ namespace tu
 class CTextRenderer : public CKernel::CComponent
 {
 protected:
-	struct CFont
+	class CFont
 	{
+	public:
 		char m_aFilename[512];
 		FT_Face m_FtFace;
+		hb_font_t* m_pHBFont;
+		
+		~CFont();
 	};
 	
 	struct CBlock
@@ -41,10 +45,22 @@ protected:
 		inline bool IsFull() const { return (m_Size >= m_MaxSize); }
 	};
 	
-	struct CGlyph
+	struct CGlyphId
 	{
 		int m_FontId;
 		int m_GlyphCode;
+		
+		CGlyphId() : m_FontId(0), m_GlyphCode(0) {}
+		CGlyphId(int GlyphCode) : m_FontId(0), m_GlyphCode(GlyphCode) {}
+		CGlyphId(int FontId, int GlyphCode) : m_FontId(FontId), m_GlyphCode(GlyphCode) {}
+		
+		inline bool operator==(const CGlyphId& GlyphId) const { return ((m_FontId == GlyphId.m_FontId) && (m_GlyphCode == GlyphId.m_GlyphCode)); }
+		inline bool operator<(const CGlyphId& GlyphId) const { return ((m_FontId == GlyphId.m_FontId) ? (m_GlyphCode < GlyphId.m_GlyphCode) : (m_FontId < GlyphId.m_FontId)); }
+	};
+	
+	struct CGlyph
+	{
+		CGlyphId m_GlyphId;
 		int m_RenderTick;
 		int m_Width;
 		int m_Height;
@@ -61,9 +77,10 @@ protected:
 		
 		//For sorting: this speed up *a lot* the time needed to search a glyph
 		CGlyph() {}
-		CGlyph(int FontId, int GlyphCode) : m_FontId(FontId), m_GlyphCode(GlyphCode) {}
-		inline int Comp(int FontId, int GlyphCode) const { return ((m_FontId == FontId) ? comp(m_GlyphCode, GlyphCode) : comp(m_FontId, FontId)); }
-		inline bool operator<(const CGlyph& Glyph) const { return (Comp(Glyph.m_FontId, Glyph.m_GlyphCode) < 0); }
+		CGlyph(const CGlyphId& GlyphId) : m_GlyphId(GlyphId) {}
+		inline bool operator==(const CGlyphId& GlyphId) const { return (m_GlyphId == GlyphId); }
+		inline bool operator<(const CGlyphId& GlyphId) const { return (m_GlyphId < GlyphId); }
+		inline bool operator<(const CGlyph& Glyph) const { return (m_GlyphId < Glyph.m_GlyphId); }
 	};
 	
 	class CGlyphCache : public CKernel::CGuest
@@ -94,8 +111,8 @@ protected:
 		CGlyphCache(CKernel* pKernel);
 		~CGlyphCache();
 		void Init(int FontSize);
-		CGlyph* NewGlyph(int FontId, int GlyphCode, int Width, int Height);
-		CGlyph* FindGlyph(int FontId, int GlyphCode);
+		CGlyph* NewGlyph(CGlyphId GlyphId, int Width, int Height);
+		CGlyph* FindGlyph(CGlyphId GlyphId);
 		void UpdateTexture(CTextRenderer::CGlyph* pGlyph, const char* pData);
 		void UpdateVersion();
 	};
@@ -144,17 +161,18 @@ public:
 	
 private:
 	FT_Library m_FTLibrary;
-	hb_font_t* m_pHBFont;
 	array<CFont*> m_Fonts;
 	array<CGlyphCache*> m_GlyphCaches;
 	int m_RenderTick;
 
 private:
-	CGlyph* LoadGlyph(CGlyphCache* pCache, int FontId, int GlyphCode);
-	CGlyph* FindGlyph(CGlyphCache* pCache, int FontId, int GlyphCode);
-	CGlyph* GetGlyph(CGlyphCache* pCache, int FontId, int GlyphCode);
+	CGlyph* LoadGlyph(CGlyphCache* pCache, CGlyphId GlyphId);
+	CGlyph* FindGlyph(CGlyphCache* pCache, CGlyphId GlyphId);
+	CGlyph* GetGlyph(CGlyphCache* pCache, CGlyphId GlyphId);
 	
-	void UpdateTextCache_GenerateGlyphChain(array<int>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL);
+	void UpdateTextCache_HarfBuzz(array<CGlyphId>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL, int FontId);
+	void UpdateTextCache_Font(array<CGlyphId>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL);
+	void UpdateTextCache_BiDi(array<CGlyphId>* pGlyphChain, const char* pText);
 
 public:
 	CTextRenderer(CKernel* pKernel);

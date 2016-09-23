@@ -64,6 +64,11 @@ public:
 	virtual void MouseModeAbsolute() = 0;
 	virtual int MouseDoubleClick() = 0;
 	virtual void MouseRelative(float *x, float *y) = 0;
+	
+	// IME
+	virtual const char* GetEditedText() const = 0;
+	virtual void StartTextEditing(int x, int y, int w, int h) = 0;
+	virtual void StopTextEditing() = 0;
 };
 
 

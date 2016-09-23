@@ -20,7 +20,7 @@ CAbstractTextEdit::CAbstractTextEdit(CContext *pConfig) :
 	m_Changes(false)
 {
 	m_TextCursor.m_TextIter = -1;
-	SetBoxStyle(Context()->GetEntryStyle());
+	SetBoxStyle(Context()->GetTextEntryStyle());
 }
 
 void CAbstractTextEdit::Update()
@@ -32,6 +32,40 @@ void CAbstractTextEdit::Update()
 void CAbstractTextEdit::Render()
 {
 	CAbstractLabel::Render();
+	
+	if(m_Composing)
+	{
+		int FontSize = GetFontSize();
+		vec4 FontColor = 1.0f;
+		
+		CRect ComposingRect = CRect(
+			GetTextRect().x + GetTextRect().w,
+			GetTextRect().y,
+			TextRenderer()->GetTextWidth(&m_ComposingTextCache),
+			GetTextRect().h
+		);
+		
+		const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_COMPOSING));
+		if(pBoxStyle)
+		{
+			FontSize = Context()->ApplyGuiScale(pBoxStyle->GetFontSize());
+			FontColor = pBoxStyle->m_TextColor;
+			
+			CRect Rect = ComposingRect;
+			int Padding = Context()->ApplyGuiScale(pBoxStyle->GetPadding());
+			Rect.AddMargin(Padding);
+			ComposingRect.x += Padding;
+			
+			ivec2 MousePos = Context()->GetMousePos();
+			if(Rect.IsInside(MousePos.x, MousePos.y))
+				AssetsRenderer()->DrawGuiRect(&ComposingRect, pBoxStyle->GetMouseOverRectPath());
+			else
+				AssetsRenderer()->DrawGuiRect(&ComposingRect, pBoxStyle->GetDefaultRectPath());
+		}
+		m_ComposingTextCache.SetFontSize(GetFontSize());
+		m_ComposingTextCache.SetBoxSize(ivec2(-1, ComposingRect.h));
+		TextRenderer()->DrawText(&m_ComposingTextCache, ivec2(ComposingRect.x, ComposingRect.y), FontColor);
+	}
 	
 	// render the cursor
 			// cursor position
@@ -67,7 +101,11 @@ void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
 	
 	if(m_DrawRect.IsInside(X, Y))
 	{
-		m_Focus = true;
+		if(!m_Focus)
+		{
+			OnFocusIn();
+			m_Focus = true;
+		}
 		
 		m_TextCursor = TextRenderer()->GetTextCursorFromPosition(&m_TextCache, GetTextPosition(), ivec2(X, Y));
 	}
@@ -78,11 +116,23 @@ void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
 		
 		m_TextCursor.m_TextIter = -1;
 		m_Focus = false;
+		OnFocusOut();
 	}
 }
 
 void CAbstractTextEdit::OnInputEvent()
 {
+	m_Composing = false;
+	if(m_Focus)
+	{
+		const char* m_pEditedText = Input()->GetEditedText();
+		if(m_pEditedText && str_length(m_pEditedText))
+		{
+			m_ComposingTextCache.SetText(m_pEditedText);
+			m_Composing = true;
+		}
+	}
+	
 	if(Input()->KeyIsPressed(KEY_RETURN) || Input()->KeyIsPressed(KEY_KP_ENTER))
 	{
 		if(m_Changes)
@@ -115,6 +165,16 @@ void CAbstractTextEdit::OnInputEvent()
 void CAbstractTextEdit::RemoveChanges()
 {
 	m_Changes = false;
+}
+
+void CAbstractTextEdit::OnFocusIn()
+{
+	Input()->StartTextEditing(GetTextRect().x, GetTextRect().y, GetTextRect().w, GetTextRect().h);
+}
+
+void CAbstractTextEdit::OnFocusOut()
+{
+	Input()->StopTextEditing();
 }
 
 /* EXTERNAL TEXT EDIT *************************************************/

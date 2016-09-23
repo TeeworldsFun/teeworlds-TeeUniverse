@@ -36,6 +36,14 @@ bool CRect::IsInside(int X, int Y) const
 	return (X >= x && X <= x + w && Y >= y && Y <= y + h);
 }
 
+void CRect::AddMargin(int Margin)
+{
+	x -= Margin;
+	y -= Margin;
+	w += 2*Margin;
+	h += 2*Margin;
+}
+
 void CRect::RemoveMargin(int Margin)
 {
 	x += Margin;
@@ -105,6 +113,22 @@ void CRect::BSHorizontalAdd(const CRect& Rect)
 	else
 		maxw += Rect.maxw;	
 	
+	if(maxh == -1 || Rect.maxh == -1)
+		maxh = -1;
+	else
+		maxh = max(maxh, Rect.maxh);
+}
+
+void CRect::BSInnerAdd(const CRect& Rect)
+{
+	minw = max(minw, Rect.minw);
+	minh = max(minh, Rect.minh);
+	
+	if(maxw == -1 || Rect.maxw == -1)
+		maxw = -1;
+	else
+		maxw = max(maxw, Rect.maxw);
+		
 	if(maxh == -1 || Rect.maxh == -1)
 		maxh = -1;
 	else
