@@ -293,7 +293,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	//
 	m_aCmdConnect[0] = 0;
 	m_CmdConnectProtocol = tu::SERVERPROTOCOL_TW07;
-	
+
 	m_ModDownloadFinished = false;
 	m_MapDownloadFinished = false;
 	m_TUServer = false;
@@ -327,7 +327,7 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_RecivedSnapshots = 0;
 
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
-	
+
 	//TU
 	m_pKernel = 0;
 }
@@ -388,7 +388,7 @@ void CClient::SendEnterGame()
 }
 
 void CClient::SendReady()
-{					
+{
 	CMsgPacker Msg(NETMSG_READY, true);
 	SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 }
@@ -438,7 +438,7 @@ void CClient::SendInput()
 
 	// fetch input
 	int Size = GameClient()->OnSnapInput(m_aInputs[m_CurrentInput].m_aData);
-	
+
 	if(!Size)
 		return;
 
@@ -558,13 +558,13 @@ void CClient::Connect(const char *pAddress, int Protocol)
 	m_RconAuthed = 0;
 	if(m_ServerAddress.port == 0)
 		m_ServerAddress.port = Port;
-	
+
 	bool ConnectionRes;
 	if(Protocol == tu::SERVERPROTOCOL_TW06)
 		ConnectionRes = m_NetClient.Connect(tu::CMetaNetClient::DST_SERVER06, &m_ServerAddress);
 	else
 		ConnectionRes = m_NetClient.Connect(tu::CMetaNetClient::DST_SERVER07, &m_ServerAddress);
-	
+
 	if(ConnectionRes)
 	{
 		SetState(IClient::STATE_CONNECTING);
@@ -599,13 +599,13 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_pConsole->DeregisterTempAll();
 	m_NetClient.Disconnect(tu::CMetaNetClient::DST_SERVER, pReason);
 	SetState(IClient::STATE_OFFLINE);
-	
+
 	m_ModDownloadFinished = false;
 	m_MapDownloadFinished = false;
 	m_TUServer = false;
-	
+
 	m_pMap->Unload();
-	
+
 	//TU unload mod graphics
 	TUKernel()->AssetsManager()->OnAssetsFileUnloaded(tu::CAssetPath::SRC_WORLD);
 
@@ -617,9 +617,8 @@ void CClient::DisconnectWithReason(const char *pReason)
 	m_MapdownloadCrc = 0;
 	m_MapdownloadTotalsize = -1;
 	m_MapdownloadAmount = 0;
-	
+
 	//TU disable all downloads
-	
 	m_ModdownloadChunk = 0;
 	if(m_ModdownloadFile)
 		io_close(m_ModdownloadFile);
@@ -840,7 +839,7 @@ void CClient::Render()
 const char *CClient::LoadMap(const char *pName, const char *pFilename, unsigned WantedCrc)
 {
 	static char aErrorMsg[128];
-	
+
 	SetState(IClient::STATE_LOADING);
 
 	if(!m_pMap->Load(pFilename))
@@ -880,7 +879,7 @@ const char *CClient::LoadMapSearch(const char *pMapName, int WantedCrc)
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "loading map, map=%s wanted crc=%08x", pMapName, WantedCrc);
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", aBuf);
-	
+
 	SetState(IClient::STATE_LOADING);
 
 	// try the normal maps folder
@@ -1288,7 +1287,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 			const unsigned char *pData = Unpacker.GetRaw(Size);
 			if(Unpacker.Error())
 				return;
- 
+
 			// check fior errors
 			if(Unpacker.Error() || Size <= 0 || MapCRC != m_MapdownloadCrc || Chunk != m_MapdownloadChunk || !m_MapdownloadFile)
 				return;
@@ -1307,7 +1306,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 				m_MapdownloadFile = 0;
 				m_MapdownloadAmount = 0;
 				m_MapdownloadTotalsize = -1;
-				
+
 				m_MapDownloadFinished = true;
 
 				// load map
@@ -1335,7 +1334,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 		}
 		//TU
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_TU_MOD_DATA)
-		{			
+		{
 			if(!m_ModdownloadFile)
 				return;
 
@@ -1343,7 +1342,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 			const unsigned char *pData = Unpacker.GetRaw(Size);
 			if(Unpacker.Error())
 				return;
- 
+
 			io_write(m_ModdownloadFile, pData, Size);
 			++m_ModdownloadChunk;
 			m_ModdownloadAmount += Size;
@@ -1358,7 +1357,7 @@ void CClient::ProcessServerPacket_TW06(CNetChunk *pPacket)
 				m_ModdownloadFile = 0;
 				m_ModdownloadAmount = 0;
 				m_ModdownloadTotalsize = -1;
-				
+
 				m_ModDownloadFinished = true;
 
 				// load mod
@@ -1692,13 +1691,13 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 	if(Sys)
 	{
 		bool SimulateMapChangeMsg = false;
-		
+
 		// system message
 		//TU
 		if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_TU_INITDATA)
 		{
 			SimulateMapChangeMsg = true;
-			
+
 			const char *pMod = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
 			int ModCrc = Unpacker.GetInt();
 			int ModSize = Unpacker.GetInt();
@@ -1755,7 +1754,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 					// request first chunk package of mod data
 					CMsgPacker Msg(NETMSG_TU_REQUEST_MOD_DATA, true);
 					SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-					
+
 					m_ModDownloadFinished = false;
 
 					if(g_Config.m_Debug)
@@ -1830,7 +1829,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 					SendMsg(tu::CMetaNetClient::DST_SERVER, &Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
 					if(g_Config.m_Debug)
 						m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", "requested first chunk package");
-						
+
 					m_MapDownloadFinished = false;
 				}
 			}
@@ -1844,7 +1843,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 			const unsigned char *pData = Unpacker.GetRaw(Size);
 			if(Unpacker.Error())
 				return;
- 
+
 			io_write(m_MapdownloadFile, pData, Size);
 			++m_MapdownloadChunk;
 			m_MapdownloadAmount += Size;
@@ -1859,7 +1858,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 				m_MapdownloadFile = 0;
 				m_MapdownloadAmount = 0;
 				m_MapdownloadTotalsize = -1;
-				
+
 				m_MapDownloadFinished = true;
 
 				// load map
@@ -1887,7 +1886,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 		}
 		//TU
 		else if((pPacket->m_Flags&NET_CHUNKFLAG_VITAL) != 0 && Msg == NETMSG_TU_MOD_DATA)
-		{			
+		{
 			if(!m_ModdownloadFile)
 				return;
 
@@ -1895,7 +1894,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 			const unsigned char *pData = Unpacker.GetRaw(Size);
 			if(Unpacker.Error())
 				return;
- 
+
 			io_write(m_ModdownloadFile, pData, Size);
 			++m_ModdownloadChunk;
 			m_ModdownloadAmount += Size;
@@ -1910,7 +1909,7 @@ void CClient::ProcessServerPacket_TW07(CNetChunk *pPacket)
 				m_ModdownloadFile = 0;
 				m_ModdownloadAmount = 0;
 				m_ModdownloadTotalsize = -1;
-				
+
 				m_ModDownloadFinished = true;
 
 				// load mod
@@ -2247,7 +2246,7 @@ void CClient::PumpNetwork()
 			SendInfo();
 		}
 	}
-	
+
 	m_NetClient.RecvLoop();
 }
 
@@ -2345,7 +2344,7 @@ void CClient::Update()
 		int64 Freq = time_freq();
 		int64 Now = m_GameTime.Get(time_get());
 		int64 PredNow = m_PredictedTime.Get(time_get());
-			
+
 		while(1)
 		{
 			CSnapshotStorage::CHolder *pCur = m_aSnapshots[SNAP_CURRENT];
@@ -2389,7 +2388,7 @@ void CClient::Update()
 			CurtickStart = NewPredTick*time_freq()/50;
 			PrevtickStart = PrevPredTick*time_freq()/50;
 			m_PredIntraTick = (PredNow - PrevtickStart) / (float)(CurtickStart-PrevtickStart);
-	
+
 			if(NewPredTick < m_aSnapshots[SNAP_PREV]->m_Tick-SERVER_TICK_SPEED || NewPredTick > m_aSnapshots[SNAP_PREV]->m_Tick+SERVER_TICK_SPEED)
 			{
 				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client", "prediction time reset!");
@@ -2543,10 +2542,10 @@ void CClient::Run()
 	// init sound, allowed to fail
 	m_SoundInitFailed = Sound()->Init() != 0;
 	Sound()->SetMaxDistance(1.5f*Graphics()->ScreenWidth()/2.0f);
-	
+
 	m_NetClient.Init(m_pMasterServer, m_pConsole);
 	m_NetClient.SetCallbacks(this);
-	
+
 	// open socket
 	{
 		NETADDR BindAddr;
@@ -2560,7 +2559,7 @@ void CClient::Run()
 			mem_zero(&BindAddr, sizeof(BindAddr));
 			BindAddr.type = NETTYPE_ALL;
 		}
-		
+
 		{
 			tu::CNetClient_TW07* pNetClient = new tu::CNetClient_TW07(&m_NetClient, ProcessServerPacketCallback_TW07, 0);
 			if(!m_NetClient.OpenNetClient(tu::CMetaNetClient::DST_SERVER07, pNetClient, BindAddr, BindAddr.port ? 0x0 : NETCREATE_FLAG_RANDOMPORT))
@@ -2579,9 +2578,9 @@ void CClient::Run()
 				return;
 			}
 		}
-		
+
 		BindAddr.port = 0;
-		
+
 		{
 			tu::CNetClient_TW07* pNetClient = new tu::CNetClient_TW07(&m_NetClient, 0, ProcessConnlessPacketCallback_TW07);
 			if(!m_NetClient.OpenNetClient(tu::CMetaNetClient::DST_MASTER07, pNetClient, BindAddr, 0x0))
@@ -2724,14 +2723,13 @@ void CClient::Run()
 				{
 					GameClient()->OnActivateEditor();
 				}
-				
+
 				m_ClientMode = g_Config.m_ClMode;
 			}
 
 			TUKernel()->Update();
-		
 			Update();
-			
+
 			if(!g_Config.m_GfxAsyncRender || m_pGraphics->IsIdle())
 			{
 				m_RenderFrames++;
@@ -2765,7 +2763,7 @@ void CClient::Run()
 						default:
 							Render();
 					}
-					
+
 					m_pGraphics->Swap();
 				}
 			}
@@ -2917,7 +2915,7 @@ void CClient::Con_RconAuth(IConsole::IResult *pResult, void *pUserData)
 const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 {
 	int Crc;
-	
+
 	Disconnect();
 	m_NetClient.ResetErrorString(tu::CMetaNetClient::DST_SERVER07);
 

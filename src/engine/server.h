@@ -69,7 +69,7 @@ public:
 	virtual bool DemoRecorder_IsRecording() = 0;
 	
 	//TU
-	virtual bool GetClientProtocol(int ClientID) const = 0;
+	virtual int GetClientProtocol(int ClientID) const = 0;
 };
 
 class IGameServer : public IInterface

@@ -37,7 +37,6 @@ CAssetsEditor::~CAssetsEditor()
 	AssetsManager()->RemoveListener(AssetManager_GetToken());
 }
 
-
 void CAssetsEditor::CreateMainWidget()
 {
 	gui::CHPanelLayout* pHPanel = new gui::CHPanelLayout(this);
