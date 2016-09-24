@@ -57,6 +57,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	// needed interfaces
 	IEngine *m_pEngine;
 	class tu::assetseditor::CAssetsEditor *m_pAssetsEditor;
+	class tu::menu::CMenu *m_pMenu;
 	IEngineInput *m_pInput;
 	IEngineGraphics *m_pGraphics;
 	IEngineSound *m_pSound;

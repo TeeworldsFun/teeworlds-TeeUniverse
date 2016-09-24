@@ -25,6 +25,7 @@ public:
 	virtual void CreateMainWidget();
 	virtual void DoShortcuts();
 	virtual void OnAssetsListModified();
+	virtual void RenderBackground();
 	void Close();
 	
 	CAssetPath GetItemIcon(CAssetPath AssetPath, int SubPath);

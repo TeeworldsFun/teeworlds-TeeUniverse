@@ -531,6 +531,90 @@ void CAssetsManager::InitAssetsManager_System(CAssetsManager* pAssetsManager)
 	dbg_msg("assetsmanager", "GuiScrollbarStyles initialised (%d assets)", pAssetsManager->GetNumAssets<CAsset_GuiScrollbarStyle>(CAssetPath::SRC_SYSTEM));
 	
 	//GuiTabsStyles
+		//MainTabs
+			//RectStyle
+	{
+		CAsset_GuiRectStyle* pGuiRectStyle = pAssetsManager->NewAsset<CAsset_GuiRectStyle>(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_CONTENT));
+		pGuiRectStyle->SetName("menuMainTabsContent");
+		pGuiRectStyle->m_Flags = CAsset_GuiRectStyle::FLAG_BACKGROUND | CAsset_GuiRectStyle::FLAG_ROUNDCORNER;
+		pGuiRectStyle->m_BackgroundColor = vec4(0.0f, 0.0f, 0.0f, 0.4f);
+		pGuiRectStyle->m_CornerRadius = 10.0f;
+		pGuiRectStyle->m_CornerFlags = CAsset_GuiRectStyle::CORNERFLAG_ALL;
+	}
+	{
+		CAsset_GuiRectStyle* pGuiRectStyle = pAssetsManager->NewAsset<CAsset_GuiRectStyle>(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_ACTIVEBUTTON));
+		pGuiRectStyle->SetName("menuMainTabsActiveButton");
+		pGuiRectStyle->m_Flags = CAsset_GuiRectStyle::FLAG_BACKGROUND | CAsset_GuiRectStyle::FLAG_ROUNDCORNER;
+		pGuiRectStyle->m_BackgroundColor = vec4(1.0f, 1.0f, 1.0f, 0.7f);
+		pGuiRectStyle->m_CornerRadius = 10.0f;
+		pGuiRectStyle->m_CornerFlags = CAsset_GuiRectStyle::CORNERFLAG_ALL;
+	}
+	{
+		CAsset_GuiRectStyle* pGuiRectStyle = pAssetsManager->NewAsset<CAsset_GuiRectStyle>(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_INACTIVEBUTTON));
+		pGuiRectStyle->SetName("menuMainTabsInactiveButton");
+		pGuiRectStyle->m_Flags = CAsset_GuiRectStyle::FLAG_BACKGROUND | CAsset_GuiRectStyle::FLAG_ROUNDCORNER;
+		pGuiRectStyle->m_BackgroundColor = vec4(0.0f, 0.0f, 0.0f, 0.4f);
+		pGuiRectStyle->m_CornerRadius = 10.0f;
+		pGuiRectStyle->m_CornerFlags = CAsset_GuiRectStyle::CORNERFLAG_ALL;
+	}
+			//BoxStyle
+	{
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_LAYOUT));
+		pGuiBoxStyle->SetName("menuMainTabsLayout");
+		pGuiBoxStyle->SetMargin(50);
+		pGuiBoxStyle->SetSpacing(40);
+	}
+	{
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_BUTTONLIST));
+		pGuiBoxStyle->SetName("menuMainTabsButtonList");
+		pGuiBoxStyle->SetSpacing(10);
+	}
+	{
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_ACTIVEBUTTON));
+		pGuiBoxStyle->SetName("menuMainTabsActiveButton");
+		pGuiBoxStyle->SetDefaultRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_ACTIVEBUTTON));
+		pGuiBoxStyle->SetMouseOverRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_ACTIVEBUTTON));
+		pGuiBoxStyle->SetMargin(0);
+		pGuiBoxStyle->SetPadding(8);
+		pGuiBoxStyle->m_TextColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		pGuiBoxStyle->SetFontSize(22);
+		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_CENTER;
+	}
+	{
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_INACTIVEBUTTON));
+		pGuiBoxStyle->SetName("menuMainTabsInactiveButton");
+		pGuiBoxStyle->SetDefaultRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_INACTIVEBUTTON));
+		pGuiBoxStyle->SetMouseOverRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_ACTIVEBUTTON));
+		pGuiBoxStyle->SetMargin(0);
+		pGuiBoxStyle->SetPadding(8);
+		pGuiBoxStyle->m_TextColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		pGuiBoxStyle->SetFontSize(22);
+		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_CENTER;
+	}
+	{
+		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_CONTENT));
+		pGuiBoxStyle->SetName("menuMainTabsContent");
+		pGuiBoxStyle->SetDefaultRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_CONTENT));
+		pGuiBoxStyle->SetMouseOverRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_MAINTABS_CONTENT));
+		pGuiBoxStyle->SetMargin(0);
+		pGuiBoxStyle->SetPadding(2);
+		pGuiBoxStyle->SetSpacing(4);
+		pGuiBoxStyle->m_TextColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		pGuiBoxStyle->m_TextAlignment = CAsset_GuiBoxStyle::TEXTALIGNMENT_CENTER;
+	}
+			//TabsStyle
+	{
+		CAsset_GuiTabsStyle* pGuiTabsStyle = pAssetsManager->NewAsset<CAsset_GuiTabsStyle>(CAssetPath::GuiTabsStyleSystem(tu::GUITABSSTYLE_MENU_MAIN));
+		pGuiTabsStyle->SetName("menuMainTabs");
+		pGuiTabsStyle->m_LayoutPath = CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_LAYOUT);
+		pGuiTabsStyle->m_ButtonListPath = CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_BUTTONLIST);
+		pGuiTabsStyle->m_ActiveButtonPath = CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_ACTIVEBUTTON);
+		pGuiTabsStyle->m_InactiveButtonPath = CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_INACTIVEBUTTON);
+		pGuiTabsStyle->m_ContentPath = CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_CONTENT);
+		pGuiTabsStyle->m_ButtonListFill = true;
+		pGuiTabsStyle->m_ButtonListText = true;
+	}
+		//Editor
 	{
 		CAsset_GuiTabsStyle* pGuiTabsStyle = pAssetsManager->NewAsset<CAsset_GuiTabsStyle>(CAssetPath::GuiTabsStyleSystem(tu::GUITABSSTYLE_EDITOR));
 		pGuiTabsStyle->SetName("editorTabs");

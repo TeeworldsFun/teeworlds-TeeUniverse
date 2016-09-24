@@ -82,6 +82,7 @@ public:
 	
 	void Update();
 	void Render();
+	virtual void RenderBackground() = 0;
 	
 	void DisplayPopup(CPopup* pPopup);
 	

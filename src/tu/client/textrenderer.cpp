@@ -545,7 +545,7 @@ CTextRenderer::CGlyph* CTextRenderer::GetGlyph(CGlyphCache* pCache, CGlyphId Gly
 	return pGlyph;
 }
 
-void CTextRenderer::UpdateTextCache_HarfBuzz(array<CGlyphId>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL, int FontId)
+void CTextRenderer::UpdateTextCache_HarfBuzz(array<CHarfbuzzGlyph>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL, int FontId)
 {
 	//Use harfbuzz to shape the text (arabic, tamil, ...)
 	hb_buffer_t* m_pHBBuffer = hb_buffer_create();
@@ -562,20 +562,25 @@ void CTextRenderer::UpdateTextCache_HarfBuzz(array<CGlyphId>* pGlyphChain, const
 	hb_glyph_position_t* GlyphPos = hb_buffer_get_glyph_positions(m_pHBBuffer, &GlyphCount);
 
 	for(int i=0; i<GlyphCount; i++)
-		pGlyphChain->add(CGlyphId(FontId, GlyphInfo[i].codepoint));
+	{
+		CHarfbuzzGlyph Glyph;
+		Glyph.m_GlyphId = CGlyphId(FontId, GlyphInfo[i].codepoint);
+		Glyph.m_CharPos = GlyphInfo[i].cluster;
+		pGlyphChain->add(Glyph);
+	}
 		
 	hb_buffer_destroy(m_pHBBuffer);
 }
 
-void CTextRenderer::UpdateTextCache_Font(array<CGlyphId>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL)
+void CTextRenderer::UpdateTextCache_Font(array<CHarfbuzzGlyph>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL)
 {
 	int FontId = 0;
 	
 	int SubStart = Start;
 	int SubLength = 0;
 	int LastIndex = 0;
+	UChar Char;
 	UCharCharacterIterator Iter(pTextUTF16+Start, Length);
-	UChar32 Char;
 	while(Iter.hasNext())
 	{
 		Char = Iter.next32PostInc();
@@ -626,7 +631,7 @@ void CTextRenderer::UpdateTextCache_Font(array<CGlyphId>* pGlyphChain, const UCh
 			}
 			FontId = (FontIdFound >= 0 ? FontIdFound : 0);
 		}
-			
+		
 		SubLength += Increment;
 	}
 	
@@ -634,7 +639,7 @@ void CTextRenderer::UpdateTextCache_Font(array<CGlyphId>* pGlyphChain, const UCh
 		UpdateTextCache_HarfBuzz(pGlyphChain, pTextUTF16, SubStart, SubLength, IsRTL, FontId);
 }
 
-void CTextRenderer::UpdateTextCache_BiDi(array<CGlyphId>* pGlyphChain, const char* pText)
+void CTextRenderer::UpdateTextCache_BiDi(array<CHarfbuzzGlyph>* pGlyphChain, const char* pText)
 {
 	//Use ICU for bidirectional text
 	//note: bidirectional texts appear for example when a latin username is displayed in a arabic text
@@ -657,6 +662,7 @@ void CTextRenderer::UpdateTextCache_BiDi(array<CGlyphId>* pGlyphChain, const cha
 		}
 		else
 		{
+			int CharStart = 0;
 			UBiDiLevel level;
 			int NumberOfParts = ubidi_countRuns(pICUBiDi, &ICUError);
 			if(U_SUCCESS(ICUError))
@@ -714,7 +720,7 @@ void CTextRenderer::UpdateTextCache(CTextCache* pTextCache)
 		return;
 	
 	float RelativeSize = pTextCache->m_FontSize / pGlyphCache->m_FontSize;
-	array<CGlyphId> GlyphChain;
+	array<CHarfbuzzGlyph> GlyphChain;
 	
 	//The text is separated in 3 levels:
 		//Level 1: the complete string the the ICU will process (UpdateTextCache_BiDi)
@@ -725,15 +731,14 @@ void CTextRenderer::UpdateTextCache(CTextCache* pTextCache)
 	//Here, we use two passes in order to make sure that the glyph cache is in the same state for all letters
 		//First pass: Update the glyph cache
 	for(int i=0; i<GlyphChain.size(); i++)
-		GetGlyph(pGlyphCache, GlyphChain[i]);
+		GetGlyph(pGlyphCache, GlyphChain[i].m_GlyphId);
 	
 		//Second pass: Generate the list of quads
 	float PosY = pTextCache->m_BoxSize.y/2 + static_cast<int>(pTextCache->m_FontSize*0.4f); //TODO: find a way to not hard code the generic glyph height.
 	float PosX = 0.0f;
-	int TextIter = 0;
 	for(int i=0; i<GlyphChain.size(); i++)
 	{
-		CGlyph* pGlyph = GetGlyph(pGlyphCache, GlyphChain[i]);
+		CGlyph* pGlyph = GetGlyph(pGlyphCache, GlyphChain[i].m_GlyphId);
 		if(pGlyph)
 		{
 			CTextCache::CQuad* pQuad = &pTextCache->m_Quads[pTextCache->m_Quads.add(CTextCache::CQuad())];
@@ -742,12 +747,10 @@ void CTextRenderer::UpdateTextCache(CTextCache* pTextCache)
 			pQuad->m_Size = vec2(pGlyph->m_Width*RelativeSize, pGlyph->m_Height*RelativeSize);
 			pQuad->m_UVMin = pGlyph->m_UVMin;
 			pQuad->m_UVMax = pGlyph->m_UVMax;
-			pQuad->m_TextIter = TextIter;
+			pQuad->m_CharPos = GlyphChain[i].m_CharPos;
 			
 			PosX += pGlyph->m_AdvanceX*RelativeSize;
 		}
-		
-		TextIter++;
 	}
 	
 	pTextCache->m_TextWidth = PosX;
@@ -780,14 +783,28 @@ CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromPosition(CTextCache* 
 		}
 	}
 	
-	Cursor.m_TextIter = pTextCache->m_Quads[NearestQuad].m_TextIter;
+	int CharPos = pTextCache->m_Quads[NearestQuad].m_CharPos;
 	Cursor.m_Position.x = TextPosition.x + pTextCache->m_Quads[NearestQuad].m_AdvancePos.x;
-	if(TestPos.x > pTextCache->m_Quads[NearestQuad].m_QuadPos.x + pTextCache->m_Quads[NearestQuad].m_Size.x/2.0f)
+	//~ if(TestPos.x > pTextCache->m_Quads[NearestQuad].m_QuadPos.x + pTextCache->m_Quads[NearestQuad].m_Size.x/2.0f)
+	//~ {
+		//~ CharPos++;
+		//~ if(NearestQuad == pTextCache->m_Quads.size()-1)
+			//~ Cursor.m_Position.x = TextPosition.x + pTextCache->m_TextWidth;
+	//~ }
+	
+	//Find the position of the character in the string
+	const char* pText = pTextCache->m_Text.c_str();
+	int Iter = 0;
+	int CharIter = 0;
+	while(pText[Iter])
 	{
-		Cursor.m_TextIter++;
-		if(NearestQuad == pTextCache->m_Quads.size()-1)
-			Cursor.m_Position.x = TextPosition.x + pTextCache->m_TextWidth;
+		if(CharIter >= CharPos)
+			break;
+		CharIter++;
+		Iter = str_utf8_forward(pText, Iter);
 	}
+	
+	Cursor.m_TextIter = Iter;
 	
 	return Cursor;
 }
@@ -801,9 +818,21 @@ CTextRenderer::CTextCursor CTextRenderer::GetTextCursorFromTextIter(CTextCache* 
 	Cursor.m_Position.x = TextPosition.x + pTextCache->m_TextWidth;
 	Cursor.m_Position.y = TextPosition.y;
 	
+	//Find the position of the character in the string
+	int CharPos = 0;
+	const char* pText = pTextCache->m_Text.c_str();
+	int Iter = 0;
+	while(pText[Iter])
+	{
+		if(Iter >= TextIter)
+			break;
+		CharPos++;
+		Iter = str_utf8_forward(pText, Iter);
+	}
+	
 	for(int i=0; i<pTextCache->m_Quads.size(); i++)
 	{
-		if(pTextCache->m_Quads[i].m_TextIter == TextIter)
+		if(pTextCache->m_Quads[i].m_CharPos == CharPos)
 		{
 			Cursor.m_Position.x = TextPosition.x + pTextCache->m_Quads[i].m_AdvancePos.x;
 			break;

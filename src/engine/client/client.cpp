@@ -41,6 +41,7 @@
 
 //TU
 #include <tu/compatibility.h>
+#include <tu/client/menu/menu.h>
 #include <tu/client/assetseditor/assetseditor.h>
 #include <tu/client/clientmode.h>
 #include <tu/client/assetsmanager.h>
@@ -252,6 +253,7 @@ void CSmoothTime::Update(CGraph *pGraph, int64 Target, int TimeLeft, int AdjustD
 
 CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotDelta)
 {
+	m_pMenu = 0;
 	m_pAssetsEditor = 0;
 	m_pInput = 0;
 	m_pGraphics = 0;
@@ -2618,10 +2620,11 @@ void CClient::Run()
 	
 	m_pKernel->AssetsManager()->EnableAssetsHistory();
 	
-	{
-		m_pAssetsEditor = new tu::assetseditor::CAssetsEditor(m_pKernel);
-		m_pAssetsEditor->Init(tu::gui::CRect(0, 0, Graphics()->ScreenWidth(), Graphics()->ScreenHeight()));
-	}
+	m_pMenu = new tu::menu::CMenu(m_pKernel);
+	m_pAssetsEditor = new tu::assetseditor::CAssetsEditor(m_pKernel);
+	
+	m_pMenu->Init(tu::gui::CRect(0, 0, Graphics()->ScreenWidth(), Graphics()->ScreenHeight()));
+	m_pAssetsEditor->Init(tu::gui::CRect(0, 0, Graphics()->ScreenWidth(), Graphics()->ScreenHeight()));
 
 	GameClient()->OnInit();
 	
@@ -2749,10 +2752,14 @@ void CClient::Run()
 				{
 					switch(m_ClientMode)
 					{
+						case TU_CLIENTMODE_MENU:
+							GameClient()->DrawBackground();
+							m_pMenu->Update();
+							m_pMenu->Render();
+							break;
 						case TU_CLIENTMODE_ASSETSEDITOR:
 							m_pAssetsEditor->Update();
 							m_pAssetsEditor->Render();
-							DebugRender();
 							break;
 						case TU_CLIENTMODE_GAME:
 						default:
@@ -2811,6 +2818,7 @@ void CClient::Run()
 		m_LocalTime = (time_get()-m_LocalStartTime)/(float)time_freq();
 	}
 
+	delete m_pMenu;
 	delete m_pAssetsEditor;
 	delete m_pKernel;
 

@@ -79,6 +79,18 @@ void CAssetsEditor::DoShortcuts()
 		m_GuiScale += 0.25f;
 }
 
+void CAssetsEditor::RenderBackground()
+{
+	Graphics()->TextureClear();
+	Graphics()->QuadsBegin();
+	Graphics()->SetColor(58.0f/255.0f, 58.0f/255.0f, 58.0f/255.0f, 1.0f);
+	
+	IGraphics::CQuadItem QuadItem(m_DrawRect.w/2, m_DrawRect.h/2, m_DrawRect.w, m_DrawRect.h);
+	Graphics()->QuadsDraw(&QuadItem, 1);
+	
+	Graphics()->QuadsEnd();
+}
+
 void CAssetsEditor::Close()
 {
 	g_Config.m_ClMode = TU_CLIENTMODE_GAME;

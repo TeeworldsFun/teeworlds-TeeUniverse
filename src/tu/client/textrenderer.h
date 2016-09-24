@@ -58,6 +58,12 @@ protected:
 		inline bool operator<(const CGlyphId& GlyphId) const { return ((m_FontId == GlyphId.m_FontId) ? (m_GlyphCode < GlyphId.m_GlyphCode) : (m_FontId < GlyphId.m_FontId)); }
 	};
 	
+	struct CHarfbuzzGlyph
+	{
+		CGlyphId m_GlyphId;
+		int m_CharPos;
+	};
+	
 	struct CGlyph
 	{
 		CGlyphId m_GlyphId;
@@ -105,7 +111,7 @@ protected:
 	private:
 		void IncreaseCache();
 		int NewBlock(ivec2 Granularity);
-		void UpdateGlyph(CTextRenderer::CGlyph* pGlyph);
+		void UpdateGlyph(CGlyph* pGlyph);
 		
 	public:
 		CGlyphCache(CKernel* pKernel);
@@ -113,7 +119,7 @@ protected:
 		void Init(int FontSize);
 		CGlyph* NewGlyph(CGlyphId GlyphId, int Width, int Height);
 		CGlyph* FindGlyph(CGlyphId GlyphId);
-		void UpdateTexture(CTextRenderer::CGlyph* pGlyph, const char* pData);
+		void UpdateTexture(CGlyph* pGlyph, const char* pData);
 		void UpdateVersion();
 	};
 	
@@ -124,7 +130,7 @@ public:
 	public:
 		struct CQuad
 		{
-			int m_TextIter;			//Character in the original string that has created this quad
+			int m_CharPos;			//Character in the original string that has created this quad
 			vec2 m_AdvancePos;
 			vec2 m_QuadPos;
 			vec2 m_Size;
@@ -170,9 +176,9 @@ private:
 	CGlyph* FindGlyph(CGlyphCache* pCache, CGlyphId GlyphId);
 	CGlyph* GetGlyph(CGlyphCache* pCache, CGlyphId GlyphId);
 	
-	void UpdateTextCache_HarfBuzz(array<CGlyphId>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL, int FontId);
-	void UpdateTextCache_Font(array<CGlyphId>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL);
-	void UpdateTextCache_BiDi(array<CGlyphId>* pGlyphChain, const char* pText);
+	void UpdateTextCache_HarfBuzz(array<CHarfbuzzGlyph>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL, int FontId);
+	void UpdateTextCache_Font(array<CHarfbuzzGlyph>* pGlyphChain, const UChar* pTextUTF16, int Start, int Length, bool IsRTL);
+	void UpdateTextCache_BiDi(array<CHarfbuzzGlyph>* pGlyphChain, const char* pText);
 
 public:
 	CTextRenderer(CKernel* pKernel);

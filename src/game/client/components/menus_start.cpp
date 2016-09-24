@@ -69,7 +69,15 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 
 	TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
 	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
-	
+	static CButtonContainer s_AltMenuButton;
+	if(DoButton_Menu(&s_AltMenuButton, Localize("Alternative Menu"), 0, &Button, g_Config.m_ClShowStartMenuImages ? "assets_editor" : 0, CUI::CORNER_ALL, 10.0f, 0.5f))
+	{
+		g_Config.m_ClMode = TU_CLIENTMODE_MENU;
+		Input()->MouseModeRelative();
+	}
+
+	TopMenu.HSplitBottom(5.0f, &TopMenu, 0); // little space
+	TopMenu.HSplitBottom(40.0f, &TopMenu, &Button);
 	static CButtonContainer s_AssetsEditorButton;
 	if(DoButton_Menu(&s_AssetsEditorButton, Localize("Assets Editor"), 0, &Button, g_Config.m_ClShowStartMenuImages ? "assets_editor" : 0, CUI::CORNER_ALL, 10.0f, 0.5f))
 	{

@@ -157,12 +157,11 @@ void CHListLayout::UpdateBoundingSize()
 	for(int i=0; i<m_Childs.size(); i++)
 	{
 		m_Childs[i].m_pWidget->UpdateBoundingSize();
-		
-		if(i != 0)
-			m_BoundingSizeRect.BSAddSpacing(Spacing, 0);
-			
 		m_BoundingSizeRect.BSHorizontalAdd(m_Childs[i].m_pWidget->GetBS());
 	}
+	
+	if(m_Childs.size() > 1)
+		m_BoundingSizeRect.BSAddSpacing(Spacing * (m_Childs.size()-1), 0);
 	
 	if(pBoxStyle)
 	{
@@ -194,6 +193,9 @@ void CHListLayout::UpdatePosition(CRect BoundingRect)
 		else
 			AvailableSpace -= m_Childs[i].m_pWidget->GetBS().minw;
 	}
+	if(m_Childs.size() > 1)
+		AvailableSpace -= Spacing * (m_Childs.size()-1);
+	
 	int FillSize = 0;
 	if(NumFill > 0)
 		FillSize = AvailableSpace/NumFill;

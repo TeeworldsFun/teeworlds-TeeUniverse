@@ -154,16 +154,7 @@ void CContext::Render()
 {
 	Graphics()->MapScreen(m_DrawRect.x, m_DrawRect.y, m_DrawRect.w, m_DrawRect.h);
 	
-	{
-		Graphics()->TextureClear();
-		Graphics()->QuadsBegin();
-		Graphics()->SetColor(58.0f/255.0f, 58.0f/255.0f, 58.0f/255.0f, 1.0f);
-		
-		IGraphics::CQuadItem QuadItem(m_DrawRect.w/2, m_DrawRect.h/2, m_DrawRect.w, m_DrawRect.h);
-		Graphics()->QuadsDraw(&QuadItem, 1);
-		
-		Graphics()->QuadsEnd();
-	}
+	RenderBackground();
 	
 	if(m_pMainWidget)
 		m_pMainWidget->Render();
