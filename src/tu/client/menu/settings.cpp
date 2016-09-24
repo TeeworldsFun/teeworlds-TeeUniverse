@@ -35,11 +35,11 @@ gui::CVListLayout* CSettings::CreateGeneralTab()
 {
 	gui::CVListLayout* pTab = new gui::CVListLayout(Menu());
 	
-	pTab->Add(new gui::CButton(Context(), Context()->Localize("Dynamic Camera")), false);
-	pTab->Add(new gui::CButton(Context(), Context()->Localize("Switch weapon on pickup")), false);
-	pTab->Add(new gui::CButton(Context(), Context()->Localize("Show ingame HUD")), false);
-	pTab->Add(new gui::CButton(Context(), Context()->Localize("Show only chat messages from friends")), false);
-	pTab->Add(new gui::CButton(Context(), Context()->Localize("Show only chat messages from friends")), false);
+	//~ pTab->Add(new gui::CButton(Context(), Context()->Localize("Dynamic Camera")), false);
+	//~ pTab->Add(new gui::CButton(Context(), Context()->Localize("Switch weapon on pickup")), false);
+	//~ pTab->Add(new gui::CButton(Context(), Context()->Localize("Show ingame HUD")), false);
+	//~ pTab->Add(new gui::CButton(Context(), Context()->Localize("Show only chat messages from friends")), false);
+	//~ pTab->Add(new gui::CButton(Context(), Context()->Localize("Show only chat messages from friends")), false);
 	
 	return pTab;
 }
