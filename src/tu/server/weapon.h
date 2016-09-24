@@ -39,8 +39,8 @@ public:
 	virtual void OnActivation() {}
 	
 	virtual void Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pChar) = 0;
-	virtual void Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar) = 0;
-	virtual void Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar) = 0;
+	virtual void Snap_TW07(int Snapshot, int SnappingClient, struct CNetObj_Character* pChar) = 0;
+	virtual void Snap_TU07(int Snapshot, int SnappingClient, struct CNetObj_Character* pChar) = 0;
 };
 
 class CWeapon_GenericGun07 : public CWeapon
@@ -67,8 +67,8 @@ public:
 	virtual void OnActivation();
 
 	virtual void Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pChar);
-	virtual void Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
-	virtual void Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
+	virtual void Snap_TW07(int Snapshot, int SnappingClient, struct CNetObj_Character* pChar);
+	virtual void Snap_TU07(int Snapshot, int SnappingClient, struct CNetObj_Character* pChar);
 	
 	virtual void CreateProjectile(vec2 Pos, vec2 Direction) = 0;
 };

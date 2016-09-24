@@ -32,8 +32,8 @@ public:
 	virtual bool OnFire(vec2 Direction);
 	
 	virtual void Snap_TW06(int Snapshot, int SnappingClient, class CTW06_NetObj_Character* pChar);
-	virtual void Snap_TW07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
-	virtual void Snap_TU07(int Snapshot, int SnappingClient, class CNetObj_Character* pChar);
+	virtual void Snap_TW07(int Snapshot, int SnappingClient, struct CNetObj_Character* pChar);
+	virtual void Snap_TU07(int Snapshot, int SnappingClient, struct CNetObj_Character* pChar);
 };
 
 #endif

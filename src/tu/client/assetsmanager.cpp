@@ -68,7 +68,7 @@ CAssetPath CAssetsManager::FindSkinPart(CAssetPath CharacterPath, CAsset_Charact
 {
 	char aAssetName[256];
 	str_format(aAssetName, sizeof(aAssetName), "%s", pName);
-	
+
 	for(int i=0; i<m_CharacterPartsCatalog.m_Assets[CAssetPath::SRC_SKIN].size(); i++)
 	{
 		const CAsset_CharacterPart* pCharacterPart = &m_CharacterPartsCatalog.m_Assets[CAssetPath::SRC_SKIN][i].m_Asset;
@@ -81,7 +81,7 @@ CAssetPath CAssetsManager::FindSkinPart(CAssetPath CharacterPath, CAsset_Charact
 			return CAssetPath::Skin(CAssetPath::TYPE_CHARACTERPART, i);
 		}
 	}
-	
+
 	return CAssetPath::Null();
 }
 
@@ -128,7 +128,7 @@ CAsset_Image* CAssetsManager::NewImage(CAssetPath* pAssetPath, int Source, int S
 	png_close_file(&Png); // ignore_convention
 
 	int Format;
-	if(Png.color_type == PNG_TRUECOLOR) 
+	if(Png.color_type == PNG_TRUECOLOR)
 		Format = CImageInfo::FORMAT_RGB;
 	else if(Png.color_type == PNG_TRUECOLOR_ALPHA)
 		Format = CImageInfo::FORMAT_RGBA;
@@ -164,21 +164,21 @@ int CAssetsManager::SaveInAssetsFile(const char *pFileName, int Source)
 		dbg_msg("AssetsManager", "can't create the assets file %s", pFileName);
 		return 0;
 	}
-	
+
 	{
 		CStorageType Item;
 		Item.m_Version = 0;
 		Item.m_Source = Source;
-		
+
 		df.AddItem(CAsset_Image::TypeId, 0, sizeof(CStorageType), &Item);
 	}
 	
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.SaveInAssetsFile(&df, Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	df.Finish(DATAFILE_TYPE_ASSET);
-	
+
 	return 1;
 }
 
@@ -186,17 +186,15 @@ int CAssetsManager::LoadAssetsFile_Asset(CDataFileReader* pDataFile, int Source)
 {
 	int Start, Num;
 	pDataFile->GetType(0, &Start, &Num);
-	
 	if(Num > 0)
 	{
 		CStorageType* pItem = (CStorageType*) pDataFile->GetItem(Start, 0, 0);
 		Source = pItem->m_Source % CAssetPath::NUM_SOURCES;
 	}
-	
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.LoadFromAssetsFile(this, pDataFile, Source);
 	#include <tu/client/assetsmacro.h>
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	return 1;
 }
 
@@ -205,7 +203,7 @@ int CAssetsManager::LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source)
 	CMapItemVersion *pItem = (CMapItemVersion *)pDataFile->FindItem(MAPITEMTYPE_VERSION, 0);
 	if(!pItem)
 		return 0;
-		
+
 	if(pItem->m_Version != CMapItemVersion::CURRENT_VERSION)
 		return 0;
 
@@ -223,7 +221,7 @@ int CAssetsManager::LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source)
 		pDataFile->GetType(MAPITEMTYPE_IMAGE, &Start, &Num);
 		
 		pImagePath = new CAssetPath[Num];
-		
+
 		for(int i = 0; i < Num; i++)
 		{
 			CMapItemImage *pItem = (CMapItemImage *)pDataFile->GetItem(Start+i, 0, 0);
@@ -312,24 +310,24 @@ int CAssetsManager::LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source)
 				//~ pGroup->m_ClipW = pGItem->m_ClipW;
 				//~ pGroup->m_ClipH = pGItem->m_ClipH;
 			//~ }
-			
+
 			// load group name
 			aBuf[0] = 0;
-			
+
 			if(pGItem->m_Version >= 3)
 				IntsToStr(pGItem->m_aName, sizeof(pGItem->m_aName)/sizeof(int), aBuf);
-			
+
 			if(!aBuf[0])
 				str_format(aBuf, sizeof(aBuf), "group%d", MapGroupPath.GetId());
-			
+
 			pMapGroup->SetName(aBuf);
-			
+
 			for(int l = 0; l < pGItem->m_NumLayers; l++)
 			{
 				CMapItemLayer *pLayerItem = (CMapItemLayer *)pDataFile->GetItem(LayersStart+pGItem->m_StartLayer+l, 0, 0);
 				if(!pLayerItem)
 					continue;
-				
+
 				if(pLayerItem->m_Type == LAYERTYPE_TILES)
 				{
 					CMapItemLayerTilemap *pTilemapItem = (CMapItemLayerTilemap *)pLayerItem;
@@ -468,15 +466,15 @@ int CAssetsManager::LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source)
 					
 					//Name
 					aBuf[0] = 0;
-					
+
 					if(pQuadsItem->m_Version >= 2)
 						IntsToStr(pQuadsItem->m_aName, sizeof(pQuadsItem->m_aName)/sizeof(int), aBuf);
-					
+
 					if(!aBuf[0])
 						str_format(aBuf, sizeof(aBuf), "quadlayer%d", MapLayerPath.GetId());
-					
+
 					pMapLayer->SetName(aBuf);
-					
+
 					//Quads
 					CQuad *pQuads = (CQuad *)pDataFile->GetDataSwapped(pQuadsItem->m_Data);
 					for(int i=0; i<pQuadsItem->m_NumQuads; i++)
@@ -509,7 +507,7 @@ int CAssetsManager::LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source)
 							pMapLayer->SetVertexColor(VertexPath, Color);
 						}
 					}
-					
+
 					//Image
 					if(pQuadsItem->m_Image >= 0)
 						pMapLayer->SetImagePath(pImagePath[pQuadsItem->m_Image]);
@@ -517,9 +515,9 @@ int CAssetsManager::LoadAssetsFile_Map(CDataFileReader* pDataFile, int Source)
 			}
 		}
 	}
-	
+
 	delete[] pImagePath;
-	
+
 	return 1;
 }
 
@@ -614,7 +612,7 @@ CAssetPath CAssetsManager::DuplicateAsset(const CAssetPath& Path, int Source)
 	
 	return NewAssetPath;
 }
-	
+
 void CAssetsManager::DeleteAsset(const CAssetPath& Path)
 {
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.DeleteAsset(Path);
@@ -644,12 +642,12 @@ int CAssetsManager::AddSubItem(CAssetPath AssetPath, int SubItemType, int Token)
 	{
 		#include <tu/client/assetsmacro.h>
 	}
-	
+
 	#undef TU_MACRO_ASSETTYPE
-	
+
 	return -1;
 }
-	
+
 void CAssetsManager::DeleteSubItem(CAssetPath AssetPath, int SubPath)
 {
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
@@ -690,9 +688,7 @@ CAssetState* CAssetsManager::GetAssetState(CAssetPath AssetPath)
 void CAssetsManager::InitAssetState(int Source, const CAssetState& State)
 {
 	#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) CatalogName.InitAssetState(Source, State);
-
 	#include <tu/client/assetsmacro.h>
-	
 	#undef TU_MACRO_ASSETTYPE
 }
 
