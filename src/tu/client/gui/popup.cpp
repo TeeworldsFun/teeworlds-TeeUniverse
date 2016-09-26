@@ -114,11 +114,7 @@ void CPopup::Render()
 		CRect Rect = m_DrawRect;
 		Rect.RemoveMargin(pBoxStyle->GetMargin());
 	
-		ivec2 MousePos = Context()->GetMousePos();
-		if(Rect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetMouseOverRectPath());
-		else
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetDefaultRectPath());
+		AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetRectPath());
 			
 		Rect.RemoveMargin(pBoxStyle->GetPadding());
 	}

@@ -14,16 +14,13 @@ namespace menu
 CMenu::CMenu(CKernel* pKernel) :
 	gui::CContext(pKernel)
 {
-	str_copy(m_aLocalizationContext, "", sizeof(m_aLocalizationContext));
+	m_IconScale = 0.75f;
 	
-	//~ m_LabelStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_LABEL);
-	//~ m_LabelHeaderStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_LABELHEADER);
-	//~ m_ButtonStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_BUTTON);
-	//~ m_TextEntryStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_TEXTENTRY);
-	//~ m_NumericEntryStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_NUMERICENTRY);
-	//~ m_ScrollbarStyle = CAssetPath::GuiScrollbarStyleSystem(GUISCROLLBARSTYLE_EDITOR);
-	m_TabsStyle = CAssetPath::GuiTabsStyleSystem(GUITABSSTYLE_MENU_MAIN);
-	//~ m_PopupStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_POPUP);
+	m_ScrollbarStyle = CAssetPath::GuiScrollbarStyleSystem(GUISCROLLBARSTYLE_EDITOR);
+	m_LabelStyle = CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_MENU_TEXT);
+	m_LabelHeaderStyle = CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_MENU_HEADER);
+	m_ButtonStyle = CAssetPath::GuiButtonStyleSystem(GUIBUTTONSTYLE_MENU_DEFAULT);
+	m_ToggleStyle = CAssetPath::GuiToggleStyleSystem(GUITOGGLESTYLE_MENU_CHECKBOX);
 }
 
 
@@ -43,9 +40,6 @@ void CMenu::DoShortcuts()
 	}
 	
 	//TAG_DEBUG
-	if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyPress(KEY_B, true))
-		m_GuiDirection = (m_GuiDirection+1)%NUM_DIRECTIONS;
-		
 	if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyPress(KEY_A, true))
 		m_GuiScale -= 0.25f;
 	
@@ -60,14 +54,7 @@ void CMenu::Close()
 
 void CMenu::RenderBackground()
 {
-	//~ Graphics()->TextureClear();
-	//~ Graphics()->QuadsBegin();
-	//~ Graphics()->SetColor(0.0f/255.0f, 0.0f/255.0f, 255.0f/255.0f, 1.0f);
 	
-	//~ IGraphics::CQuadItem QuadItem(m_DrawRect.w/2, m_DrawRect.h/2, m_DrawRect.w/2, m_DrawRect.h/2);
-	//~ Graphics()->QuadsDraw(&QuadItem, 1);
-	
-	//~ Graphics()->QuadsEnd();
 }
 
 }

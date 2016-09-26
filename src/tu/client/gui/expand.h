@@ -17,6 +17,7 @@ protected:
 	CAssetPath m_BoxStylePath;
 	CWidget* m_pTitle;
 	array<CWidget*> m_Childs;
+	bool m_Expanded;
 
 	inline int GetShift() { return Context()->ApplyGuiScale(20); }
 
@@ -24,9 +25,11 @@ public:
 	CExpand(class CContext *pConfig);
 	virtual ~CExpand();
 	
-	virtual void Clear();
-	virtual void Add(CWidget* pWidget);
-	virtual void SetTitle(CWidget* pWidget);
+	void Clear();
+	void Add(CWidget* pWidget);
+	void SetTitle(CWidget* pWidget);
+	inline void ShowContent() { m_Expanded = true; }
+	inline void HideContent() { m_Expanded = false; }
 	
 	virtual void UpdateBoundingSize();
 	virtual void UpdatePosition(CRect BoundingRect);

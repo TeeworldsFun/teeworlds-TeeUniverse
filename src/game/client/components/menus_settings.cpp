@@ -626,7 +626,7 @@ void CMenus::RenderLanguageSelection(CUIRect MainView, bool Header)
 		s_Languages.add(CLanguage("English", "", 826));
 		LoadLanguageIndexfile(Storage(), Console(), &s_Languages);
 		for(int i = 0; i < s_Languages.size(); i++)
-			if(str_comp(s_Languages[i].m_FileName.c_str(), g_Config.m_ClLanguagefile) == 0)
+			if(str_comp(s_Languages[i].m_FileName.c_str(), g_Config.m_ClLanguage) == 0)
 			{
 				s_SelectedLanguage = i;
 				break;
@@ -669,7 +669,7 @@ void CMenus::RenderLanguageSelection(CUIRect MainView, bool Header)
 
 	if(OldSelected != s_SelectedLanguage)
 	{
-		str_copy(g_Config.m_ClLanguagefile, s_Languages[s_SelectedLanguage].m_FileName.c_str(), sizeof(g_Config.m_ClLanguagefile));
+		str_copy(g_Config.m_ClLanguage, s_Languages[s_SelectedLanguage].m_FileName.c_str(), sizeof(g_Config.m_ClLanguage));
 		g_Localization.Load(s_Languages[s_SelectedLanguage].m_FileName.c_str(), Storage(), Console());
 	}
 }

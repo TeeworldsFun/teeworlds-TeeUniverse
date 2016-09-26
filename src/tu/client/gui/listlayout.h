@@ -85,16 +85,27 @@ protected:
 		virtual void Render();
 	};
 	
-protected:	
-	bool m_ShowScrollBar;
-	CVScrollBar* m_pScrollBar;
+protected:
 	int m_ChildrenLength;
 	
 public:
 	CVListLayout(class CContext *pConfig);
-	virtual ~CVListLayout();
 	
 	virtual void AddSeparator();
+	
+	virtual void UpdateBoundingSize();
+	virtual void UpdatePosition(CRect BoundingRect);
+};
+
+class CVScrollLayout : public CVListLayout
+{
+protected:
+	bool m_ShowScrollBar;
+	CVScrollBar* m_pScrollBar;
+	
+public:
+	CVScrollLayout(class CContext *pConfig);
+	virtual ~CVScrollLayout();
 	
 	virtual void UpdateBoundingSize();
 	virtual void UpdatePosition(CRect BoundingRect);

@@ -24,6 +24,9 @@
 #include <tu/client/assets/guirectstyle.h>
 #include <tu/client/assets/guilinestyle.h>
 #include <tu/client/assets/guiboxstyle.h>
+#include <tu/client/assets/guilabelstyle.h>
+#include <tu/client/assets/guibuttonstyle.h>
+#include <tu/client/assets/guitogglestyle.h>
 #include <tu/client/assets/guiscrollbarstyle.h>
 #include <tu/client/assets/guitabsstyle.h>
 
@@ -202,6 +205,8 @@ public:
 public:
 	//System
 	static void InitAssetsManager_System(CAssetsManager* pAssetsManager);
+	static void InitAssetsManager_System_Menu(CAssetsManager* pAssetsManager);
+	static void InitAssetsManager_System_Editor(CAssetsManager* pAssetsManager);
 	
 	//Teeworlds Universe
 	static void InitAssetsManager_Universe_TeeWorlds(CAssetsManager* pAssetsManager);

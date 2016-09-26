@@ -12,7 +12,9 @@ namespace gui
 class CAbstractButton : public CAbstractLabel
 {
 protected:
+	bool m_MouseOver;
 	bool m_Clicked;
+	CAssetPath m_ButtonStylePath;
 	
 protected:
 	CAbstractButton(class CContext *pConfig);
@@ -20,22 +22,14 @@ protected:
 	virtual void MouseClickAction() = 0;
 	
 public:
+	virtual void Update();
 	virtual void OnButtonClick(int X, int Y, int Button, int Count);
 	virtual void OnButtonRelease(int Button);
-};
-
-class CAbstractToggle : public CAbstractButton
-{
-protected:
-	bool m_Toggle;
+	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
 	
-protected:
-	CAbstractToggle(class CContext *pConfig);
-	
-	virtual void MouseClickAction();
-	virtual void OnToggle(bool Toggle) = 0;
-	
-public:
+	void RefreshLabelStyle();
+	inline CAssetPath GetButtonStyle() const { return m_ButtonStylePath; }
+	void SetButtonStyle(CAssetPath Path);
 };
 
 class CButton : public CAbstractButton
@@ -44,14 +38,6 @@ public:
 	CButton(class CContext *pConfig, const char* pText);
 	CButton(class CContext *pConfig, CAssetPath IconPath);
 	CButton(class CContext *pConfig, const char* pText, CAssetPath IconPath);
-};
-
-class CToggle : public CAbstractToggle
-{
-public:
-	CToggle(class CContext *pConfig, const char* pText);
-	CToggle(class CContext *pConfig, CAssetPath IconPath);
-	CToggle(class CContext *pConfig, const char* pText, CAssetPath IconPath);
 };
 
 }

@@ -14,15 +14,15 @@ class CSettings : public gui::CTabs
 {
 private:
 	class CMenu* m_pMenu;
-	gui::CVListLayout* m_pGeneralTab;
-	gui::CVListLayout* m_pPlayerTab;
-	gui::CVListLayout* m_pCharacterTab;
-	gui::CVListLayout* m_pControlTab;
-	gui::CVListLayout* m_pGraphicsTab;
-	gui::CVListLayout* m_pSoundTab;
+	gui::CWidget* m_pGeneralTab;
+	gui::CWidget* m_pPlayerTab;
+	gui::CWidget* m_pCharacterTab;
+	gui::CWidget* m_pControlTab;
+	gui::CWidget* m_pGraphicsTab;
+	gui::CWidget* m_pSoundTab;
 	
 protected:
-	gui::CVListLayout* CreateGeneralTab();
+	gui::CWidget* CreateGeneralTab();
 
 public:
 	CSettings(CMenu* pMenu);

@@ -14,6 +14,7 @@ namespace tu
 class CAssetsManager;
 class CAssetsRenderer;
 class CTextRenderer;
+class CLocalization;
 
 class CKernel
 {

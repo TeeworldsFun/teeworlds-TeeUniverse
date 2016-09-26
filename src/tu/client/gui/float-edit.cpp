@@ -18,7 +18,7 @@ namespace gui
 CAbstractFloatEdit::CAbstractFloatEdit(CContext *pConfig) :
 	CAbstractTextEdit(pConfig)
 {
-	SetBoxStyle(Context()->GetNumericEntryStyle());
+	SetLabelStyle(Context()->GetNumericEntryStyle());
 }
 
 void CAbstractFloatEdit::SaveFromTextBuffer()

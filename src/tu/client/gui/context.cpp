@@ -26,13 +26,16 @@ CContext::CContext(CKernel* pKernel) :
 	CKernel::CGuest(pKernel),
 	m_pMainWidget(0),
 	m_GuiScale(1.0f),
-	m_GuiDirection(DIRECTION_LTR)
+	m_IconScale(1.0f),
+	m_LocalizationUpdated(false)
 {
-	m_aLocalizationContext[0] = 0;
+	Localization()->AddListener(this);
 }
 
 CContext::~CContext()
 {
+	Localization()->RemoveListener(Localization_GetToken());
+	
 	for(int i=0; i<m_pPopups.size(); i++)
 		delete m_pPopups[i];
 	if(m_pMainWidget)
@@ -148,6 +151,8 @@ void CContext::Update()
 	}
 	
 	Input()->Clear();
+	
+	m_LocalizationUpdated = false;
 }
 
 void CContext::Render()
@@ -176,6 +181,11 @@ void CContext::Render()
 void CContext::DisplayPopup(CPopup* pPopup)
 {
 	m_pPopups.add(pPopup);
+}
+	
+void CContext::OnLocalizationModified()
+{
+	m_LocalizationUpdated = true;
 }
 
 }

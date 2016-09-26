@@ -59,7 +59,7 @@ protected:
 		
 	public:
 		CItem_Load(CPopup_SaveLoadAssets* pPopup, const char* pDir, const char* pFilename, int StorageType, int IsDir) :
-			gui::CButton(pPopup->Context(), pFilename, CAssetPath::SpriteSystem(SPRITE_ICON_ASSET)),
+			gui::CButton(pPopup->Context(), pFilename, CAssetPath::SpriteSystem(SPRITE_EDITOR_ASSET)),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -91,7 +91,7 @@ protected:
 		
 	public:
 		CItem_Save(CPopup_SaveLoadAssets* pPopup, const char* pFilename, int StorageType, int IsDir) :
-			gui::CButton(pPopup->Context(), pFilename, CAssetPath::SpriteSystem(SPRITE_ICON_ASSET)),
+			gui::CButton(pPopup->Context(), pFilename, CAssetPath::SpriteSystem(SPRITE_EDITOR_ASSET)),
 			m_pPopup(pPopup),
 			m_pAssetsEditor(pPopup->m_pAssetsEditor)
 		{
@@ -113,7 +113,7 @@ protected:
 	char m_aFilename[256];
 	int m_Source;
 	int m_Mode;
-	gui::CVListLayout* m_pFilelist;
+	gui::CVScrollLayout* m_pFilelist;
 	
 public:
 	CPopup_SaveLoadAssets(CAssetsEditor* pAssetsEditor, int Source, int Mode, const gui::CRect& CreatorRect, int Alignment) :
@@ -123,7 +123,7 @@ public:
 		m_Mode(Mode),
 		m_pFilelist(0)
 	{
-		gui::CVListLayout* pLayout = new gui::CVListLayout(Context());
+		gui::CVScrollLayout* pLayout = new gui::CVScrollLayout(Context());
 		Add(pLayout);
 		
 		if(m_Mode == MODE_SAVE)
@@ -155,10 +155,10 @@ public:
 			}
 		}
 		
-		m_pFilelist = new gui::CVListLayout(Context());
+		m_pFilelist = new gui::CVScrollLayout(Context());
 		pLayout->Add(m_pFilelist, true);
 		
-		m_pFilelist->Add(new gui::CLabelHeader(Context(), Context()->Localize("Load asset package")), false);
+		m_pFilelist->Add(new gui::CLabelHeader(Context(), "Load asset package"), false);
 		switch(m_Source)
 		{
 			case CAssetPath::SRC_UNIVERSE:
@@ -173,7 +173,7 @@ public:
 					if(m_Mode == MODE_LOAD)
 					{
 						m_pFilelist->AddSeparator();
-						m_pFilelist->Add(new gui::CLabelHeader(Context(), Context()->Localize("Import TeeWorlds map")), false);
+						m_pFilelist->Add(new gui::CLabelHeader(Context(), "Import TeeWorlds map"), false);
 						Storage()->ListDirectory(IStorage::TYPE_ALL, "maps", FileListFetchCallback_Map, this);
 					}
 				}
@@ -297,7 +297,7 @@ public:
 		m_AssetPath(AssetPath),
 		m_SubPath(SubPath)
 	{
-		SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_INACTIVELISTITEM));
+		SetLabelStyle(CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_EDITOR_INACTIVELISTITEM));
 		SetIcon(m_pAssetsEditor->GetItemIcon(m_AssetPath, m_SubPath));
 	}
 	
@@ -331,7 +331,7 @@ public:
 		m_AssetPath(AssetPath),
 		m_SubPath(SubPath)
 	{
-		SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_LISTITEM));
+		SetButtonStyle(CAssetPath::GuiButtonStyleSystem(GUIBUTTONSTYLE_EDITOR_LISTITEM));
 		
 		CAssetState* pState = AssetsManager()->GetAssetState(m_AssetPath);
 		if(pState)
@@ -686,7 +686,7 @@ protected:
 
 public:
 	CLoadSourceButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CButton(pAssetsEditor, pAssetsEditor->Localize("Load"), CAssetPath::SpriteSystem(SPRITE_ICON_LOAD)),
+		gui::CButton(pAssetsEditor, "Load", CAssetPath::SpriteSystem(SPRITE_EDITOR_LOAD)),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -711,7 +711,7 @@ protected:
 
 public:
 	CSaveSourceButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CButton(pAssetsEditor, pAssetsEditor->Localize("Save"), CAssetPath::SpriteSystem(SPRITE_ICON_SAVE)),
+		gui::CButton(pAssetsEditor, "Save", CAssetPath::SpriteSystem(SPRITE_EDITOR_SAVE)),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -736,7 +736,7 @@ protected:
 
 public:
 	CNewAssetButton(CAssetsEditor* pAssetsEditor, int Source) :
-		gui::CButton(pAssetsEditor, pAssetsEditor->Localize("New asset"), CAssetPath::SpriteSystem(SPRITE_ICON_INCREASE)),
+		gui::CButton(pAssetsEditor, "New asset", CAssetPath::SpriteSystem(SPRITE_EDITOR_INCREASE)),
 		m_pAssetsEditor(pAssetsEditor),
 		m_Source(Source)
 	{ }
@@ -746,7 +746,7 @@ public:
 /* ASSETS SOURCE ******************************************************/
 
 CAssetsSource::CAssetsSource(CAssetsEditor* pAssetsEditor, int Source) :
-	gui::CVListLayout(pAssetsEditor),
+	gui::CVScrollLayout(pAssetsEditor),
 	m_pAssetsEditor(pAssetsEditor),
 	m_Source(Source)
 {
@@ -772,7 +772,7 @@ void CAssetsSource::RefreshAssetsList()
 	}
 	Add(new CNewAssetButton(AssetsEditor(), m_Source), false);
 	
-	m_pAssetsList = new gui::CVListLayout(Context());
+	m_pAssetsList = new gui::CVScrollLayout(Context());
 	Add(m_pAssetsList, true);
 	
 	#define REFRESH_ASSET_LIST(ClassName) {\
@@ -863,6 +863,9 @@ void CAssetsSource::RefreshAssetsList()
 	REFRESH_ASSET_LIST(CAsset_GuiRectStyle)
 	REFRESH_ASSET_LIST(CAsset_GuiLineStyle)
 	REFRESH_ASSET_LIST(CAsset_GuiBoxStyle)
+	REFRESH_ASSET_LIST(CAsset_GuiLabelStyle)
+	REFRESH_ASSET_LIST(CAsset_GuiButtonStyle)
+	REFRESH_ASSET_LIST(CAsset_GuiToggleStyle)
 	REFRESH_ASSET_LIST(CAsset_GuiScrollbarStyle)
 	REFRESH_ASSET_LIST(CAsset_GuiTabsStyle)
 }
@@ -874,19 +877,19 @@ CAssetsOrganizer::CAssetsOrganizer(CAssetsEditor* pAssetsEditor) :
 	m_pAssetsEditor(pAssetsEditor)
 {
 	m_apAssetsSources[CAssetPath::SRC_SYSTEM] = new CAssetsSource(AssetsEditor(), CAssetPath::SRC_SYSTEM);
-	AddTab(m_apAssetsSources[CAssetPath::SRC_SYSTEM], Context()->Localize("System"), CAssetPath::SpriteSystem(SPRITE_ICON_SYSTEM));
+	AddTab(m_apAssetsSources[CAssetPath::SRC_SYSTEM], "System", CAssetPath::SpriteSystem(SPRITE_EDITOR_SYSTEM));
 	
 	m_apAssetsSources[CAssetPath::SRC_UNIVERSE] = new CAssetsSource(AssetsEditor(), CAssetPath::SRC_UNIVERSE);
-	AddTab(m_apAssetsSources[CAssetPath::SRC_UNIVERSE], Context()->Localize("Universe"), CAssetPath::SpriteSystem(SPRITE_ICON_UNIVERSE));
+	AddTab(m_apAssetsSources[CAssetPath::SRC_UNIVERSE], "Universe", CAssetPath::SpriteSystem(SPRITE_EDITOR_UNIVERSE));
 	
 	m_apAssetsSources[CAssetPath::SRC_WORLD] = new CAssetsSource(AssetsEditor(), CAssetPath::SRC_WORLD);
-	AddTab(m_apAssetsSources[CAssetPath::SRC_WORLD], Context()->Localize("World"), CAssetPath::SpriteSystem(SPRITE_ICON_WORLD));
+	AddTab(m_apAssetsSources[CAssetPath::SRC_WORLD], "World", CAssetPath::SpriteSystem(SPRITE_EDITOR_WORLD));
 	
 	m_apAssetsSources[CAssetPath::SRC_LAND] = new CAssetsSource(AssetsEditor(), CAssetPath::SRC_LAND);
-	AddTab(m_apAssetsSources[CAssetPath::SRC_LAND], Context()->Localize("Land"), CAssetPath::SpriteSystem(SPRITE_ICON_LAND));
+	AddTab(m_apAssetsSources[CAssetPath::SRC_LAND], "Land", CAssetPath::SpriteSystem(SPRITE_EDITOR_LAND));
 	
 	m_apAssetsSources[CAssetPath::SRC_SKIN] = new CAssetsSource(AssetsEditor(), CAssetPath::SRC_SKIN);
-	AddTab(m_apAssetsSources[CAssetPath::SRC_SKIN], Context()->Localize("Skins"), CAssetPath::SpriteSystem(SPRITE_ICON_SKIN));
+	AddTab(m_apAssetsSources[CAssetPath::SRC_SKIN], "Skins", CAssetPath::SpriteSystem(SPRITE_EDITOR_SKIN));
 }
 
 void CAssetsOrganizer::OnAssetsListModified()

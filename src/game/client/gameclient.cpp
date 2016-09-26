@@ -266,7 +266,7 @@ void CGameClient::OnInit()
 	int64 Start = time_get();
 
 	// set the language
-	g_Localization.Load(g_Config.m_ClLanguagefile, Storage(), Console());
+	g_Localization.Load(g_Config.m_ClLanguage, Storage(), Console());
 
 	// TODO: this should be different
 	// setup item sizes

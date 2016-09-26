@@ -21,6 +21,9 @@
 #include <tu/client/assets/guirectstyle.h>
 #include <tu/client/assets/guilinestyle.h>
 #include <tu/client/assets/guiboxstyle.h>
+#include <tu/client/assets/guilabelstyle.h>
+#include <tu/client/assets/guibuttonstyle.h>
+#include <tu/client/assets/guitogglestyle.h>
 #include <tu/client/assets/guiscrollbarstyle.h>
 #include <tu/client/assets/guitabsstyle.h>
 

@@ -35,7 +35,7 @@ void CAssetsManager::Init()
 	
 void CAssetsManager::AddListener(IListener* pListener)
 {
-	pListener->AssetManager_SetToken(rand());
+	pListener->AssetManager_SetToken(m_pListeners.size());
 	m_pListeners.add(pListener);
 }
 

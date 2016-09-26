@@ -23,7 +23,7 @@ private:
 		virtual void MouseClickAction();
 		
 	public:
-		CTabButton(CContext *pContext, CTabs *m_pTabs, int Id, const char* pName, CAssetPath IconPath);
+		CTabButton(CContext *pContext, CTabs *m_pTabs, int Id, const char* pName, CAssetPath IconPath, bool Localized);
 	};
 	
 	struct CTab
@@ -32,6 +32,7 @@ private:
 		CWidget* m_pWidget;
 		CTabButton* m_pTabButton;
 		char m_aName[128];
+		bool m_Localized;
 		bool m_Disabled;
 	};
 	
@@ -44,6 +45,7 @@ protected:
 	
 protected:
 	void RegenerateButtons();
+	void AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath, bool Localized);
 	
 public:
 	CTabs(class CContext *pConfig);
@@ -60,6 +62,7 @@ public:
 	virtual void OnInputEvent();
 	
 	void AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath);
+	void AddTab(CWidget* pWidget, const CLocalizableString& LocalizableString, CAssetPath IconPath);
 	void Clear();
 	void OpenTab(int Id);
 	

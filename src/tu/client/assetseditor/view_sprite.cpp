@@ -10,7 +10,7 @@ namespace tu
 namespace assetseditor
 {
 
-/* VIEW IMAGE *********************************************************/
+/* VIEW SPRITE ********************************************************/
 
 CViewSprite::CViewSprite(CAssetsEditor* pAssetsEditor) :
 	CViewManager::CView(pAssetsEditor)

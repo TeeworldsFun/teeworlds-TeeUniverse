@@ -61,11 +61,7 @@ void CAbstractListLayout::Render()
 		CRect Rect = m_DrawRect;
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
 	
-		ivec2 MousePos = Context()->GetMousePos();
-		if(Rect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetMouseOverRectPath());
-		else
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetDefaultRectPath());
+		AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetRectPath());
 			
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
 	}
@@ -200,7 +196,7 @@ void CHListLayout::UpdatePosition(CRect BoundingRect)
 	if(NumFill > 0)
 		FillSize = AvailableSpace/NumFill;
 	
-	if(Context()->GetGuiDirection() == CContext::DIRECTION_RTL)
+	if(Localization()->GetWritingDirection() == CLocalization::DIRECTION_RTL)
 	{
 		int PosX = m_ClipRect.x + m_ClipRect.w;
 		for(int i=0; i<m_Childs.size(); i++)
@@ -273,20 +269,112 @@ void CVListLayout::CSeparator::Render()
 
 	//List
 CVListLayout::CVListLayout(CContext *pContext) :
-	CAbstractListLayout(pContext),
+	CAbstractListLayout(pContext)
+{
+	
+}
+
+void CVListLayout::UpdateBoundingSize()
+{
+
+	int Spacing = 0;
+	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
+	if(pBoxStyle)
+		Spacing = Context()->ApplyGuiScale(pBoxStyle->GetSpacing());
+	
+	m_BoundingSizeRect.BSNoConstraint();
+	
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		m_Childs[i].m_pWidget->UpdateBoundingSize();
+		m_BoundingSizeRect.BSVerticalAdd(m_Childs[i].m_pWidget->GetBS());
+	}
+	
+	if(m_Childs.size() > 1)
+		m_BoundingSizeRect.BSAddSpacing(0, Spacing * (m_Childs.size()-1));
+	
+	if(pBoxStyle)
+	{
+		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
+		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
+	}
+}
+
+void CVListLayout::UpdatePosition(CRect BoundingRect)
+{
+	m_DrawRect.DRUpdatePosition(BoundingRect, m_BoundingSizeRect);
+	
+	m_ClipRect = m_DrawRect;
+	int Spacing = 0;
+	const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(m_BoxStylePath);
+	if(pBoxStyle)
+	{
+		Spacing = Context()->ApplyGuiScale(pBoxStyle->GetSpacing());
+		m_ClipRect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
+		m_ClipRect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
+	}
+	
+	int NumFill = 0;
+	int AvailableSpace = m_ClipRect.h;
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		if(m_Childs[i].m_Fill)
+			NumFill++;
+		else
+			AvailableSpace -= m_Childs[i].m_pWidget->GetBS().minh;
+	}
+	int FillSize = 0;
+	if(NumFill > 0)
+		FillSize = AvailableSpace/NumFill;
+	
+	//Compute total size
+	m_ChildrenLength = 0;
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		m_ChildrenLength += (m_Childs[i].m_Fill ? FillSize : m_Childs[i].m_pWidget->GetBS().minh);
+		
+		if(i != 0)
+			m_ChildrenLength += Spacing;
+	}
+	
+	//Update children position
+	int PosY = m_ClipRect.y;
+	for(int i=0; i<m_Childs.size(); i++)
+	{
+		CRect ChildRect(
+			m_ClipRect.x,
+			PosY,
+			m_ClipRect.w,
+			(m_Childs[i].m_Fill ? FillSize : m_Childs[i].m_pWidget->GetBS().minh)
+		);
+		m_Childs[i].m_pWidget->UpdatePosition(ChildRect);
+		PosY += ChildRect.h + Spacing;
+	}
+}
+
+void CVListLayout::AddSeparator()
+{
+	Add(new CVListLayout::CSeparator(Context()), false);
+}
+
+/* V SCROLLLAYOT ******************************************************/
+
+	//List
+CVScrollLayout::CVScrollLayout(CContext *pContext) :
+	CVListLayout(pContext),
 	m_ShowScrollBar(false),
 	m_pScrollBar(0)
 {
 	m_pScrollBar = new CVScrollBar(pContext);
 }
 
-CVListLayout::~CVListLayout()
+CVScrollLayout::~CVScrollLayout()
 {
 	if(m_pScrollBar)
 		delete m_pScrollBar;
 }
 
-void CVListLayout::UpdateBoundingSize()
+void CVScrollLayout::UpdateBoundingSize()
 {
 	m_BoundingSizeRect.BSNoConstraint();
 	
@@ -313,7 +401,7 @@ void CVListLayout::UpdateBoundingSize()
 	}
 }
 
-void CVListLayout::UpdatePosition(CRect BoundingRect)
+void CVScrollLayout::UpdatePosition(CRect BoundingRect)
 {
 	m_DrawRect.DRUpdatePosition(BoundingRect, m_BoundingSizeRect);
 	
@@ -361,7 +449,7 @@ void CVListLayout::UpdatePosition(CRect BoundingRect)
 	
 		CRect ScrollBarRect = m_ClipRect;
 		ScrollBarRect.w = m_pScrollBar->GetBS().minw;
-		if(Context()->GetGuiDirection() == CContext::DIRECTION_RTL)
+		if(Localization()->GetWritingDirection() == CLocalization::DIRECTION_RTL)
 		{
 			ScrollBarRect.x = m_ClipRect.x;
 			m_ClipRect.x += ScrollBarRect.w + Spacing;
@@ -393,36 +481,31 @@ void CVListLayout::UpdatePosition(CRect BoundingRect)
 	}
 }
 
-void CVListLayout::Update()
+void CVScrollLayout::Update()
 {
-	CAbstractListLayout::Update();
+	CVListLayout::Update();
 	
 	if(m_pScrollBar && m_ShowScrollBar)
 		m_pScrollBar->Update();
 }
 	
-void CVListLayout::Render()
+void CVScrollLayout::Render()
 {
-	CAbstractListLayout::Render();
+	CVListLayout::Render();
 	
 	if(m_pScrollBar && m_ShowScrollBar)
 		m_pScrollBar->Render();
 }
 
-void CVListLayout::AddSeparator()
-{
-	Add(new CVListLayout::CSeparator(Context()), false);
-}
-
-void CVListLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+void CVScrollLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
 	if(m_pScrollBar && m_ShowScrollBar)
 		m_pScrollBar->OnMouseOver(X, Y, RelX, RelY, KeyState);
 		
-	CAbstractListLayout::OnMouseOver(X, Y, RelX, RelY, KeyState);
+	CVListLayout::OnMouseOver(X, Y, RelX, RelY, KeyState);
 }
 
-void CVListLayout::OnButtonClick(int X, int Y, int Button, int Count)
+void CVScrollLayout::OnButtonClick(int X, int Y, int Button, int Count)
 {
 	if(m_ShowScrollBar && m_DrawRect.IsInside(X, Y))
 	{
@@ -441,23 +524,23 @@ void CVListLayout::OnButtonClick(int X, int Y, int Button, int Count)
 	if(m_pScrollBar && m_ShowScrollBar)
 		m_pScrollBar->OnButtonClick(X, Y, Button, Count);
 		
-	CAbstractListLayout::OnButtonClick(X, Y, Button, Count);
+	CVListLayout::OnButtonClick(X, Y, Button, Count);
 }
 
-void CVListLayout::OnButtonRelease(int Button)
+void CVScrollLayout::OnButtonRelease(int Button)
 {
 	if(m_pScrollBar && m_ShowScrollBar)
 		m_pScrollBar->OnButtonRelease(Button);
 		
-	CAbstractListLayout::OnButtonRelease(Button);
+	CVListLayout::OnButtonRelease(Button);
 }
 
-void CVListLayout::OnInputEvent()
+void CVScrollLayout::OnInputEvent()
 {
 	if(m_pScrollBar && m_ShowScrollBar)
 		m_pScrollBar->OnInputEvent();
 		
-	CAbstractListLayout::OnInputEvent();
+	CVListLayout::OnInputEvent();
 }
 
 }

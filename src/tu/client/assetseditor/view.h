@@ -39,7 +39,7 @@ public:
 	
 	protected:
 		class CAssetsEditor* m_pAssetsEditor;
-		gui::CVListLayout* m_pToolbar;
+		gui::CHListLayout* m_pToolbar;
 		gui::CRect m_ViewRect;
 		CCursorTool* m_pCursorTool;
 	
@@ -68,6 +68,7 @@ private:
 	CView* m_pViewImage;
 	CView* m_pViewSprite;
 	CView* m_pViewMap;
+	CView* m_pViewGui;
 	
 public:
 	CViewManager(CAssetsEditor* pAssetsEditor);

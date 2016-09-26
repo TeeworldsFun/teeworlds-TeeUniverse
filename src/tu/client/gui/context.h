@@ -5,6 +5,7 @@
 #include <tu/client/assetpath.h>
 #include <tu/client/gui/rect.h>
 #include <game/client/localization.h>
+#include <tu/client/localization.h>
 
 namespace tu
 {
@@ -12,7 +13,7 @@ namespace tu
 namespace gui
 {
 
-class CContext : public CKernel::CGuest
+class CContext : public CKernel::CGuest, CLocalization::IListener
 {
 public:
 	class CGuest
@@ -37,18 +38,11 @@ public:
 		ALIGNMENT_RIGHT,
 	};
 	
-	enum
-	{
-		DIRECTION_LTR=0,
-		DIRECTION_RTL,
-		NUM_DIRECTIONS,
-	};
-	
 protected:
 	CRect m_DrawRect;
+	float m_IconScale;
 	float m_GuiScale;
-	int m_GuiDirection;
-	char m_aLocalizationContext[32];
+	bool m_LocalizationUpdated;
 	
 	array<class CPopup*> m_pPopups;
 	class CWidget* m_pMainWidget;
@@ -63,6 +57,7 @@ protected:
 	CAssetPath m_LabelStyle;
 	CAssetPath m_LabelHeaderStyle;
 	CAssetPath m_ButtonStyle;
+	CAssetPath m_ToggleStyle;
 	CAssetPath m_TextEntryStyle;
 	CAssetPath m_NumericEntryStyle;
 	CAssetPath m_ScrollbarStyle;
@@ -76,6 +71,8 @@ public:
 	virtual ~CContext();
 	
 	void Init(const CRect& DrawRect);
+	
+	virtual void OnLocalizationModified();
 	
 	virtual void CreateMainWidget() = 0;
 	virtual void DoShortcuts() = 0;
@@ -91,19 +88,20 @@ public:
 	inline CAssetPath GetLabelStyle() const { return m_LabelStyle; }
 	inline CAssetPath GetLabelHeaderStyle() const { return m_LabelHeaderStyle; }
 	inline CAssetPath GetButtonStyle() const { return m_ButtonStyle; }
+	inline CAssetPath GetToggleStyle() const { return m_ToggleStyle; }
 	inline CAssetPath GetTextEntryStyle() const { return m_TextEntryStyle; }
 	inline CAssetPath GetNumericEntryStyle() const { return m_NumericEntryStyle; }
 	inline CAssetPath GetScrollbarStyle() const { return m_ScrollbarStyle; }
 	inline CAssetPath GetTabsStyle() const { return m_TabsStyle; }
 	inline CAssetPath GetPopupStyle() const { return m_PopupStyle; }
 	
-	inline float GetGuiDirection() const { return m_GuiDirection; }
+	inline float GetIconScale() const { return m_IconScale; }
 	inline float GetGuiScale() const { return m_GuiScale; }
 	inline int ApplyGuiScale(int Value) const { return static_cast<int>(Value*m_GuiScale); }
 	
 	inline void SetCursorSprite(CAssetPath CursorPath) { m_CursorPath = CursorPath; }
 	
-	inline const char* Localize(const char* pText) const { return ::Localize(pText, m_aLocalizationContext); }
+	inline bool LocalizationUpdated() const { return m_LocalizationUpdated; }
 };
 
 }

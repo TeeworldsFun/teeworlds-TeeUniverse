@@ -10,11 +10,11 @@ namespace tu
 namespace assetseditor
 {
 
-class CAssetsSource : public gui::CVListLayout
+class CAssetsSource : public gui::CVScrollLayout
 {
 private:
 	class CAssetsEditor* m_pAssetsEditor;
-	gui::CVListLayout* m_pAssetsList;
+	gui::CVScrollLayout* m_pAssetsList;
 	int m_Source;
 	
 public:

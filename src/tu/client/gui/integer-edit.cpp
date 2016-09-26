@@ -20,7 +20,7 @@ CAbstractIntegerEdit::CEntry::CEntry(CAbstractIntegerEdit *pIntegerEdit) :
 	CAbstractTextEdit(pIntegerEdit->Context()),
 	m_pIntegerEdit(pIntegerEdit)
 {
-	SetBoxStyle(Context()->GetNumericEntryStyle());
+	SetLabelStyle(Context()->GetNumericEntryStyle());
 }
 
 void CAbstractIntegerEdit::CEntry::SaveFromTextBuffer()
@@ -36,7 +36,7 @@ void CAbstractIntegerEdit::CEntry::CopyToTextBuffer()
 
 	//Decrease Button
 CAbstractIntegerEdit::CDecreaseButton::CDecreaseButton(CAbstractIntegerEdit *pIntegerEdit) :
-	CButton(pIntegerEdit->Context(), CAssetPath::SpriteSystem(SPRITE_ICON_DECREASE)),
+	CButton(pIntegerEdit->Context(), CAssetPath::SpriteSystem(SPRITE_EDITOR_DECREASE)),
 	m_pIntegerEdit(pIntegerEdit)
 {
 	
@@ -50,7 +50,7 @@ void CAbstractIntegerEdit::CDecreaseButton::MouseClickAction()
 
 	//Increase Button
 CAbstractIntegerEdit::CIncreaseButton::CIncreaseButton(CAbstractIntegerEdit *pIntegerEdit) :
-	CButton(pIntegerEdit->Context(), CAssetPath::SpriteSystem(SPRITE_ICON_INCREASE)),
+	CButton(pIntegerEdit->Context(), CAssetPath::SpriteSystem(SPRITE_EDITOR_INCREASE)),
 	m_pIntegerEdit(pIntegerEdit)
 {
 	

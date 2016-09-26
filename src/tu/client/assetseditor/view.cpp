@@ -2,6 +2,7 @@
 #include <tu/client/assetseditor/view_image.h>
 #include <tu/client/assetseditor/view_sprite.h>
 #include <tu/client/assetseditor/view_map.h>
+#include <tu/client/assetseditor/view_gui.h>
 #include <tu/client/assetseditor/assetseditor.h>
 #include <tu/client/assetsmanager.h>
 #include <tu/client/assetsrenderer.h>
@@ -19,7 +20,7 @@ CViewManager::CView::CCursorTool::CCursorTool(CView* pView, CAssetPath IconPath)
 	gui::CButton(pView->Context(), "", IconPath),
 	m_pView(pView)
 {
-	SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_BUTTON));
+	
 }
 
 void CViewManager::CView::CCursorTool::MouseClickAction()
@@ -29,10 +30,7 @@ void CViewManager::CView::CCursorTool::MouseClickAction()
 
 void CViewManager::CView::CCursorTool::OnUse(bool Used)
 {
-	if(Used)
-		SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_BUTTON_HL));
-	else
-		SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_BUTTON));
+	
 }
 
 /* VIEW ***************************************************************/
@@ -42,7 +40,7 @@ CViewManager::CView::CView(CAssetsEditor* pAssetsEditor) :
 	m_pCursorTool(0),
 	m_pAssetsEditor(pAssetsEditor)
 {
-	m_pToolbar = new gui::CVListLayout(Context());
+	m_pToolbar = new gui::CHListLayout(Context());
 }
 
 CViewManager::CView::~CView()
@@ -150,6 +148,7 @@ CViewManager::CViewManager(CAssetsEditor* pAssetsEditor) :
 	m_pViewImage = new CViewImage(AssetsEditor());
 	m_pViewSprite = new CViewSprite(AssetsEditor());
 	m_pViewMap = new CViewMap(AssetsEditor());
+	m_pViewGui = new CViewGui(AssetsEditor());
 }
 
 CViewManager::~CViewManager()
@@ -173,6 +172,14 @@ void CViewManager::Update()
 		case CAssetPath::TYPE_MAPLAYERTILES:
 		case CAssetPath::TYPE_MAPZONETILES:
 			m_pCurrentView = m_pViewMap;
+			break;
+		case CAssetPath::TYPE_GUIRECTSTYLE:
+		case CAssetPath::TYPE_GUILINESTYLE:
+		case CAssetPath::TYPE_GUIBOXSTYLE:
+		case CAssetPath::TYPE_GUILABELSTYLE:
+		case CAssetPath::TYPE_GUIBUTTONSTYLE:
+		case CAssetPath::TYPE_GUITABSSTYLE:
+			m_pCurrentView = m_pViewGui;
 			break;
 		default:
 			m_pCurrentView = 0;
@@ -224,11 +231,7 @@ void CViewManager::Render()
 		gui::CRect Rect = m_DrawRect;
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
 	
-		ivec2 MousePos = Context()->GetMousePos();
-		if(Rect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetMouseOverRectPath());
-		else
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetDefaultRectPath());
+		AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetRectPath());
 			
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
 	}

@@ -19,12 +19,10 @@ namespace assetseditor
 CAssetsEditor::CAssetsEditor(CKernel* pKernel) :
 	gui::CContext(pKernel),
 	m_EditedSubPath(-1)
-{
-	str_copy(m_aLocalizationContext, "AssetsEditor", sizeof(m_aLocalizationContext));
-	
-	m_LabelStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_LABEL);
-	m_LabelHeaderStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_LABELHEADER);
-	m_ButtonStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_BUTTON);
+{	
+	m_LabelStyle = CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_EDITOR_TEXT);
+	m_LabelHeaderStyle = CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_EDITOR_HEADER);
+	m_ButtonStyle = CAssetPath::GuiButtonStyleSystem(GUIBUTTONSTYLE_EDITOR_DEFAULT);
 	m_TextEntryStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_TEXTENTRY);
 	m_NumericEntryStyle = CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_NUMERICENTRY);
 	m_ScrollbarStyle = CAssetPath::GuiScrollbarStyleSystem(GUISCROLLBARSTYLE_EDITOR);
@@ -68,9 +66,6 @@ void CAssetsEditor::DoShortcuts()
 		AssetsManager()->Undo();
 	
 	//TAG_DEBUG
-	if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyPress(KEY_B, true))
-		m_GuiDirection = (m_GuiDirection+1)%NUM_DIRECTIONS;
-		
 	if(Input()->KeyIsPressed(KEY_LCTRL) && Input()->KeyPress(KEY_A, true))
 		m_GuiScale -= 0.25f;
 	
@@ -102,68 +97,78 @@ void CAssetsEditor::OnAssetsListModified()
 
 CAssetPath CAssetsEditor::GetItemIcon(CAssetPath AssetPath, int SubPath)
 {
-	CAssetPath IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_DEFAULT);
+	CAssetPath IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_DEFAULT);
 	
 	if(SubPath == -1)
 	{
+		//TAG_NEW_ASSET
 		switch(AssetPath.GetType())
 		{
 			case CAssetPath::TYPE_IMAGE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_IMAGE);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_IMAGE);
 				break;
 			case CAssetPath::TYPE_SPRITE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_SPRITE);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_SPRITE);
 				break;
 			case CAssetPath::TYPE_SKELETON:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_SKELETON);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_SKELETON);
 				break;
 			case CAssetPath::TYPE_SKELETONSKIN:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_SKELETONSKIN);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_SKELETONSKIN);
 				break;
 			case CAssetPath::TYPE_SKELETONANIMATION:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_SKELETONANIMATION);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_SKELETONANIMATION);
 				break;
 			case CAssetPath::TYPE_CHARACTER:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_CHARACTER);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_CHARACTER);
 				break;
 			case CAssetPath::TYPE_CHARACTERPART:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_CHARACTERPART);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_CHARACTERPART);
 				break;
 			case CAssetPath::TYPE_WEAPON:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_WEAPON);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_WEAPON);
 				break;
 			case CAssetPath::TYPE_MAPZONETILES:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_ZONETILES);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_ZONETILES);
 				break;
 			case CAssetPath::TYPE_MAP:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_MAP);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_MAP);
 				break;
 			case CAssetPath::TYPE_MAPGROUP:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_FOLDER);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_FOLDER);
 				break;
 			case CAssetPath::TYPE_MAPLAYERTILES:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_TILES);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_TILES);
 				break;
 			case CAssetPath::TYPE_MAPLAYERQUADS:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_QUAD);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_QUAD);
 				break;
 			case CAssetPath::TYPE_ZONETYPE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_ZONETYPE);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_ZONETYPE);
 				break;
 			case CAssetPath::TYPE_GUIRECTSTYLE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_GUIRECT);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUIRECT);
 				break;
 			case CAssetPath::TYPE_GUILINESTYLE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_GUILINE);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUILINE);
 				break;
 			case CAssetPath::TYPE_GUIBOXSTYLE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_GUIBOX);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUIBOX);
+				break;
+			case CAssetPath::TYPE_GUILABELSTYLE:
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUILABEL);
+				break;
+			case CAssetPath::TYPE_GUIBUTTONSTYLE:
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUIBUTTON);
+				break;
+			case CAssetPath::TYPE_GUITOGGLESTYLE:
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUITOGGLE);
 				break;
 			case CAssetPath::TYPE_GUISCROLLBARSTYLE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_GUISCROLLBAR);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUISCROLLBAR);
 				break;
 			case CAssetPath::TYPE_GUITABSSTYLE:
-				IconPath = CAssetPath::SpriteSystem(SPRITE_ICON_GUITABS);
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUITABS);
 				break;
 		}
 	}

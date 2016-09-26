@@ -22,12 +22,16 @@ CAssetsInspector::CAssetsInspector(CAssetsEditor* pAssetsEditor) :
 	for(int i=0; i<NUM_TABS; i++)
 		m_pTabs[TAB_IMAGE_ASSET] = 0;
 	
+	//TAG_NEW_ASSET
 	m_pTabs[TAB_GENERIC_ASSET] = CreateTab_Generic_Asset();
 	m_pTabs[TAB_IMAGE_ASSET] = CreateTab_Image_Asset();
 	m_pTabs[TAB_SPRITE_ASSET] = CreateTab_Sprite_Asset();
 	m_pTabs[TAB_GUIRECTSTYLE_ASSET] = CreateTab_GuiRectStyle_Asset();
 	m_pTabs[TAB_GUILINESTYLE_ASSET] = CreateTab_GuiLineStyle_Asset();
 	m_pTabs[TAB_GUIBOXSTYLE_ASSET] = CreateTab_GuiBoxStyle_Asset();
+	m_pTabs[TAB_GUILABELSTYLE_ASSET] = CreateTab_GuiLabelStyle_Asset();
+	m_pTabs[TAB_GUIBUTTONSTYLE_ASSET] = CreateTab_GuiButtonStyle_Asset();
+	m_pTabs[TAB_GUITOGGLESTYLE_ASSET] = CreateTab_GuiToggleStyle_Asset();
 	m_pTabs[TAB_GUISCROLLBARSTYLE_ASSET] = CreateTab_GuiScrollbarStyle_Asset();
 	m_pTabs[TAB_GUITABSSTYLE_ASSET] = CreateTab_GuiTabsStyle_Asset();
 }
@@ -47,6 +51,7 @@ void CAssetsInspector::Update()
 	
 	if(!m_pAssetsEditor->GetEditedAssetPath().IsNull())
 	{
+		//TAG_NEW_ASSET
 		switch(m_pAssetsEditor->GetEditedAssetPath().GetType())
 		{
 			case CAssetPath::TYPE_IMAGE:
@@ -64,6 +69,15 @@ void CAssetsInspector::Update()
 			case CAssetPath::TYPE_GUIBOXSTYLE:
 				m_pTabs[TAB_GUIBOXSTYLE_ASSET]->Enable();
 				break;
+			case CAssetPath::TYPE_GUILABELSTYLE:
+				m_pTabs[TAB_GUILABELSTYLE_ASSET]->Enable();
+				break;
+			case CAssetPath::TYPE_GUIBUTTONSTYLE:
+				m_pTabs[TAB_GUIBUTTONSTYLE_ASSET]->Enable();
+				break;
+			case CAssetPath::TYPE_GUITOGGLESTYLE:
+				m_pTabs[TAB_GUITOGGLESTYLE_ASSET]->Enable();
+				break;
 			case CAssetPath::TYPE_GUISCROLLBARSTYLE:
 				m_pTabs[TAB_GUISCROLLBARSTYLE_ASSET]->Enable();
 				break;
@@ -79,113 +93,160 @@ void CAssetsInspector::Update()
 	gui::CTabs::Update();
 }
 
-gui::CVListLayout* CAssetsInspector::CreateTab_Generic_Asset()
+gui::CVScrollLayout* CAssetsInspector::CreateTab_Generic_Asset()
 {
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
 	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Asset"), CAssetPath::SpriteSystem(SPRITE_ICON_ASSET));
+	AddTab(pTab, "Asset", CAssetPath::SpriteSystem(SPRITE_EDITOR_ASSET));
 	
 	AddField_AssetProperties(pTab);
 	
 	return pTab;
 }
 
-gui::CVListLayout* CAssetsInspector::CreateTab_Image_Asset()
+gui::CVScrollLayout* CAssetsInspector::CreateTab_Image_Asset()
 {
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
 	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Image"), CAssetPath::SpriteSystem(SPRITE_ICON_IMAGE));
+	AddTab(pTab, "Image", CAssetPath::SpriteSystem(SPRITE_EDITOR_IMAGE));
 	
 	AddField_AssetProperties(pTab);
 	
-	AddField_Integer(pTab, CAsset_Image::GRIDWIDTH, Context()->Localize("Grid width"));
-	AddField_Integer(pTab, CAsset_Image::GRIDHEIGHT, Context()->Localize("Grid height"));
+	AddField_Integer(pTab, CAsset_Image::GRIDWIDTH, "Grid width");
+	AddField_Integer(pTab, CAsset_Image::GRIDHEIGHT, "Grid height");
 	
 	return pTab;
 }
 
-gui::CVListLayout* CAssetsInspector::CreateTab_Sprite_Asset()
+gui::CVScrollLayout* CAssetsInspector::CreateTab_Sprite_Asset()
 {
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
 	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Sprite"), CAssetPath::SpriteSystem(SPRITE_ICON_SPRITE));
+	AddTab(pTab, "Sprite", CAssetPath::SpriteSystem(SPRITE_EDITOR_SPRITE));
 	
 	AddField_AssetProperties(pTab);
 	
-	AddField_Asset(pTab, CAsset_Sprite::IMAGEPATH, CAssetPath::TYPE_IMAGE, Context()->Localize("Image"));
-	AddField_Integer(pTab, CAsset_Sprite::X, Context()->Localize("X"));
-	AddField_Integer(pTab, CAsset_Sprite::Y, Context()->Localize("Y"));
-	AddField_Integer(pTab, CAsset_Sprite::WIDTH, Context()->Localize("Width"));
-	AddField_Integer(pTab, CAsset_Sprite::HEIGHT, Context()->Localize("Height"));
+	AddField_Asset(pTab, CAsset_Sprite::IMAGEPATH, CAssetPath::TYPE_IMAGE, "Image");
+	AddField_Integer(pTab, CAsset_Sprite::X, "X");
+	AddField_Integer(pTab, CAsset_Sprite::Y, "Y");
+	AddField_Integer(pTab, CAsset_Sprite::WIDTH, "Width");
+	AddField_Integer(pTab, CAsset_Sprite::HEIGHT, "Height");
 	
 	return pTab;
 }
 
-gui::CVListLayout* CAssetsInspector::CreateTab_GuiRectStyle_Asset()
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiRectStyle_Asset()
 {
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
 	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Rectangle Style"), CAssetPath::SpriteSystem(SPRITE_ICON_GUIRECT));
-	
-	AddField_AssetProperties(pTab);
-	
-	return pTab;
-}
-
-gui::CVListLayout* CAssetsInspector::CreateTab_GuiLineStyle_Asset()
-{
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
-	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Line Style"), CAssetPath::SpriteSystem(SPRITE_ICON_GUILINE));
+	AddTab(pTab, "Rectangle Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUIRECT));
 	
 	AddField_AssetProperties(pTab);
 	
 	return pTab;
 }
 
-gui::CVListLayout* CAssetsInspector::CreateTab_GuiBoxStyle_Asset()
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiLineStyle_Asset()
 {
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
 	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Box Style"), CAssetPath::SpriteSystem(SPRITE_ICON_GUIBOX));
-	
-	AddField_AssetProperties(pTab);
-	
-	AddField_Asset(pTab, CAsset_GuiBoxStyle::DEFAULTRECTPATH, CAssetPath::TYPE_GUIRECTSTYLE, Context()->Localize("Default Rectangle"));
-	AddField_Asset(pTab, CAsset_GuiBoxStyle::MOUSEOVERRECTPATH, CAssetPath::TYPE_GUIRECTSTYLE, Context()->Localize("MouseOver Rectangle"));
-	AddField_Integer(pTab, CAsset_GuiBoxStyle::MINWIDTH, Context()->Localize("Width"));
-	AddField_Integer(pTab, CAsset_GuiBoxStyle::MINHEIGHT, Context()->Localize("Height"));
-	AddField_Integer(pTab, CAsset_GuiBoxStyle::MARGIN, Context()->Localize("Margin"));
-	AddField_Integer(pTab, CAsset_GuiBoxStyle::PADDING, Context()->Localize("Padding"));
-	AddField_Integer(pTab, CAsset_GuiBoxStyle::SPACING, Context()->Localize("Spacing"));
-	AddField_Integer(pTab, CAsset_GuiBoxStyle::FONTSIZE, Context()->Localize("Font Size"));
-	
-	return pTab;
-}
-
-gui::CVListLayout* CAssetsInspector::CreateTab_GuiScrollbarStyle_Asset()
-{
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
-	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Scrollbar Style"), CAssetPath::SpriteSystem(SPRITE_ICON_GUISCROLLBAR));
+	AddTab(pTab, "Line Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUILINE));
 	
 	AddField_AssetProperties(pTab);
 	
 	return pTab;
 }
 
-gui::CVListLayout* CAssetsInspector::CreateTab_GuiTabsStyle_Asset()
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiBoxStyle_Asset()
 {
-	gui::CVListLayout* pTab = new gui::CVListLayout(Context());
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
 	pTab->Disable();
-	AddTab(pTab, Context()->Localize("Tabs Style"), CAssetPath::SpriteSystem(SPRITE_ICON_GUITABS));
+	AddTab(pTab, "Box Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUIBOX));
+	
+	AddField_AssetProperties(pTab);
+	
+	AddField_Asset(pTab, CAsset_GuiBoxStyle::RECTSTYLEPATH, CAssetPath::TYPE_GUIRECTSTYLE, "Rectangle");
+	AddField_Integer(pTab, CAsset_GuiBoxStyle::MINWIDTH, "Width");
+	AddField_Integer(pTab, CAsset_GuiBoxStyle::MINHEIGHT, "Height");
+	AddField_Integer(pTab, CAsset_GuiBoxStyle::MARGIN, "Margin");
+	AddField_Integer(pTab, CAsset_GuiBoxStyle::PADDING, "Padding");
+	AddField_Integer(pTab, CAsset_GuiBoxStyle::SPACING, "Spacing");
+	
+	return pTab;
+}
+
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiLabelStyle_Asset()
+{
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
+	pTab->Disable();
+	AddTab(pTab, "Label Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUILABEL));
+	
+	AddField_AssetProperties(pTab);
+	
+	AddField_Asset(pTab, CAsset_GuiLabelStyle::RECTPATH, CAssetPath::TYPE_GUIRECTSTYLE, "Rectangle");
+	AddField_Integer(pTab, CAsset_GuiLabelStyle::MINWIDTH, "Width");
+	AddField_Integer(pTab, CAsset_GuiLabelStyle::MINHEIGHT, "Height");
+	AddField_Integer(pTab, CAsset_GuiLabelStyle::MARGIN, "Margin");
+	AddField_Integer(pTab, CAsset_GuiLabelStyle::PADDING, "Padding");
+	AddField_Integer(pTab, CAsset_GuiLabelStyle::SPACING, "Spacing");
+	AddField_Integer(pTab, CAsset_GuiLabelStyle::FONTSIZE, "Font Size");
+	
+	return pTab;
+}
+
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiButtonStyle_Asset()
+{
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
+	pTab->Disable();
+	AddTab(pTab, "Button Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUIBUTTON));
+	
+	AddField_AssetProperties(pTab);
+	
+	AddField_Asset(pTab, CAsset_GuiButtonStyle::IDLESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Idle Style");
+	AddField_Asset(pTab, CAsset_GuiButtonStyle::MOUSEOVERSTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Mouseover Style");
+	
+	return pTab;
+}
+
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiToggleStyle_Asset()
+{
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
+	pTab->Disable();
+	AddTab(pTab, "Toggle Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUITOGGLE));
+	
+	AddField_AssetProperties(pTab);
+	
+	AddField_Asset(pTab, CAsset_GuiToggleStyle::IDLETRUESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Idle Style (true)");
+	AddField_Asset(pTab, CAsset_GuiToggleStyle::MOUSEOVERTRUESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Mouseover Style (true)");
+	AddField_Asset(pTab, CAsset_GuiToggleStyle::IDLEFALSESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Idle Style (false)");
+	AddField_Asset(pTab, CAsset_GuiToggleStyle::MOUSEOVERFALSESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Mouseover Style (false)");
+	
+	return pTab;
+}
+
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiScrollbarStyle_Asset()
+{
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
+	pTab->Disable();
+	AddTab(pTab, "Scrollbar Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUISCROLLBAR));
 	
 	AddField_AssetProperties(pTab);
 	
 	return pTab;
 }
 
-void CAssetsInspector::AddField(gui::CVListLayout* pList, gui::CWidget* pWidget, const char* pLabelText)
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiTabsStyle_Asset()
+{
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
+	pTab->Disable();
+	AddTab(pTab, "Tabs Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUITABS));
+	
+	AddField_AssetProperties(pTab);
+	
+	return pTab;
+}
+
+void CAssetsInspector::AddField(gui::CVScrollLayout* pList, gui::CWidget* pWidget, const char* pLabelText)
 {
 	if(pLabelText)
 	{
@@ -203,9 +264,9 @@ void CAssetsInspector::AddField(gui::CVListLayout* pList, gui::CWidget* pWidget,
 	}
 }
 
-void CAssetsInspector::AddField_AssetProperties(gui::CVListLayout* pTab)
+void CAssetsInspector::AddField_AssetProperties(gui::CVScrollLayout* pTab)
 {
-	AddField_Text(pTab, CAsset::NAME, sizeof(CAsset::m_aName), Context()->Localize("Name"));
+	AddField_Text(pTab, CAsset::NAME, sizeof(CAsset::m_aName), "Name");
 	
 	//~ {
 		//~ char aBuf[64];
@@ -281,7 +342,7 @@ public:
 	{ }
 };
 
-void CAssetsInspector::AddField_Text(gui::CVListLayout* pList, int Member, int TextSize, const char* pLabelText)
+void CAssetsInspector::AddField_Text(gui::CVScrollLayout* pList, int Member, int TextSize, const char* pLabelText)
 {
 	CMemberTextEdit* pWidget = new CMemberTextEdit(
 		m_pAssetsEditor,
@@ -328,7 +389,7 @@ public:
 	{ }
 };
 
-void CAssetsInspector::AddField_Integer(gui::CVListLayout* pList, int Member, const char* pLabelText)
+void CAssetsInspector::AddField_Integer(gui::CVScrollLayout* pList, int Member, const char* pLabelText)
 {
 	CMemberIntegerEdit* pWidget = new CMemberIntegerEdit(
 		m_pAssetsEditor,
@@ -364,12 +425,12 @@ public:
 				m_pPopup(pPopup),
 				m_AssetPath(AssetPath)
 			{
-				SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_ASSETEDITBUTTON));
+				SetLabelStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_ASSETEDITBUTTON));
 				
 				if(m_AssetPath.IsNull())
 				{
-					SetIcon(CAssetPath::SpriteSystem(SPRITE_ICON_NONE));
-					SetText(Context()->Localize("None"));
+					SetIcon(CAssetPath::SpriteSystem(SPRITE_EDITOR_NONE));
+					SetText("None");
 				}
 				else
 				{
@@ -391,30 +452,30 @@ public:
 			m_Member(Member),
 			m_AssetType(AssetType)
 		{
-			gui::CVListLayout* pLayout = new gui::CVListLayout(Context());
+			gui::CVScrollLayout* pLayout = new gui::CVScrollLayout(Context());
 			Add(pLayout);
 			
 			pLayout->Add(new CItem(this, CAssetPath::Null()), false);
 			
 			#define TU_MACRO_ASSETTYPE(ClassName, CatalogName, AssetTypeName, AssetDefaultName) case ClassName::TypeId:\
 				pLayout->AddSeparator();\
-				pLayout->Add(new gui::CLabelHeader(Context(), Context()->Localize("System")), false);\
+				pLayout->Add(new gui::CLabelHeader(Context(), "System"), false);\
 				for(int i=0; i<AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_SYSTEM); i++)\
 					pLayout->Add(new CItem(this, CAssetPath::System(ClassName::TypeId, i)), false);\
 				pLayout->AddSeparator();\
-				pLayout->Add(new gui::CLabelHeader(Context(), Context()->Localize("Universe")), false);\
+				pLayout->Add(new gui::CLabelHeader(Context(), "Universe"), false);\
 				for(int i=0; i<AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_UNIVERSE); i++)\
 					pLayout->Add(new CItem(this, CAssetPath::Universe(ClassName::TypeId, i)), false);\
 				pLayout->AddSeparator();\
-				pLayout->Add(new gui::CLabelHeader(Context(), Context()->Localize("World")), false);\
+				pLayout->Add(new gui::CLabelHeader(Context(), "World"), false);\
 				for(int i=0; i<AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_WORLD); i++)\
 					pLayout->Add(new CItem(this, CAssetPath::World(ClassName::TypeId, i)), false);\
 				pLayout->AddSeparator();\
-				pLayout->Add(new gui::CLabelHeader(Context(), Context()->Localize("Land")), false);\
+				pLayout->Add(new gui::CLabelHeader(Context(), "Land"), false);\
 				for(int i=0; i<AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_LAND); i++)\
 					pLayout->Add(new CItem(this, CAssetPath::Land(ClassName::TypeId, i)), false);\
 				pLayout->AddSeparator();\
-				pLayout->Add(new gui::CLabelHeader(Context(), Context()->Localize("Skin")), false);\
+				pLayout->Add(new gui::CLabelHeader(Context(), "Skin"), false);\
 				for(int i=0; i<AssetsManager()->GetNumAssets<ClassName>(CAssetPath::SRC_SKIN); i++)\
 					pLayout->Add(new CItem(this, CAssetPath::Skin(ClassName::TypeId, i)), false);\
 				break;
@@ -457,7 +518,7 @@ public:
 		m_Member(Member),
 		m_AssetType(AssetType)
 	{
-		SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_ASSETEDITBUTTON));
+		SetLabelStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_EDITOR_ASSETEDITBUTTON));
 	}
 	
 	virtual void Update()
@@ -471,8 +532,8 @@ public:
 		
 		if(Value.IsNull())
 		{
-			SetIcon(CAssetPath::SpriteSystem(SPRITE_ICON_NONE));
-			SetText(Context()->Localize("None"));
+			SetIcon(CAssetPath::SpriteSystem(SPRITE_EDITOR_NONE));
+			SetText("None");
 		}
 		else
 		{
@@ -484,7 +545,7 @@ public:
 	}
 };
 
-void CAssetsInspector::AddField_Asset(gui::CVListLayout* pList, int Member, int AssetType, const char* pLabelText)
+void CAssetsInspector::AddField_Asset(gui::CVScrollLayout* pList, int Member, int AssetType, const char* pLabelText)
 {
 	CMemberAssetEdit* pWidget = new CMemberAssetEdit(
 		m_pAssetsEditor,

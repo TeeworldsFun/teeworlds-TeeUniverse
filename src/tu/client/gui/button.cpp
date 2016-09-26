@@ -15,9 +15,36 @@ namespace gui
 
 CAbstractButton::CAbstractButton(CContext *pContext) :
 	CAbstractLabel(pContext),
-	m_Clicked(false)
+	m_Clicked(false),
+	m_MouseOver(false)
 {
-	SetBoxStyle(Context()->GetButtonStyle());
+	m_ButtonStylePath = Context()->GetButtonStyle();
+}
+
+void CAbstractButton::RefreshLabelStyle()
+{
+	const CAsset_GuiButtonStyle* pButtonStyle = AssetsManager()->GetAsset<CAsset_GuiButtonStyle>(m_ButtonStylePath);
+	if(pButtonStyle)
+	{
+		if(m_MouseOver)
+			SetLabelStyle(pButtonStyle->GetMouseOverStylePath());
+		else
+			SetLabelStyle(pButtonStyle->GetIdleStylePath());
+	}
+	else
+		SetLabelStyle(CAssetPath::Null());
+}
+
+void CAbstractButton::SetButtonStyle(CAssetPath StylePath)
+{
+	m_ButtonStylePath = StylePath;
+	RefreshLabelStyle();
+}
+	
+void CAbstractButton::Update()
+{
+	RefreshLabelStyle();
+	CAbstractLabel::Update();
 }
 
 void CAbstractButton::OnButtonClick(int X, int Y, int Button, int Count)
@@ -39,12 +66,19 @@ void CAbstractButton::OnButtonRelease(int Button)
 	if(!m_Clicked)
 		return;
 	
-	ivec2 MousePos = Context()->GetMousePos();
-	if(m_DrawRect.IsInside(MousePos.x, MousePos.y))
+	if(m_MouseOver)
 	{
 		m_Clicked = false;
 		MouseClickAction();
 	}
+}
+
+void CAbstractButton::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
+{
+	if(m_DrawRect.IsInside(X, Y))
+		m_MouseOver = true;
+	else
+		m_MouseOver = false;
 }
 
 /* BUTTON *************************************************************/
@@ -65,43 +99,6 @@ CButton::CButton(CContext *pConfig, CAssetPath IconPath) :
 
 CButton::CButton(CContext *pConfig, const char* pText, CAssetPath IconPath) :
 	CAbstractButton(pConfig)
-{
-	SetText(pText);
-	SetIcon(IconPath);
-}
-
-/* ABSTRACT TOGGLE ****************************************************/
-
-CAbstractToggle::CAbstractToggle(CContext *pConfig) :
-	CAbstractButton(pConfig)
-{
-	
-}
-
-void CAbstractToggle::MouseClickAction()
-{
-	m_Toggle = !m_Toggle;
-	OnToggle(m_Toggle);
-}
-
-/* TOGGLE *************************************************************/
-
-CToggle::CToggle(CContext *pConfig, const char* pText) :
-	CAbstractToggle(pConfig)
-{
-	SetText(pText);
-	SetIcon(CAssetPath::Null());
-}
-
-CToggle::CToggle(CContext *pConfig, CAssetPath IconPath) :
-	CAbstractToggle(pConfig)
-{
-	SetText("");
-	SetIcon(IconPath);
-}
-
-CToggle::CToggle(CContext *pConfig, const char* pText, CAssetPath IconPath) :
-	CAbstractToggle(pConfig)
 {
 	SetText(pText);
 	SetIcon(IconPath);

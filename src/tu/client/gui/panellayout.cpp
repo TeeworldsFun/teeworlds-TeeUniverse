@@ -63,11 +63,7 @@ void CAbstractPanelLayout::Render()
 		CRect Rect = m_DrawRect;
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetMargin()));
 	
-		ivec2 MousePos = Context()->GetMousePos();
-		if(Rect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetMouseOverRectPath());
-		else
-			AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetDefaultRectPath());
+		AssetsRenderer()->DrawGuiRect(&Rect, pBoxStyle->GetRectPath());
 			
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pBoxStyle->GetPadding()));
 	}
@@ -196,7 +192,7 @@ void CHPanelLayout::UpdatePosition(CRect BoundingRect)
 	if(NumFill > 0)
 		FillSize = AvailableSpace/NumFill;
 	
-	if(Context()->GetGuiDirection() == CContext::DIRECTION_RTL)
+	if(Localization()->GetWritingDirection() == CLocalization::DIRECTION_RTL)
 	{
 		int PosX = m_ClipRect.x + m_ClipRect.w;
 		for(int i=0; i<m_Childs.size(); i++)
@@ -269,7 +265,7 @@ void CHPanelLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 		{
 			int Diff = RelX;
 			
-			if(Context()->GetGuiDirection() == CContext::DIRECTION_RTL)
+			if(Localization()->GetWritingDirection() == CLocalization::DIRECTION_RTL)
 				Diff = -Diff;
 			
 			if(m_Childs[i].m_Size >= 0)
@@ -393,7 +389,7 @@ void CVPanelLayout::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 		{
 			int Diff = RelY;
 			
-			if(Context()->GetGuiDirection() == CContext::DIRECTION_RTL)
+			if(Localization()->GetWritingDirection() == CLocalization::DIRECTION_RTL)
 				Diff = -Diff;
 			
 			if(m_Childs[i].m_Size >= 0)

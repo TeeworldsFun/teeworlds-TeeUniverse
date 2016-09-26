@@ -13,12 +13,12 @@ namespace gui
 /* TABS ***************************************************************/
 
 	//Button
-CTabs::CTabButton::CTabButton(CContext *pContext, CTabs *pTabs, int Id, const char* pName, CAssetPath IconPath) :
-	CButton(pContext, pName, IconPath),
+CTabs::CTabButton::CTabButton(CContext *pContext, CTabs *pTabs, int Id, const char* pName, CAssetPath IconPath, bool Localized) :
+	CButton(pContext, IconPath),
 	m_pTabs(pTabs),
 	m_Id(Id)
 {
-	
+	SetText(pName, Localized);
 }
 
 void CTabs::CTabButton::MouseClickAction()
@@ -53,7 +53,7 @@ void CTabs::OpenTab(int TabId)
 		m_SelectedTab = -1;
 }
 
-void CTabs::AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath)
+void CTabs::AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath, bool Localized)
 {
 	bool Fill = true;
 	bool ButtonListText = true;
@@ -71,15 +71,28 @@ void CTabs::AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath)
 	pTab->m_pWidget = pWidget;
 	pTab->m_pTabButton = 0;
 	str_copy(pTab->m_aName, pName, sizeof(pTab->m_aName));
+	pTab->m_Localized = Localized;
 	
 	if(!pTab->m_Disabled)
 	{
-		pTab->m_pTabButton = new CTabButton(Context(), this, TabId, (ButtonListText ? pTab->m_aName : ""), IconPath);
+		pTab->m_pTabButton = new CTabButton(Context(), this, TabId, (ButtonListText ? pTab->m_aName : ""), IconPath, pTab->m_Localized);
 		m_pButtonList->Add(pTab->m_pTabButton, Fill);
+		if(pTabsStyle)
+			pTab->m_pTabButton->SetButtonStyle(pTabsStyle->m_InactiveButtonPath);
 	}
 	
 	if(m_SelectedTab < 0)
 		m_SelectedTab = TabId;
+}
+
+void CTabs::AddTab(CWidget* pWidget, const char* pName, CAssetPath IconPath)
+{
+	AddTab(pWidget, pName, IconPath, false);
+}
+
+void CTabs::AddTab(CWidget* pWidget, const CLocalizableString& LocalizableString, CAssetPath IconPath)
+{
+	AddTab(pWidget, LocalizableString.m_pText, IconPath, true);
 }
 
 void CTabs::Clear()
@@ -109,7 +122,7 @@ void CTabs::UpdateBoundingSize()
 	m_pButtonList->UpdateBoundingSize();
 	m_BoundingSizeRect.BSVerticalAdd(m_pButtonList->GetBS());
 	
-	if(pTabsStyle)
+	if(pLayoutStyle)
 		m_BoundingSizeRect.BSAddSpacing(0, Context()->ApplyGuiScale(pLayoutStyle->GetSpacing()));
 	
 	if(m_SelectedTab >= 0)
@@ -118,7 +131,7 @@ void CTabs::UpdateBoundingSize()
 		
 		CRect BSSelectedTab = m_Tabs[m_SelectedTab].m_pWidget->GetBS();
 		
-		if(pLayoutStyle)
+		if(pContentStyle)
 		{
 			BSSelectedTab.BSAddMargin(Context()->ApplyGuiScale(pContentStyle->GetPadding()));
 			BSSelectedTab.BSAddMargin(Context()->ApplyGuiScale(pContentStyle->GetMargin()));
@@ -127,7 +140,7 @@ void CTabs::UpdateBoundingSize()
 		m_BoundingSizeRect.BSVerticalAdd(BSSelectedTab);
 	}
 	
-	if(pTabsStyle)
+	if(pLayoutStyle)
 	{
 		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pLayoutStyle->GetPadding()));
 		m_BoundingSizeRect.BSAddMargin(Context()->ApplyGuiScale(pLayoutStyle->GetMargin()));
@@ -207,10 +220,10 @@ void CTabs::Update()
 			if(m_Tabs[i].m_pTabButton)
 			{
 				if(i == m_SelectedTab)
-					m_Tabs[i].m_pTabButton->SetBoxStyle(pTabsStyle->m_ActiveButtonPath);
+					m_Tabs[i].m_pTabButton->SetButtonStyle(pTabsStyle->m_ActiveButtonPath);
 				else
-					m_Tabs[i].m_pTabButton->SetBoxStyle(pTabsStyle->m_InactiveButtonPath);
-			}	
+					m_Tabs[i].m_pTabButton->SetButtonStyle(pTabsStyle->m_InactiveButtonPath);
+			}
 		}
 	}
 	
@@ -236,7 +249,7 @@ void CTabs::RegenerateButtons()
 		
 		if(!m_Tabs[i].m_pWidget->IsDisabled())
 		{
-			m_Tabs[i].m_pTabButton = new CTabButton(Context(), this, i, (ButtonListText ? m_Tabs[i].m_aName : ""), m_Tabs[i].m_IconPath);
+			m_Tabs[i].m_pTabButton = new CTabButton(Context(), this, i, (ButtonListText ? m_Tabs[i].m_aName : ""), m_Tabs[i].m_IconPath, m_Tabs[i].m_Localized);
 			m_pButtonList->Add(m_Tabs[i].m_pTabButton, Fill);
 			if(FirstEnabledChild < 0)
 				FirstEnabledChild = i;
@@ -265,10 +278,7 @@ void CTabs::Render()
 		CRect Rect = m_DrawRect;
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pLayoutStyle->GetMargin()));
 	
-		if(Rect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiRect(&Rect, pLayoutStyle->GetMouseOverRectPath());
-		else
-			AssetsRenderer()->DrawGuiRect(&Rect, pLayoutStyle->GetDefaultRectPath());
+		AssetsRenderer()->DrawGuiRect(&Rect, pLayoutStyle->GetRectPath());
 			
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pLayoutStyle->GetPadding()));
 	}
@@ -278,10 +288,7 @@ void CTabs::Render()
 		CRect Rect = m_ClipRect;
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pContentStyle->GetMargin()));
 	
-		if(Rect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiRect(&Rect, pContentStyle->GetMouseOverRectPath());
-		else
-			AssetsRenderer()->DrawGuiRect(&Rect, pContentStyle->GetDefaultRectPath());
+		AssetsRenderer()->DrawGuiRect(&Rect, pContentStyle->GetRectPath());
 			
 		Rect.RemoveMargin(Context()->ApplyGuiScale(pContentStyle->GetPadding()));
 	}

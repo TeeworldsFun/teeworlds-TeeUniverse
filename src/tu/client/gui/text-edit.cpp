@@ -20,7 +20,7 @@ CAbstractTextEdit::CAbstractTextEdit(CContext *pConfig) :
 	m_Changes(false)
 {
 	m_TextCursor.m_TextIter = -1;
-	SetBoxStyle(Context()->GetTextEntryStyle());
+	SetLabelStyle(Context()->GetTextEntryStyle());
 }
 
 void CAbstractTextEdit::Update()
@@ -45,22 +45,18 @@ void CAbstractTextEdit::Render()
 			GetTextRect().h
 		);
 		
-		const CAsset_GuiBoxStyle* pBoxStyle = AssetsManager()->GetAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_COMPOSING));
-		if(pBoxStyle)
+		const CAsset_GuiLabelStyle* pLabelStyle = AssetsManager()->GetAsset<CAsset_GuiLabelStyle>(CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_COMPOSING));
+		if(pLabelStyle)
 		{
-			FontSize = Context()->ApplyGuiScale(pBoxStyle->GetFontSize());
-			FontColor = pBoxStyle->m_TextColor;
+			FontSize = Context()->ApplyGuiScale(pLabelStyle->GetFontSize());
+			FontColor = pLabelStyle->m_TextColor;
 			
 			CRect Rect = ComposingRect;
-			int Padding = Context()->ApplyGuiScale(pBoxStyle->GetPadding());
+			int Padding = Context()->ApplyGuiScale(pLabelStyle->GetPadding());
 			Rect.AddMargin(Padding);
 			ComposingRect.x += Padding;
 			
-			ivec2 MousePos = Context()->GetMousePos();
-			if(Rect.IsInside(MousePos.x, MousePos.y))
-				AssetsRenderer()->DrawGuiRect(&ComposingRect, pBoxStyle->GetMouseOverRectPath());
-			else
-				AssetsRenderer()->DrawGuiRect(&ComposingRect, pBoxStyle->GetDefaultRectPath());
+			AssetsRenderer()->DrawGuiRect(&ComposingRect, pLabelStyle->GetRectPath());
 		}
 		m_ComposingTextCache.SetFontSize(GetFontSize());
 		m_ComposingTextCache.SetBoxSize(ivec2(-1, ComposingRect.h));

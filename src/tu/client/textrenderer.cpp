@@ -1,4 +1,5 @@
 #include <tu/client/textrenderer.h>
+#include <tu/client/localization.h>
 #include <engine/storage.h>
 
 #include <unicode/schriter.h> //Character iterator to iterate over utf16 string
@@ -649,7 +650,7 @@ void CTextRenderer::UpdateTextCache_BiDi(array<CHarfbuzzGlyph>* pGlyphChain, con
 	
 	//Perform the BiDi algorithm
 	//TODO: change UBIDI_DEFAULT_LTR by some variable dependend of the user config
-	ubidi_setPara(pICUBiDi, UTF16Text.getBuffer(), UTF16Text.length(), UBIDI_DEFAULT_LTR, 0, &ICUError);
+	ubidi_setPara(pICUBiDi, UTF16Text.getBuffer(), UTF16Text.length(), (Localization()->GetWritingDirection() == CLocalization::DIRECTION_RTL ? UBIDI_DEFAULT_RTL : UBIDI_DEFAULT_LTR), 0, &ICUError);
 	
 	if(U_SUCCESS(ICUError))
 	{

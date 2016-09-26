@@ -234,7 +234,6 @@ void mem_debug_dump(IOHANDLE file)
 	}
 }
 
-
 void mem_copy(void *dest, const void *source, unsigned size)
 {
 	memcpy(dest, source, size);
