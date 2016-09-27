@@ -18,7 +18,8 @@ CAbstractTextEdit::CAbstractTextEdit(CContext *pConfig) :
 	CAbstractLabel(pConfig),
 	m_Focus(false),
 	m_Changes(false),
-	m_MouseOver(false)
+	m_MouseOver(false),
+	m_Composing(false)
 {
 	m_TextCursor.m_TextIter = -1;
 	m_ButtonStylePath = Context()->GetTextEntryStyle();
@@ -133,14 +134,7 @@ void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
 		m_TextCursor = TextRenderer()->GetTextCursorFromPosition(&m_TextCache, GetTextPosition(), ivec2(X, Y));
 	}
 	else if(m_Focus)
-	{
-		SaveFromTextBuffer();
-		m_Changes = false;
-		
-		m_TextCursor.m_TextIter = -1;
-		
 		OnFocusOut();
-	}
 }
 
 void CAbstractTextEdit::OnInputEvent()
@@ -198,9 +192,13 @@ void CAbstractTextEdit::OnFocusIn()
 
 void CAbstractTextEdit::OnFocusOut()
 {
+	SaveFromTextBuffer();
+	m_TextCursor.m_TextIter = -1;
+	m_Changes = false;
 	m_Focus = false;
 	m_Composing = false;
 	Input()->StopTextEditing();
+	m_ComposingTextCache.ResetRendering();
 }
 
 /* EXTERNAL TEXT EDIT *************************************************/

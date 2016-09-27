@@ -54,6 +54,7 @@ void CInput::Init()
 	MouseModeRelative();
 	
 	m_Composing = false;
+	m_TextEdited = false;
 }
 
 void CInput::MouseRelative(float *x, float *y)
@@ -160,6 +161,7 @@ int CInput::Update()
 					break;
 				case SDL_TEXTINPUT:
 					AddEvent(Event.text.text, 0, IInput::FLAG_TEXT);
+					m_Composing = false;
 					break;
 				case SDL_KEYDOWN:
 					Key = KeycodeToKey(Event.key.keysym.sym);
@@ -263,6 +265,7 @@ void CInput::StopTextEditing()
 {
 	SDL_StopTextInput();
 	m_Composing = false;
+	m_aEditedText[0] = 0;
 	
 	if(m_TextEditingQueue.size())
 	{
