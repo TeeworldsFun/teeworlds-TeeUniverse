@@ -508,7 +508,7 @@ void CAssetsRenderer::DrawGuiRect(const gui::CRect* pRect, CAssetPath StylePath)
 	}
 }
 
-void CAssetsRenderer::DrawGuiLine(ivec2 Point0, ivec2 Point1, CAssetPath StylePath)
+void CAssetsRenderer::DrawGuiLine(ivec2 Point0, ivec2 Point1, CAssetPath StylePath, float Scale)
 {
 	const CAsset_GuiLineStyle* pStyle = AssetsManager()->GetAsset<CAsset_GuiLineStyle>(StylePath);
 	if(!pStyle)
@@ -531,8 +531,8 @@ void CAssetsRenderer::DrawGuiLine(ivec2 Point0, ivec2 Point1, CAssetPath StylePa
 			vec2 UVSize(pStyle->m_ImageUV_Max - pStyle->m_ImageUV_Min);
 			UVSize.x /= 3.0f;
 			
-			int PartSizeX = UVSize.x * pImage->GetWidth();
-			int PartSizeY = UVSize.y * pImage->GetHeight();
+			int PartSizeX = Scale * UVSize.x * pImage->GetWidth();
+			int PartSizeY = Scale * UVSize.y * pImage->GetHeight();
 			
 			TextureSet(pStyle->m_ImagePath);
 			Graphics()->QuadsBegin();

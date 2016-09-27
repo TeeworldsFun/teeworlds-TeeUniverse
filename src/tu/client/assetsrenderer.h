@@ -27,7 +27,7 @@ public:
 	void DrawSprite(CAssetPath AssetPath, vec2 Pos, vec2 Size, float Angle, int FlipFlag, vec4 Color);
 	void DrawText(const char *pText, vec2 Pos, vec4 Color, float Size, int Alignment);
 	void DrawGuiRect(const gui::CRect* pRect, CAssetPath StylePath);
-	void DrawGuiLine(ivec2 Point0, ivec2 Point1, CAssetPath StylePath);
+	void DrawGuiLine(ivec2 Point0, ivec2 Point1, CAssetPath StylePath, float Scale);
 };
 
 }

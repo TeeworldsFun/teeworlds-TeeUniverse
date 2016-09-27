@@ -23,6 +23,7 @@ private:
 	
 protected:
 	gui::CWidget* CreateGeneralTab();
+	gui::CWidget* CreatePlayerTab();
 
 public:
 	CSettings(CMenu* pMenu);

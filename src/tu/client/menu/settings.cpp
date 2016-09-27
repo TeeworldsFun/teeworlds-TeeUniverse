@@ -2,6 +2,8 @@
 #include <tu/client/menu/menu.h>
 #include <tu/client/gui/expand.h>
 #include <tu/client/gui/toggle.h>
+#include <tu/client/gui/slider.h>
+#include <tu/client/gui/text-edit.h>
 #include <game/client/localization.h>
 #include <tu/client/localization.h>
 #include <engine/shared/config.h>
@@ -27,6 +29,23 @@ public:
 		gui::CToggle(pContext, LocalizableString),
 		m_pValue(pValue)
 	{ }
+};
+
+/* CONFIG SLIDER ******************************************************/
+
+class CConfigSlider : public gui::CHSlider
+{
+protected:
+	int* m_pValue;
+
+public:
+	CConfigSlider(gui::CContext* pContext, int* pValue, int Min, int Max) :
+		gui::CHSlider(pContext, Min, Max),
+		m_pValue(pValue)
+	{ }
+	
+	virtual int GetValue() const { return *m_pValue; }
+	virtual void SetValue(int Value) { *m_pValue = Value; }
 };
 
 /* CONFIG DYNAMIC CAMERA **********************************************/
@@ -67,23 +86,25 @@ public:
 	}
 };
 
-/* CONFIG SHOW NAMEPLATES *********************************************/
+/* CONFIG EXPAND ******************************************************/
 
-class CConfigShowNameplates : public gui::CExpand
+class CConfigExpand : public gui::CExpand
 {
+protected:
+	gui::CToggle* m_pToggle;
+	
 public:
-	CConfigShowNameplates(gui::CContext* pContext) :
-		gui::CExpand(pContext)
+	CConfigExpand(gui::CContext* pContext, gui::CToggle* pToggle) :
+		gui::CExpand(pContext),
+		m_pToggle(pToggle)
 	{
 		SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_LIST));
-		SetTitle(new CConfigCheckBox(Context(), &g_Config.m_ClNameplates, _("Show name plates")));
-		Add(new CConfigCheckBox(Context(), &g_Config.m_ClNameplatesAlways, _("Always show name plates")));
-		Add(new CConfigCheckBox(Context(), &g_Config.m_ClNameplatesTeamcolors, _("Use team colors for name plates")));
+		SetTitle(m_pToggle);
 	}
 	
 	virtual void Update()
 	{
-		if(g_Config.m_ClNameplates)
+		if(m_pToggle->GetValue())
 			ShowContent();
 		else
 			HideContent();
@@ -121,7 +142,7 @@ CSettings::CSettings(CMenu* pMenu) :
 	SetTabsStyle(CAssetPath::GuiTabsStyleSystem(GUITABSSTYLE_MENU_MAIN));
 	
 	m_pGeneralTab = CreateGeneralTab();
-	m_pPlayerTab = new gui::CVScrollLayout(pMenu);
+	m_pPlayerTab = CreatePlayerTab();
 	m_pCharacterTab = new gui::CVScrollLayout(pMenu);
 	m_pControlTab = new gui::CVScrollLayout(pMenu);
 	m_pGraphicsTab = new gui::CVScrollLayout(pMenu);
@@ -160,7 +181,20 @@ gui::CWidget* CSettings::CreateGeneralTab()
 		pSection->Add(new CConfigCheckBox(Context(), &g_Config.m_ClShowhud, _("Show ingame HUD")), false);
 		pSection->Add(new CConfigCheckBox(Context(), &g_Config.m_ClShowChatFriends, _("Show only chat messages from friends")), false);
 		pSection->Add(new CConfigCheckBox(Context(), &g_Config.m_ClShowsocial, _("Show social")), false);
-		pSection->Add(new CConfigShowNameplates(Context()), false);
+		{
+			CConfigCheckBox* pTitle = new CConfigCheckBox(Context(), &g_Config.m_ClNameplates, _("Show name plates"));
+			CConfigExpand* pExpand = new CConfigExpand(Context(), pTitle);
+			pExpand->Add(new CConfigCheckBox(Context(), &g_Config.m_ClNameplatesAlways, _("Always show name plates")));
+			
+			gui::CHListLayout* pList = new gui::CHListLayout(Context());
+			pList->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_ITEM));
+			pList->Add(new gui::CLabel(Context(), _("Size"), CAssetPath::SpriteSystem(SPRITE_MENU_VOID)), false, 200);
+			pList->Add(new CConfigSlider(Context(), &g_Config.m_ClNameplatesSize, 0, 100), true);
+			pExpand->Add(pList);
+			
+			pExpand->Add(new CConfigCheckBox(Context(), &g_Config.m_ClNameplatesTeamcolors, _("Use team colors for name plates")));
+			pSection->Add(pExpand, false);
+		}
 	}
 	
 	{
@@ -170,8 +204,29 @@ gui::CWidget* CSettings::CreateGeneralTab()
 		pSection->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_SECTION));
 		pSection->Add(new gui::CLabelHeader(Context(), _("Client")), false);
 		
-		pSection->Add(new CConfigCheckBox(Context(), &g_Config.m_ClAutoDemoRecord, _("Automatically record demos")), false);
-		pSection->Add(new CConfigCheckBox(Context(), &g_Config.m_ClAutoScreenshot, _("Automatically take game over screenshot")), false);
+		{
+			CConfigCheckBox* pTitle = new CConfigCheckBox(Context(), &g_Config.m_ClAutoDemoRecord, _("Automatically record demos"));
+			CConfigExpand* pExpand = new CConfigExpand(Context(), pTitle);
+			pSection->Add(pExpand, false);
+			
+			gui::CHListLayout* pList = new gui::CHListLayout(Context());
+			pList->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_ITEM));
+			pList->Add(new gui::CLabel(Context(), _("Max"), CAssetPath::SpriteSystem(SPRITE_MENU_VOID)), false, 200);
+			pList->Add(new CConfigSlider(Context(), &g_Config.m_ClAutoDemoMax, 0, 100), true);
+			pExpand->Add(pList);
+		}
+		
+		{
+			CConfigCheckBox* pTitle = new CConfigCheckBox(Context(), &g_Config.m_ClAutoScreenshot, _("Automatically take game over screenshot"));
+			CConfigExpand* pExpand = new CConfigExpand(Context(), pTitle);
+			pSection->Add(pExpand, false);
+			
+			gui::CHListLayout* pList = new gui::CHListLayout(Context());
+			pList->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_ITEM));
+			pList->Add(new gui::CLabel(Context(), _("Max"), CAssetPath::SpriteSystem(SPRITE_MENU_VOID)), false, 200);
+			pList->Add(new CConfigSlider(Context(), &g_Config.m_ClAutoScreenshotMax, 0, 100), true);
+			pExpand->Add(pList);
+		}
 	}
 	
 	{
@@ -190,6 +245,53 @@ gui::CWidget* CSettings::CreateGeneralTab()
 		{
 			pLanguageList->Add(new CLanguageButton(Context(), Localization()->m_pLanguages[i]->GetName(), Localization()->m_pLanguages[i]->GetFilename()), false);
 		}
+	}
+	
+	return pTab;
+}
+
+gui::CWidget* CSettings::CreatePlayerTab()
+{
+	gui::CHListLayout* pTab = new gui::CHListLayout(Context());
+	pTab->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_COLUMNS));
+	
+	gui::CVScrollLayout* pLeftList = new gui::CVScrollLayout(Context());
+	pLeftList->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_SECTIONLIST));
+	pTab->Add(pLeftList, true);
+	
+	gui::CVScrollLayout* pRightList = new gui::CVScrollLayout(Context());
+	pRightList->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_SECTIONLIST));
+	pTab->Add(pRightList, true);
+	
+	{
+		gui::CVListLayout* pSection = new gui::CVListLayout(Context());
+		pLeftList->Add(pSection, false);
+		
+		pSection->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_SECTION));
+		pSection->Add(new gui::CLabelHeader(Context(), _("Personal")), false);
+		
+		{
+			gui::CHListLayout* pList = new gui::CHListLayout(Context());
+			pList->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_ITEM));
+			pList->Add(new gui::CLabel(Context(), _("Name")), false, 200);
+			pList->Add(new gui::CExternalTextEdit(Context(), g_Config.m_PlayerName, sizeof(g_Config.m_PlayerName)), true);
+			pSection->Add(pList);
+		}
+		{
+			gui::CHListLayout* pList = new gui::CHListLayout(Context());
+			pList->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_ITEM));
+			pList->Add(new gui::CLabel(Context(), _("Clan")), false, 200);
+			pList->Add(new gui::CExternalTextEdit(Context(), g_Config.m_PlayerClan, sizeof(g_Config.m_PlayerClan)), true);
+			pSection->Add(pList);
+		}
+	}
+	
+	{
+		gui::CVListLayout* pSection = new gui::CVListLayout(Context());
+		pRightList->Add(pSection, false);
+		
+		pSection->SetBoxStyle(CAssetPath::GuiBoxStyleSystem(GUIBOXSTYLE_MENU_SECTION));
+		pSection->Add(new gui::CLabelHeader(Context(), _("Country")), false);
 	}
 	
 	return pTab;

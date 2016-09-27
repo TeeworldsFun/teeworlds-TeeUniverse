@@ -36,11 +36,12 @@ void CAbstractListLayout::Clear()
 	m_Childs.clear();
 }
 
-void CAbstractListLayout::Add(CWidget* pWidget, bool Fill)
+void CAbstractListLayout::Add(CWidget* pWidget, bool Fill, int MinSize)
 {
 	CChild Child;
 	Child.m_pWidget = pWidget;
 	Child.m_Fill = Fill;
+	Child.m_MinSize = MinSize;
 	m_Childs.add(Child);
 }
 
@@ -153,7 +154,9 @@ void CHListLayout::UpdateBoundingSize()
 	for(int i=0; i<m_Childs.size(); i++)
 	{
 		m_Childs[i].m_pWidget->UpdateBoundingSize();
-		m_BoundingSizeRect.BSHorizontalAdd(m_Childs[i].m_pWidget->GetBS());
+		CRect ChildRect = m_Childs[i].m_pWidget->GetBS();
+		ChildRect.BSInnerAdd(CRect(m_Childs[i].m_MinSize, 0, m_Childs[i].m_MinSize, 0));
+		m_BoundingSizeRect.BSHorizontalAdd(ChildRect);
 	}
 	
 	if(m_Childs.size() > 1)
@@ -187,7 +190,7 @@ void CHListLayout::UpdatePosition(CRect BoundingRect)
 		if(m_Childs[i].m_Fill)
 			NumFill++;
 		else
-			AvailableSpace -= m_Childs[i].m_pWidget->GetBS().minw;
+			AvailableSpace -= max(m_Childs[i].m_MinSize, m_Childs[i].m_pWidget->GetBS().minw);
 	}
 	if(m_Childs.size() > 1)
 		AvailableSpace -= Spacing * (m_Childs.size()-1);
@@ -201,7 +204,7 @@ void CHListLayout::UpdatePosition(CRect BoundingRect)
 		int PosX = m_ClipRect.x + m_ClipRect.w;
 		for(int i=0; i<m_Childs.size(); i++)
 		{
-			int ChildWidth = (m_Childs[i].m_Fill ? FillSize : m_Childs[i].m_pWidget->GetBS().minw);
+			int ChildWidth = (m_Childs[i].m_Fill ? FillSize : max(m_Childs[i].m_MinSize, m_Childs[i].m_pWidget->GetBS().minw));
 			CRect ChildRect(
 				PosX - ChildWidth,
 				m_ClipRect.y,
@@ -217,7 +220,7 @@ void CHListLayout::UpdatePosition(CRect BoundingRect)
 		int PosX = m_ClipRect.x;
 		for(int i=0; i<m_Childs.size(); i++)
 		{
-			int ChildWidth = (m_Childs[i].m_Fill ? FillSize : m_Childs[i].m_pWidget->GetBS().minw);
+			int ChildWidth = (m_Childs[i].m_Fill ? FillSize : max(m_Childs[i].m_MinSize, m_Childs[i].m_pWidget->GetBS().minw));
 			CRect ChildRect(
 				PosX,
 				m_ClipRect.y,

@@ -20,5 +20,6 @@ TU_MACRO_ASSETTYPE(tu::CAsset_GuiBoxStyle, m_GuiBoxStylesCatalog, "Box style", "
 TU_MACRO_ASSETTYPE(tu::CAsset_GuiLabelStyle, m_GuiLabelStylesCatalog, "Label style", "LabelStyle")
 TU_MACRO_ASSETTYPE(tu::CAsset_GuiButtonStyle, m_GuiButtonStylesCatalog, "Button style", "ButtonStyle")
 TU_MACRO_ASSETTYPE(tu::CAsset_GuiToggleStyle, m_GuiToggleStylesCatalog, "Toggle style", "ToggleStyle")
+TU_MACRO_ASSETTYPE(tu::CAsset_GuiSliderStyle, m_GuiSliderStylesCatalog, "Slider style", "SliderStyle")
 TU_MACRO_ASSETTYPE(tu::CAsset_GuiScrollbarStyle, m_GuiScrollbarStylesCatalog, "Scrollbar style", "ScrollbarStyle")
 TU_MACRO_ASSETTYPE(tu::CAsset_GuiTabsStyle, m_GuiTabsStylesCatalog, "Tabs style", "TabsStyle")

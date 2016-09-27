@@ -14,13 +14,17 @@ class CAbstractTextEdit : public CAbstractLabel
 protected:
 	bool m_Focus;
 	bool m_Changes;
+	bool m_MouseOver;
 	CTextRenderer::CTextCache m_ComposingTextCache;
 	bool m_Composing;
 	CTextRenderer::CTextCursor m_TextCursor;
+	CAssetPath m_ButtonStylePath;
 
 protected:
 	virtual void SaveFromTextBuffer() = 0;
 	virtual void CopyToTextBuffer() = 0;
+
+	void RefreshLabelStyle();
 
 public:
 	CAbstractTextEdit(class CContext *pConfig);
@@ -36,6 +40,9 @@ public:
 	
 	void OnFocusIn();
 	void OnFocusOut();
+	
+	inline CAssetPath GetButtonStyle() const { return m_ButtonStylePath; }
+	void SetButtonStyle(CAssetPath Path);
 };
 
 class CExternalTextEdit : public CAbstractTextEdit

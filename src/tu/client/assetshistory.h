@@ -24,6 +24,7 @@
 #include <tu/client/assets/guilabelstyle.h>
 #include <tu/client/assets/guibuttonstyle.h>
 #include <tu/client/assets/guitogglestyle.h>
+#include <tu/client/assets/guisliderstyle.h>
 #include <tu/client/assets/guiscrollbarstyle.h>
 #include <tu/client/assets/guitabsstyle.h>
 

@@ -164,6 +164,9 @@ CAssetPath CAssetsEditor::GetItemIcon(CAssetPath AssetPath, int SubPath)
 			case CAssetPath::TYPE_GUITOGGLESTYLE:
 				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUITOGGLE);
 				break;
+			case CAssetPath::TYPE_GUISLIDERSTYLE:
+				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUISLIDER);
+				break;
 			case CAssetPath::TYPE_GUISCROLLBARSTYLE:
 				IconPath = CAssetPath::SpriteSystem(SPRITE_EDITOR_GUISCROLLBAR);
 				break;

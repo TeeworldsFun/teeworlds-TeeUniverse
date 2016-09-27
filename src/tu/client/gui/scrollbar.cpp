@@ -124,16 +124,18 @@ void CHScrollBar::Render()
 	
 		ivec2 MousePos = Context()->GetMousePos();
 		
+		float Scale = Context()->GetImageScale()*Context()->GetGuiScale();
+		
 		ivec2 RailPos0(m_ClipRect.x, m_ClipRect.y + m_ClipRect.h/2);
 		ivec2 RailPos1(m_ClipRect.x + m_ClipRect.w, m_ClipRect.y + m_ClipRect.h/2);
-		AssetsRenderer()->DrawGuiLine(RailPos0, RailPos1, pScrollbarStyle->m_DefaultRailPath);
+		AssetsRenderer()->DrawGuiLine(RailPos0, RailPos1, pScrollbarStyle->m_DefaultRailPath, Scale);
 		
 		ivec2 SliderPos0(m_SliderRect.x, m_SliderRect.y + m_SliderRect.h/2);
 		ivec2 SliderPos1(m_SliderRect.x + m_SliderRect.w, m_SliderRect.y + m_SliderRect.h/2);
 		if(m_SliderRect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_MouseOverSliderPath);
+			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_MouseOverSliderPath, Scale);
 		else
-			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_DefaultSliderPath);
+			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_DefaultSliderPath, Scale);
 	}
 }
 
@@ -211,16 +213,18 @@ void CVScrollBar::Render()
 	
 		ivec2 MousePos = Context()->GetMousePos();
 		
+		float Scale = Context()->GetImageScale()*Context()->GetGuiScale();
+		
 		ivec2 RailPos0(m_ClipRect.x + m_ClipRect.w/2, m_ClipRect.y);
 		ivec2 RailPos1(m_ClipRect.x + m_ClipRect.w/2, m_ClipRect.y + m_ClipRect.h);
-		AssetsRenderer()->DrawGuiLine(RailPos0, RailPos1, pScrollbarStyle->m_DefaultRailPath);
+		AssetsRenderer()->DrawGuiLine(RailPos0, RailPos1, pScrollbarStyle->m_DefaultRailPath, Scale);
 		
 		ivec2 SliderPos0(m_SliderRect.x + m_SliderRect.w/2, m_SliderRect.y);
 		ivec2 SliderPos1(m_SliderRect.x + m_SliderRect.w/2, m_SliderRect.y + m_SliderRect.h);
 		if(m_SliderRect.IsInside(MousePos.x, MousePos.y))
-			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_MouseOverSliderPath);
+			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_MouseOverSliderPath, Scale);
 		else
-			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_DefaultSliderPath);
+			AssetsRenderer()->DrawGuiLine(SliderPos0, SliderPos1, pScrollbarStyle->m_DefaultSliderPath, Scale);
 	}
 }
 

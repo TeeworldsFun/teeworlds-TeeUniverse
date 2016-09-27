@@ -22,12 +22,13 @@ enum
 
 class CAbstractListLayout : public CWidget
 {
-protected:
+protected:	
 	class CChild
 	{
 	public:
 		CWidget* m_pWidget;
 		bool m_Fill;
+		int m_MinSize;
 	};
 	
 protected:
@@ -47,7 +48,7 @@ public:
 	virtual void OnInputEvent();
 	
 	void Clear();
-	void Add(CWidget* pWidget, bool Fill = false);
+	void Add(CWidget* pWidget, bool Fill = false, int MinSize = 0);
 	
 	void SetBoxStyle(CAssetPath BoxStylePath) { m_BoxStylePath = BoxStylePath; }
 	CAssetPath GetBoxStyle() const { return m_BoxStylePath; }

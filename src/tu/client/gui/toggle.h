@@ -20,8 +20,6 @@ protected:
 	CAbstractToggle(class CContext *pConfig);
 	
 	void RefreshLabelStyle();
-	virtual bool GetValue() const = 0;
-	virtual void SetValue(bool Value) = 0;
 	
 public:
 	virtual void Update();
@@ -29,6 +27,9 @@ public:
 	virtual void OnButtonRelease(int Button);
 	virtual void OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState);
 
+	virtual bool GetValue() const = 0;
+	virtual void SetValue(bool Value) = 0;
+	
 	void SetToggleStyle(CAssetPath StylePath);
 	inline CAssetPath GetToggleStyle() const { return m_ToggleStylePath; }
 };

@@ -4,6 +4,7 @@
 #define ENGINE_INPUT_H
 
 #include "kernel.h"
+#include <tu/client/gui/rect.h>
 
 const int g_MaxKeys = 512;
 extern const char g_aaKeyStrings[g_MaxKeys][20];
@@ -67,7 +68,7 @@ public:
 	
 	// IME
 	virtual const char* GetEditedText() const = 0;
-	virtual void StartTextEditing(int x, int y, int w, int h) = 0;
+	virtual void StartTextEditing(const tu::gui::CRect& EditingRect) = 0;
 	virtual void StopTextEditing() = 0;
 };
 

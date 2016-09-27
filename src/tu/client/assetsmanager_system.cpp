@@ -71,8 +71,10 @@ void CAssetsManager::InitAssetsManager_System_Menu(CAssetsManager* pAssetsManage
 			pImage->SetGridSize(16, 8);
 	}
 	
-	CREATE_SPRITE(SPRITE_MENU_CHECKBOX_TRUE, "iconMenuMenuCheckBoxTrue", IMAGE_MENU, 0, 0, 1, 1);
-	CREATE_SPRITE(SPRITE_MENU_CHECKBOX_FALSE, "iconMenuMenuCheckBoxFalse", IMAGE_MENU, 1, 0, 1, 1);
+	CREATE_SPRITE(SPRITE_MENU_VOID, "iconVoid", IMAGE_MENU, 0, 0, 1, 1);
+	CREATE_SPRITE(SPRITE_MENU_CHECKBOX_TRUE, "iconMenuCheckBoxTrue", IMAGE_MENU, 1, 0, 1, 1);
+	CREATE_SPRITE(SPRITE_MENU_CHECKBOX_FALSE, "iconMenuCheckBoxFalse", IMAGE_MENU, 2, 0, 1, 1);
+	CREATE_SPRITE(SPRITE_MENU_SLIDER_CURSOR, "iconMenuSLiderCursor", IMAGE_MENU, 3, 0, 1, 1);
 	
 	//GuiRectStyles
 	{
@@ -98,6 +100,32 @@ void CAssetsManager::InitAssetsManager_System_Menu(CAssetsManager* pAssetsManage
 		pGuiRectStyle->m_BackgroundColor = vec4(1.0f, 1.0f, 1.0f, 0.7f);
 		pGuiRectStyle->m_CornerRadius = 5.0f;
 		pGuiRectStyle->m_CornerFlags = CAsset_GuiRectStyle::CORNERFLAG_ALL;
+	}
+	
+	//GuiLineStyles
+	{
+		CAsset_GuiLineStyle* pGuiLineStyle = pAssetsManager->NewAsset<CAsset_GuiLineStyle>(CAssetPath::GuiLineStyleSystem(tu::GUILINESTYLE_MENU_SCROLLBAR_RAIL));
+		pGuiLineStyle->SetName("menuScrollbarRail");
+		pGuiLineStyle->m_Flags = CAsset_GuiLineStyle::FLAG_IMAGE;
+		pGuiLineStyle->m_ImagePath = CAssetPath::System(CAssetPath::TYPE_IMAGE, IMAGE_MENU);
+		pGuiLineStyle->m_ImageUV_Min = vec2((512-32*3)/512.0f, 1.0f);
+		pGuiLineStyle->m_ImageUV_Max = vec2(1.0f, (256-32)/256.0f);
+	}
+	{
+		CAsset_GuiLineStyle* pGuiLineStyle = pAssetsManager->NewAsset<CAsset_GuiLineStyle>(CAssetPath::GuiLineStyleSystem(tu::GUILINESTYLE_MENU_SCROLLBAR_SLIDER));
+		pGuiLineStyle->SetName("menuScrollbarSlider");
+		pGuiLineStyle->m_Flags = CAsset_GuiLineStyle::FLAG_IMAGE;
+		pGuiLineStyle->m_ImagePath = CAssetPath::System(CAssetPath::TYPE_IMAGE, IMAGE_MENU);
+		pGuiLineStyle->m_ImageUV_Min = vec2((512-32*6)/512.0f, 1.0f);
+		pGuiLineStyle->m_ImageUV_Max = vec2((512-32*3)/512.0f, (256-32)/256.0f);
+	}
+	{
+		CAsset_GuiLineStyle* pGuiLineStyle = pAssetsManager->NewAsset<CAsset_GuiLineStyle>(CAssetPath::GuiLineStyleSystem(tu::GUILINESTYLE_MENU_SLIDER_RAIL));
+		pGuiLineStyle->SetName("menuSliderRail");
+		pGuiLineStyle->m_Flags = CAsset_GuiLineStyle::FLAG_IMAGE;
+		pGuiLineStyle->m_ImagePath = CAssetPath::System(CAssetPath::TYPE_IMAGE, IMAGE_MENU);
+		pGuiLineStyle->m_ImageUV_Min = vec2((512-32*3)/512.0f, (256-2*32)/256.0f);
+		pGuiLineStyle->m_ImageUV_Max = vec2(1.0f, (256-32)/256.0f);
 	}
 	
 	//GuiBoxStyles
@@ -132,6 +160,13 @@ void CAssetsManager::InitAssetsManager_System_Menu(CAssetsManager* pAssetsManage
 		CAsset_GuiBoxStyle* pGuiBoxStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_MAINTABS_BUTTONLIST));
 		pGuiBoxStyle->SetName("menuMainTabsButtonList");
 		pGuiBoxStyle->SetSpacing(10);
+	}
+	{
+		CAsset_GuiBoxStyle* pGuiStyle = pAssetsManager->NewAsset<CAsset_GuiBoxStyle>(CAssetPath::GuiBoxStyleSystem(tu::GUIBOXSTYLE_MENU_ITEM));
+		pGuiStyle->SetName("menuItem");
+		pGuiStyle->SetRectPath(CAssetPath::GuiRectStyleSystem(tu::GUIRECTSTYLE_MENU_BACKGROUND));
+		pGuiStyle->SetSpacing(4);
+		pGuiStyle->SetMinHeight(24);
 	}
 	
 	//GuiLabelStyles
@@ -243,6 +278,29 @@ void CAssetsManager::InitAssetsManager_System_Menu(CAssetsManager* pAssetsManage
 		pGuiStyle->SetIconFalsePath(CAssetPath::SpriteSystem(tu::SPRITE_MENU_CHECKBOX_FALSE));
 	}
 	
+	//GuiSliderStyles
+	{
+		CAsset_GuiSliderStyle* pGuiStyle = pAssetsManager->NewAsset<CAsset_GuiSliderStyle>(CAssetPath::GuiSliderStyleSystem(tu::GUISLIDERSTYLE_MENU_DEFAULT));
+		pGuiStyle->SetName("menuSlider");
+		pGuiStyle->m_DefaultRailPath = CAssetPath::GuiLineStyleSystem(tu::GUILINESTYLE_MENU_SLIDER_RAIL);
+		pGuiStyle->m_CursorPath = CAssetPath::SpriteSystem(tu::SPRITE_MENU_SLIDER_CURSOR);
+		pGuiStyle->m_RectPath = CAssetPath::Null();
+		pGuiStyle->m_Margin = 0;
+		pGuiStyle->m_Padding = 12;
+	}
+	
+	//GuiScrollbarStyles
+	{
+		CAsset_GuiScrollbarStyle* pGuiScrollbarStyle = pAssetsManager->NewAsset<CAsset_GuiScrollbarStyle>(CAssetPath::GuiScrollbarStyleSystem(tu::GUISCROLLBARSTYLE_MENU));
+		pGuiScrollbarStyle->SetName("menuScrollbar");
+		pGuiScrollbarStyle->m_DefaultRailPath = CAssetPath::GuiLineStyleSystem(tu::GUILINESTYLE_MENU_SCROLLBAR_RAIL);
+		pGuiScrollbarStyle->m_DefaultSliderPath = CAssetPath::GuiLineStyleSystem(tu::GUILINESTYLE_MENU_SCROLLBAR_SLIDER);
+		pGuiScrollbarStyle->m_MouseOverSliderPath = CAssetPath::GuiLineStyleSystem(tu::GUILINESTYLE_MENU_SCROLLBAR_SLIDER);
+		pGuiScrollbarStyle->m_RectPath = CAssetPath::Null();
+		pGuiScrollbarStyle->m_Margin = 0;
+		pGuiScrollbarStyle->m_Padding = 24;
+	}
+	
 	//GuiTabsStyle
 	{
 		CAsset_GuiTabsStyle* pGuiTabsStyle = pAssetsManager->NewAsset<CAsset_GuiTabsStyle>(CAssetPath::GuiTabsStyleSystem(tu::GUITABSSTYLE_MENU_MAIN));
@@ -344,6 +402,7 @@ void CAssetsManager::InitAssetsManager_System_Editor(CAssetsManager* pAssetsMana
 	CREATE_SPRITE(SPRITE_EDITOR_GUIBUTTON, "iconMenuButton", IMAGE_ASSETSEDITOR, 18, 2, 1, 1);
 	CREATE_SPRITE(SPRITE_EDITOR_GUILABEL, "iconMenuLabel", IMAGE_ASSETSEDITOR, 19, 2, 1, 1);
 	CREATE_SPRITE(SPRITE_EDITOR_GUITOGGLE, "iconMenuToggle", IMAGE_ASSETSEDITOR, 20, 2, 1, 1);
+	CREATE_SPRITE(SPRITE_EDITOR_GUISLIDER, "iconMenuSlider", IMAGE_ASSETSEDITOR, 21, 2, 1, 1);
 	
 	CREATE_SPRITE(SPRITE_EDITOR_FRAME_MOVE, "iconMenuKeyFrameMove", IMAGE_ASSETSEDITOR, 23+0, 1, 1, 1);
 	CREATE_SPRITE(SPRITE_EDITOR_FRAME_ADD, "iconMenuKeyFrameAdd", IMAGE_ASSETSEDITOR, 23+1, 1, 1, 1);

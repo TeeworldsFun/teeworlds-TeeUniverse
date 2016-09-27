@@ -63,8 +63,8 @@ void CAbstractLabel::UpdateBoundingSize()
 	{
 		CRect IconRect;
 		IconRect.BSMinimum(
-			Context()->ApplyGuiScale(Context()->GetIconScale()*pSprite->GetPixelWidth()),
-			Context()->ApplyGuiScale(Context()->GetIconScale()*pSprite->GetPixelHeight())
+			Context()->ApplyGuiScale(Context()->GetImageScale()*pSprite->GetPixelWidth()),
+			Context()->ApplyGuiScale(Context()->GetImageScale()*pSprite->GetPixelHeight())
 		);
 		ContentRect.BSHorizontalAdd(IconRect);
 	}
@@ -119,7 +119,7 @@ void CAbstractLabel::Render()
 	
 	if(pSprite)
 	{
-		IconWidth = Context()->ApplyGuiScale(Context()->GetIconScale()*pSprite->GetPixelWidth());
+		IconWidth = Context()->ApplyGuiScale(Context()->GetImageScale()*pSprite->GetPixelWidth());
 	}
 	
 	m_TextCache.SetBoxSize(ivec2(-1, Rect.h));
@@ -174,7 +174,7 @@ void CAbstractLabel::Render()
 			AssetsRenderer()->DrawSprite(
 				m_IconPath,
 				vec2(PosX + IconWidth/2, Rect.y + Rect.h/2),
-				Context()->GetIconScale()*Context()->GetGuiScale(), 0.0f, 0x0, 1.0f
+				Context()->GetImageScale()*Context()->GetGuiScale(), 0.0f, 0x0, 1.0f
 			);
 		}
 	}
@@ -185,7 +185,7 @@ void CAbstractLabel::Render()
 			AssetsRenderer()->DrawSprite(
 				m_IconPath,
 				vec2(PosX + IconWidth/2, Rect.y + Rect.h/2),
-				Context()->GetIconScale()*Context()->GetGuiScale(), 0.0f, 0x0, 1.0f
+				Context()->GetImageScale()*Context()->GetGuiScale(), 0.0f, 0x0, 1.0f
 			);
 			
 			PosX += IconWidth;
@@ -228,6 +228,13 @@ CLabel::CLabel(CContext *pConfig, const char* pText, CAssetPath IconPath) :
 {	
 	SetIcon(IconPath);
 	SetText(pText);
+}
+
+CLabel::CLabel(CContext *pConfig, const CLocalizableString& LocalizableString, CAssetPath IconPath) :
+	CAbstractLabel(pConfig)
+{
+	SetIcon(IconPath);
+	SetText(LocalizableString.m_pText, true);
 }
 
 /* LABEL HEADER *******************************************************/

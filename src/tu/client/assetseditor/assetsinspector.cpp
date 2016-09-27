@@ -32,6 +32,7 @@ CAssetsInspector::CAssetsInspector(CAssetsEditor* pAssetsEditor) :
 	m_pTabs[TAB_GUILABELSTYLE_ASSET] = CreateTab_GuiLabelStyle_Asset();
 	m_pTabs[TAB_GUIBUTTONSTYLE_ASSET] = CreateTab_GuiButtonStyle_Asset();
 	m_pTabs[TAB_GUITOGGLESTYLE_ASSET] = CreateTab_GuiToggleStyle_Asset();
+	m_pTabs[TAB_GUISLIDERSTYLE_ASSET] = CreateTab_GuiSliderStyle_Asset();
 	m_pTabs[TAB_GUISCROLLBARSTYLE_ASSET] = CreateTab_GuiScrollbarStyle_Asset();
 	m_pTabs[TAB_GUITABSSTYLE_ASSET] = CreateTab_GuiTabsStyle_Asset();
 }
@@ -77,6 +78,9 @@ void CAssetsInspector::Update()
 				break;
 			case CAssetPath::TYPE_GUITOGGLESTYLE:
 				m_pTabs[TAB_GUITOGGLESTYLE_ASSET]->Enable();
+				break;
+			case CAssetPath::TYPE_GUISLIDERSTYLE:
+				m_pTabs[TAB_GUISLIDERSTYLE_ASSET]->Enable();
 				break;
 			case CAssetPath::TYPE_GUISCROLLBARSTYLE:
 				m_pTabs[TAB_GUISCROLLBARSTYLE_ASSET]->Enable();
@@ -220,6 +224,17 @@ gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiToggleStyle_Asset()
 	AddField_Asset(pTab, CAsset_GuiToggleStyle::MOUSEOVERTRUESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Mouseover Style (true)");
 	AddField_Asset(pTab, CAsset_GuiToggleStyle::IDLEFALSESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Idle Style (false)");
 	AddField_Asset(pTab, CAsset_GuiToggleStyle::MOUSEOVERFALSESTYLEPATH, CAssetPath::TYPE_GUILABELSTYLE, "Mouseover Style (false)");
+	
+	return pTab;
+}
+
+gui::CVScrollLayout* CAssetsInspector::CreateTab_GuiSliderStyle_Asset()
+{
+	gui::CVScrollLayout* pTab = new gui::CVScrollLayout(Context());
+	pTab->Disable();
+	AddTab(pTab, "Slider Style", CAssetPath::SpriteSystem(SPRITE_EDITOR_GUISLIDER));
+	
+	AddField_AssetProperties(pTab);
 	
 	return pTab;
 }

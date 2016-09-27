@@ -17,16 +17,41 @@ namespace gui
 CAbstractTextEdit::CAbstractTextEdit(CContext *pConfig) :
 	CAbstractLabel(pConfig),
 	m_Focus(false),
-	m_Changes(false)
+	m_Changes(false),
+	m_MouseOver(false)
 {
 	m_TextCursor.m_TextIter = -1;
-	SetLabelStyle(Context()->GetTextEntryStyle());
+	m_ButtonStylePath = Context()->GetTextEntryStyle();
+}
+
+void CAbstractTextEdit::RefreshLabelStyle()
+{
+	const CAsset_GuiButtonStyle* pButtonStyle = AssetsManager()->GetAsset<CAsset_GuiButtonStyle>(m_ButtonStylePath);
+	if(pButtonStyle)
+	{
+		if(m_MouseOver)
+			SetLabelStyle(pButtonStyle->GetMouseOverStylePath());
+		else
+			SetLabelStyle(pButtonStyle->GetIdleStylePath());
+	}
+	else
+		SetLabelStyle(CAssetPath::Null());
+}
+
+void CAbstractTextEdit::SetButtonStyle(CAssetPath StylePath)
+{
+	m_ButtonStylePath = StylePath;
+	RefreshLabelStyle();
 }
 
 void CAbstractTextEdit::Update()
 {
+	RefreshLabelStyle();
+	
 	if(!m_Changes)
 		CopyToTextBuffer();
+	
+	CAbstractLabel::Update();
 }
 	
 void CAbstractTextEdit::Render()
@@ -86,8 +111,13 @@ void CAbstractTextEdit::Render()
 
 void CAbstractTextEdit::OnMouseOver(int X, int Y, int RelX, int RelY, int KeyState)
 {
-	if(GetTextRect().IsInside(X, Y))
+	if(m_DrawRect.IsInside(X, Y))
+	{
+		m_MouseOver = true;
 		Context()->SetCursorSprite(CAssetPath::SpriteSystem(SPRITE_CURSOR_TEXT));
+	}
+	else
+		m_MouseOver = false;
 }
 
 void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
@@ -98,10 +128,7 @@ void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
 	if(m_DrawRect.IsInside(X, Y))
 	{
 		if(!m_Focus)
-		{
 			OnFocusIn();
-			m_Focus = true;
-		}
 		
 		m_TextCursor = TextRenderer()->GetTextCursorFromPosition(&m_TextCache, GetTextPosition(), ivec2(X, Y));
 	}
@@ -111,7 +138,7 @@ void CAbstractTextEdit::OnButtonClick(int X, int Y, int Button, int Count)
 		m_Changes = false;
 		
 		m_TextCursor.m_TextIter = -1;
-		m_Focus = false;
+		
 		OnFocusOut();
 	}
 }
@@ -127,33 +154,33 @@ void CAbstractTextEdit::OnInputEvent()
 			m_ComposingTextCache.SetText(m_pEditedText);
 			m_Composing = true;
 		}
-	}
-	
-	if(Input()->KeyIsPressed(KEY_RETURN) || Input()->KeyIsPressed(KEY_KP_ENTER))
-	{
-		if(m_Changes)
-		{
-			SaveFromTextBuffer();
-			m_Changes = false;
-		}
-	}
-	else if(m_TextCursor.m_TextIter >= 0)
-	{
-		int TextIter = m_TextCursor.m_TextIter;
-		bool Changes = false;
-		for(int i = 0; i < Input()->NumEvents(); i++)
-		{
-			int Len = str_length(GetText());
-			int NumChars = Len;
-			if(CLineInput::Manipulate(Input()->GetEvent(i), m_aText, sizeof(m_aText), sizeof(m_aText), &Len, &TextIter, &NumChars))
-				Changes = true;
-		}
 		
-		if(Changes)
+		if(Input()->KeyIsPressed(KEY_RETURN) || Input()->KeyIsPressed(KEY_KP_ENTER))
 		{
-			OnTextUpdated();
-			m_TextCursor = TextRenderer()->GetTextCursorFromTextIter(&m_TextCache, GetTextPosition(), TextIter);
-			m_Changes = true;
+			if(m_Changes)
+			{
+				SaveFromTextBuffer();
+				m_Changes = false;
+			}
+		}
+		else if(m_TextCursor.m_TextIter >= 0)
+		{
+			int TextIter = m_TextCursor.m_TextIter;
+			bool Changes = false;
+			for(int i = 0; i < Input()->NumEvents(); i++)
+			{
+				int Len = str_length(m_aText);
+				int NumChars = Len;
+				if(CLineInput::Manipulate(Input()->GetEvent(i), m_aText, sizeof(m_aText), sizeof(m_aText), &Len, &TextIter, &NumChars))
+					Changes = true;
+			}
+			
+			if(Changes)
+			{
+				OnTextUpdated();
+				m_TextCursor = TextRenderer()->GetTextCursorFromTextIter(&m_TextCache, GetTextPosition(), TextIter);
+				m_Changes = true;
+			}
 		}
 	}
 }
@@ -165,11 +192,14 @@ void CAbstractTextEdit::RemoveChanges()
 
 void CAbstractTextEdit::OnFocusIn()
 {
-	Input()->StartTextEditing(GetTextRect().x, GetTextRect().y, GetTextRect().w, GetTextRect().h);
+	m_Focus = true;
+	Input()->StartTextEditing(GetTextRect());
 }
 
 void CAbstractTextEdit::OnFocusOut()
 {
+	m_Focus = false;
+	m_Composing = false;
 	Input()->StopTextEditing();
 }
 

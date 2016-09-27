@@ -52,6 +52,7 @@ class CLabel : public CAbstractLabel
 {
 public:
 	CLabel(class CContext *pConfig, const char* pText, CAssetPath IconPath = CAssetPath::Null());
+	CLabel(class CContext *pConfig, const CLocalizableString& LocalizableString, CAssetPath IconPath = CAssetPath::Null());
 };
 
 class CLabelHeader : public CAbstractLabel

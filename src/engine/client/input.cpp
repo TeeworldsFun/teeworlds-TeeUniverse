@@ -43,6 +43,7 @@ CInput::CInput()
 	m_ReleaseDelta = -1;
 
 	m_NumEvents = 0;
+	m_TextEdited = false;
 }
 
 void CInput::Init()
@@ -240,22 +241,43 @@ const char* CInput::GetEditedText() const
 		return 0;
 }
 
-void CInput::StartTextEditing(int x, int y, int w, int h)
+void CInput::StartTextEditing(const tu::gui::CRect& EditingRect)
 {
-	SDL_StartTextInput();
-	
-	SDL_Rect InputRect;
-	InputRect.x = x;
-	InputRect.y = y;
-	InputRect.w = w;
-	InputRect.h = h;
-	SDL_SetTextInputRect(&InputRect);
+	if(m_TextEdited)
+		m_TextEditingQueue.add(EditingRect);
+	else
+	{
+		SDL_StartTextInput();
+		SDL_Rect InputRect;
+		InputRect.x = EditingRect.x;
+		InputRect.y = EditingRect.y;
+		InputRect.w = EditingRect.w;
+		InputRect.h = EditingRect.h;
+		SDL_SetTextInputRect(&InputRect);
+		
+		m_TextEdited = true;
+	}
 }
 
 void CInput::StopTextEditing()
 {
 	SDL_StopTextInput();
 	m_Composing = false;
+	
+	if(m_TextEditingQueue.size())
+	{
+		SDL_StartTextInput();
+		SDL_Rect InputRect;
+		InputRect.x = m_TextEditingQueue[0].x;
+		InputRect.y = m_TextEditingQueue[0].y;
+		InputRect.w = m_TextEditingQueue[0].w;
+		InputRect.h = m_TextEditingQueue[0].h;
+		SDL_SetTextInputRect(&InputRect);
+		
+		m_TextEditingQueue.remove_index(0);
+	}
+	else
+		m_TextEdited = false;
 }
 
 IEngineInput *CreateEngineInput() { return new CInput; }

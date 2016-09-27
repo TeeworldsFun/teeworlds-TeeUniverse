@@ -3,13 +3,17 @@
 #ifndef ENGINE_CLIENT_INPUT_H
 #define ENGINE_CLIENT_INPUT_H
 
+#include <base/tl/array.h>
+
 class CInput : public IEngineInput
 {
 	IEngineGraphics *m_pGraphics;
 
 	int m_InputGrabbed;
+	bool m_TextEdited;
 	bool m_Composing;
 	char m_aEditedText[128];
+	array<tu::gui::CRect> m_TextEditingQueue;
 
 	int64 m_LastRelease;
 	int64 m_ReleaseDelta;
@@ -42,7 +46,7 @@ public:
 	virtual int MouseDoubleClick();
 
 	virtual const char* GetEditedText() const;
-	virtual void StartTextEditing(int x, int y, int w, int h);
+	virtual void StartTextEditing(const tu::gui::CRect& EditingRect);
 	virtual void StopTextEditing();
 	
 	virtual int Update();

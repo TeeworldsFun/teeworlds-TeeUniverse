@@ -40,7 +40,7 @@ public:
 	
 protected:
 	CRect m_DrawRect;
-	float m_IconScale;
+	float m_ImageScale;
 	float m_GuiScale;
 	bool m_LocalizationUpdated;
 	
@@ -60,6 +60,7 @@ protected:
 	CAssetPath m_ToggleStyle;
 	CAssetPath m_TextEntryStyle;
 	CAssetPath m_NumericEntryStyle;
+	CAssetPath m_SliderStyle;
 	CAssetPath m_ScrollbarStyle;
 	CAssetPath m_TabsStyle;
 	CAssetPath m_PopupStyle;
@@ -91,11 +92,12 @@ public:
 	inline CAssetPath GetToggleStyle() const { return m_ToggleStyle; }
 	inline CAssetPath GetTextEntryStyle() const { return m_TextEntryStyle; }
 	inline CAssetPath GetNumericEntryStyle() const { return m_NumericEntryStyle; }
+	inline CAssetPath GetSliderStyle() const { return m_SliderStyle; }
 	inline CAssetPath GetScrollbarStyle() const { return m_ScrollbarStyle; }
 	inline CAssetPath GetTabsStyle() const { return m_TabsStyle; }
 	inline CAssetPath GetPopupStyle() const { return m_PopupStyle; }
 	
-	inline float GetIconScale() const { return m_IconScale; }
+	inline float GetImageScale() const { return m_ImageScale; }
 	inline float GetGuiScale() const { return m_GuiScale; }
 	inline int ApplyGuiScale(int Value) const { return static_cast<int>(Value*m_GuiScale); }
 	

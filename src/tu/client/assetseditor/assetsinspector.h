@@ -24,6 +24,7 @@ class CAssetsInspector : public gui::CTabs
 		TAB_GUILABELSTYLE_ASSET,
 		TAB_GUIBUTTONSTYLE_ASSET,
 		TAB_GUITOGGLESTYLE_ASSET,
+		TAB_GUISLIDERSTYLE_ASSET,
 		TAB_GUISCROLLBARSTYLE_ASSET,
 		TAB_GUITABSSTYLE_ASSET,
 		NUM_TABS
@@ -49,6 +50,7 @@ private:
 	gui::CVScrollLayout* CreateTab_GuiLabelStyle_Asset();
 	gui::CVScrollLayout* CreateTab_GuiButtonStyle_Asset();
 	gui::CVScrollLayout* CreateTab_GuiToggleStyle_Asset();
+	gui::CVScrollLayout* CreateTab_GuiSliderStyle_Asset();
 	gui::CVScrollLayout* CreateTab_GuiScrollbarStyle_Asset();
 	gui::CVScrollLayout* CreateTab_GuiTabsStyle_Asset();
 

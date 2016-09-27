@@ -14,13 +14,15 @@ namespace menu
 CMenu::CMenu(CKernel* pKernel) :
 	gui::CContext(pKernel)
 {
-	m_IconScale = 0.75f;
+	m_ImageScale = 0.75f;
 	
-	m_ScrollbarStyle = CAssetPath::GuiScrollbarStyleSystem(GUISCROLLBARSTYLE_EDITOR);
 	m_LabelStyle = CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_MENU_TEXT);
 	m_LabelHeaderStyle = CAssetPath::GuiLabelStyleSystem(GUILABELSTYLE_MENU_HEADER);
 	m_ButtonStyle = CAssetPath::GuiButtonStyleSystem(GUIBUTTONSTYLE_MENU_DEFAULT);
+	m_TextEntryStyle = CAssetPath::GuiButtonStyleSystem(GUIBUTTONSTYLE_MENU_DEFAULT);
 	m_ToggleStyle = CAssetPath::GuiToggleStyleSystem(GUITOGGLESTYLE_MENU_CHECKBOX);
+	m_SliderStyle = CAssetPath::GuiSliderStyleSystem(GUISLIDERSTYLE_MENU_DEFAULT);
+	m_ScrollbarStyle = CAssetPath::GuiScrollbarStyleSystem(GUISCROLLBARSTYLE_MENU);
 }
 
 

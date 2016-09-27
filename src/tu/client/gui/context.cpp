@@ -26,7 +26,7 @@ CContext::CContext(CKernel* pKernel) :
 	CKernel::CGuest(pKernel),
 	m_pMainWidget(0),
 	m_GuiScale(1.0f),
-	m_IconScale(1.0f),
+	m_ImageScale(1.0f),
 	m_LocalizationUpdated(false)
 {
 	Localization()->AddListener(this);
